@@ -9,9 +9,9 @@ import { cn } from "@/lib/cn";
 import { finishIntro, hasSeenIntro, useIntroDone } from "@/lib/intro";
 
 const YEAR_MS = 46;
-const L1_HOLD_MS = 380;
-const UCL_HOLD_MS = 1600;
-const END_HOLD_MS = 500;
+const L1_HOLD_MS = 240;
+const UCL_HOLD_MS = 900;
+const END_HOLD_MS = 400;
 
 const noopSubscribe = () => () => {};
 const useCurrentYear = () =>
@@ -44,8 +44,6 @@ function buildTimeline(endYear: number) {
   return { steps, total: t - YEAR_MS + END_HOLD_MS };
 }
 
-const ordinal = (n: number) => (n === 1 ? "1er" : `${n}e`);
-
 export function IntroLoader() {
   const endYear = useCurrentYear();
   const introDone = useIntroDone();
@@ -59,12 +57,6 @@ export function IntroLoader() {
   const barRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef(0);
 
-  const current = timeline.steps.find((s) => s.year === year) ?? timeline.steps[0];
-  const holding = year === current.year && (current.l1 || current.ucl);
-  const [hold, setHold] = useState(false);
-  const showEvent = holding && hold;
-
-  const l1Count = (ligue1Years as readonly number[]).filter((y) => y <= year && y <= endYear).length;
   const uclCount = (championsLeagueYears as readonly number[]).filter((y) => y <= year && y <= endYear).length;
 
   const startExit = useCallback(() => {
@@ -84,7 +76,6 @@ export function IntroLoader() {
     let idx = 0;
     let lastYear = START_YEAR;
     let lastPhoto = 0;
-    let lastHold = false;
 
     const tick = (now: number) => {
       const t = now - t0;
@@ -103,11 +94,6 @@ export function IntroLoader() {
       if (ph !== lastPhoto) {
         lastPhoto = ph;
         setPhoto(ph);
-      }
-      const isHold = (s.l1 || s.ucl) && t < s.leave;
-      if (isHold !== lastHold) {
-        lastHold = isHold;
-        setHold(isHold);
       }
       if (t >= total) {
         startExit();
@@ -130,15 +116,12 @@ export function IntroLoader() {
 
   if (gone || (introDone && !exiting)) return null;
 
-  const ucl = showEvent && current.ucl;
-  const l1Only = showEvent && current.l1 && !current.ucl;
+  const trophies = timeline.steps.filter((st) => (st.l1 || st.ucl) && st.year <= year);
   const gold = uclCount > 0;
 
   return (
     <div className="intro-root" role="status" aria-live="polite" aria-label="Chargement du site">
-      <div
-        className={cn("intro-loader fixed inset-0 z-[100] overflow-hidden bg-night-950 text-white", exiting && "is-exiting")}
-      >
+      <div className={cn("intro-loader fixed inset-0 z-[100] overflow-hidden bg-night-950 text-white", exiting && "is-exiting")}>
         <div aria-hidden className="absolute inset-0">
           {loaderPhotos.map((src, i) =>
             Math.abs(i - photo) <= 1 ? (
@@ -150,127 +133,84 @@ export function IntroLoader() {
                 sizes="100vw"
                 priority={i === 0}
                 className={cn(
-                  "object-cover transition-[opacity,transform] duration-[900ms,4000ms] ease-out",
-                  i === photo ? "scale-[1.08] opacity-[0.42]" : "scale-100 opacity-0",
+                  "object-cover transition-[opacity,transform] duration-[900ms,4500ms] ease-out",
+                  i === photo ? "scale-[1.06] opacity-100" : "scale-100 opacity-0",
                 )}
               />
             ) : null,
           )}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_45%,rgba(3,9,25,0.15)_0%,rgba(3,9,25,0.85)_75%),linear-gradient(180deg,rgba(3,9,25,0.7),rgba(3,9,25,0.35)_40%,rgba(3,9,25,0.9))]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,9,25,0.55)_0%,transparent_45%),linear-gradient(180deg,rgba(3,9,25,0.35)_0%,transparent_22%,transparent_45%,rgba(3,9,25,0.88)_100%)]" />
         </div>
 
-        {ucl && <div key={`g${year}`} aria-hidden className="intro-gold-flash absolute inset-0" />}
-        {l1Only && <div key={`r${year}`} aria-hidden className="intro-red-flash absolute inset-0" />}
-        {ucl && <GoldConfetti key={`c${year}`} />}
-
-        <div className="relative z-10 flex h-full flex-col px-[var(--gutter)] pb-8 pt-6 md:pb-12 md:pt-8">
+        <div className="relative z-10 flex h-full flex-col justify-between [text-shadow:0_1px_10px_rgba(3,9,25,0.85)] px-[var(--gutter)] pb-7 pt-6 md:pb-10 md:pt-8">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Image src="/logos/dames-du-parc-logo.webp" alt="" width={44} height={44} priority className="size-11 rounded-full" />
-              <span className="hidden font-body text-[12px] font-semibold uppercase tracking-[0.18em] text-white/90 sm:block">Les Dames du Parc</span>
-            </div>
+            <Image src="/logos/dames-du-parc-logo.webp" alt="Les Dames du Parc" width={40} height={40} priority className="size-10 rounded-full" />
             <button
               type="button"
               onClick={startExit}
-              className="min-h-11 rounded-full border border-white/30 px-5 font-body text-[11.5px] font-semibold uppercase tracking-[0.14em] text-white/90 transition-colors hover:border-white hover:bg-white/10 hover:text-white"
+              className="min-h-11 px-2 font-body text-[11px] font-medium uppercase tracking-[0.2em] text-white/70 transition-colors hover:text-white"
             >
               Passer
             </button>
           </div>
 
-          <div className="flex flex-1 flex-col items-center justify-center text-center">
-            <p className="font-body text-[11px] font-semibold uppercase tracking-[0.34em] text-white/70 md:text-[12px]">Paris depuis {START_YEAR}</p>
-            <div
-              className={cn(
-                "mt-2 font-display text-[clamp(110px,24vw,280px)] font-bold leading-[0.9] tracking-[0.02em] tabular-nums transition-[color,text-shadow] duration-300",
-                ucl ? "text-gold" : "text-white",
-                l1Only && "[text-shadow:0_0_60px_rgba(240,22,52,0.65)]",
-              )}
-              aria-label={`Année ${year}`}
-            >
-              {year}
+          <div className="mx-auto w-full max-w-[1240px]">
+            <ul aria-label="Titres du Paris Saint-Germain" className="mb-5 flex flex-col gap-1.5 md:mb-6">
+              {trophies.map((t) => {
+                const isNow = t.year === year;
+                return (
+                  <li
+                    key={t.year}
+                    className={cn(
+                      "intro-row flex items-center gap-3 font-body text-[11px] uppercase tracking-[0.16em] transition-opacity duration-500 md:text-[12px]",
+                      t.ucl ? "text-[#f5d16b]" : "text-white",
+                      isNow ? "opacity-100" : "opacity-60",
+                    )}
+                  >
+                    <span className="w-10 font-display text-[15px] font-semibold tracking-[0.08em] tabular-nums md:text-[17px]">{t.year}</span>
+                    <span aria-hidden className={cn("h-px w-6", t.ucl ? "bg-[#f5d16b]" : "bg-white/60")} />
+                    {t.l1 && <Star aria-hidden className={cn("size-3", t.ucl ? "text-[#f5d16b]" : "text-psg-red-bright")} fill="currentColor" strokeWidth={0} />}
+                    {t.ucl && <Trophy aria-hidden className="size-3.5" strokeWidth={2} />}
+                    <span>{t.ucl ? (t.l1 ? "Championnat · Ligue des champions" : "Ligue des champions") : "Championnat"}</span>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <div className="flex items-end justify-between gap-6">
+              <div className="font-display text-[clamp(44px,6vw,76px)] font-semibold leading-none tracking-[0.04em] tabular-nums" aria-label={`Année ${year}`}>
+                {year}
+              </div>
+              <p className={cn("hidden items-center gap-2 pb-1 font-body text-[10px] uppercase tracking-[0.2em] text-white/55 transition-opacity sm:flex", playing && "opacity-0")}>
+                <Volume2 aria-hidden className="size-3.5" />
+                Touchez pour le son
+              </p>
             </div>
 
-            <div className="mt-3 flex min-h-[86px] flex-col items-center justify-start md:min-h-[104px]">
-              {ucl && (
-                <div key={`u${year}`} className="intro-pop flex flex-col items-center gap-2">
-                  <span className="flex items-center gap-3 font-display text-[clamp(22px,4.6vw,46px)] font-semibold uppercase tracking-[0.14em] text-gold">
-                    <Trophy aria-hidden className="size-[1em] text-[#f5c542]" strokeWidth={1.8} />
-                    Champion d&rsquo;Europe
-                  </span>
-                  <span className="font-body text-[11.5px] font-semibold uppercase tracking-[0.24em] text-[#f7dc8e] md:text-[13px]">
-                    Ligue des champions {year}
-                    {current.l1 ? ` · Champion de France (${ordinal(l1Count)} titre)` : ""}
-                  </span>
-                </div>
-              )}
-              {l1Only && (
-                <div key={`l${year}`} className="intro-pop flex flex-col items-center gap-2">
-                  <span className="flex items-center gap-3 font-display text-[clamp(20px,3.8vw,38px)] font-semibold uppercase tracking-[0.14em] text-white">
-                    <Star aria-hidden className="size-[0.9em] text-psg-red-bright" fill="currentColor" strokeWidth={0} />
-                    Champion de France
-                  </span>
-                  <span className="font-body text-[11.5px] font-semibold uppercase tracking-[0.24em] text-white/75 md:text-[13px]">
-                    Saison {year - 1}-{String(year).slice(2)} · {ordinal(l1Count)} titre
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="mx-auto w-full max-w-[1120px]">
-            <div className="mb-3 flex items-end justify-between font-body text-[10px] uppercase tracking-[0.12em] text-white/75 md:text-[12px] md:tracking-[0.2em]">
-              <span className="flex items-center gap-2 whitespace-nowrap">
-                <Star aria-hidden className="size-3 text-psg-red-bright" fill="currentColor" strokeWidth={0} />
-                Championnats {l1Count}
-              </span>
-              <span className={cn("flex items-center gap-2 whitespace-nowrap transition-colors", uclCount > 0 ? "text-[#f5c542]" : "")}>
-                <Trophy aria-hidden className="size-3" strokeWidth={2} />
-                Ligues des champions {uclCount}
-              </span>
-            </div>
-
-            <div className="relative h-[6px] rounded-full bg-white/15">
+            <div className="relative mt-3 h-[2px] rounded-full bg-white/25">
               <div
                 ref={barRef}
                 style={{ transform: "scaleX(0)" }}
-                className={cn(
-                  "absolute inset-0 origin-left rounded-full",
-                  gold ? "bg-[linear-gradient(90deg,#d90f2c_0%,#f0a020_60%,#ffe28a_100%)] shadow-[0_0_22px_rgba(245,197,66,0.85)]" : "bg-psg-red shadow-[0_0_16px_rgba(240,22,52,0.7)]",
-                )}
+                className={cn("absolute inset-0 origin-left rounded-full", gold ? "bg-[linear-gradient(90deg,#fff,#f5d16b)]" : "bg-white")}
               />
               {timeline.steps
-                .filter((s) => s.l1 || s.ucl)
-                .map((s) => {
-                  const lit = year >= s.year;
-                  return (
-                    <span
-                      key={s.year}
-                      aria-hidden
-                      className={cn(
-                        "absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-[transform,background-color,box-shadow] duration-300",
-                        s.ucl ? "size-[13px]" : "size-[9px]",
-                        lit
-                          ? s.ucl
-                            ? "scale-110 bg-[#ffe28a] shadow-[0_0_14px_3px_rgba(245,197,66,0.9)]"
-                            : "bg-white shadow-[0_0_10px_2px_rgba(240,22,52,0.9)]"
-                          : "bg-white/30",
-                      )}
-                      style={{ left: `${s.progress * 100}%` }}
-                    />
-                  );
-                })}
+                .filter((st) => st.l1 || st.ucl)
+                .map((st) => (
+                  <span
+                    key={st.year}
+                    aria-hidden
+                    className={cn(
+                      "absolute top-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-300",
+                      year >= st.year ? (st.ucl ? "bg-[#f5d16b]" : "bg-psg-red-bright") : "bg-white/40",
+                    )}
+                    style={{ left: `${st.progress * 100}%` }}
+                  />
+                ))}
             </div>
-
-            <div className="mt-3 flex items-center justify-between font-display text-[18px] font-semibold tracking-[0.12em] text-white md:text-[22px]">
+            <div className="mt-2 flex justify-between font-body text-[10px] font-medium tracking-[0.2em] text-white/70">
               <span>{START_YEAR}</span>
               <span>{endYear}</span>
             </div>
-
-            <p className={cn("mt-4 flex items-center justify-center gap-2 font-body text-[11px] uppercase tracking-[0.2em] text-white/60 transition-opacity", playing && "opacity-0")}>
-              <Volume2 aria-hidden className="size-3.5" />
-              Touchez l&rsquo;écran pour activer le son
-            </p>
           </div>
         </div>
       </div>
@@ -281,27 +221,6 @@ export function IntroLoader() {
           <div aria-hidden className="intro-ring" />
         </>
       )}
-    </div>
-  );
-}
-
-function GoldConfetti() {
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 z-[5] overflow-hidden">
-      {Array.from({ length: 56 }, (_, i) => {
-        const left = (i * 37 + 11) % 100;
-        const delay = ((i * 53) % 100) / 100;
-        const size = 4 + ((i * 7) % 6);
-        const dur = 1.5 + ((i * 13) % 12) / 10;
-        const hue = ["#fff3c4", "#f5c542", "#e0a71b", "#ffe28a"][i % 4];
-        return (
-          <span
-            key={i}
-            className="intro-confetti"
-            style={{ left: `${left}%`, width: size, height: size * 1.8, background: hue, animationDelay: `${delay}s`, animationDuration: `${dur}s` }}
-          />
-        );
-      })}
     </div>
   );
 }

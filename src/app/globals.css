@@ -111,45 +111,10 @@ body {
 /* Loader d'entrée : 1970 → année en cours */
 html[data-intro-seen] .intro-root { display: none; }
 
-.text-gold {
-  background: linear-gradient(180deg, #fff6d0 0%, #f7d774 35%, #e2a41b 70%, #b7791f 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 28px rgba(245, 197, 66, 0.55));
-}
-
-.intro-gold-flash {
-  background: radial-gradient(ellipse at 50% 42%, rgba(255, 226, 138, 0.85) 0%, rgba(230, 165, 30, 0.55) 35%, rgba(120, 70, 5, 0.25) 70%, transparent 100%);
-  animation: intro-flash 1.6s ease-out both;
-}
-.intro-red-flash {
-  background: radial-gradient(ellipse at 50% 45%, rgba(217, 15, 44, 0.5) 0%, rgba(217, 15, 44, 0.12) 55%, transparent 80%);
-  animation: intro-flash 0.5s ease-out both;
-}
-@keyframes intro-flash {
-  0% { opacity: 0; }
-  12% { opacity: 1; }
-  100% { opacity: 0.25; }
-}
-.intro-pop { animation: intro-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
-@keyframes intro-pop {
-  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.94); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-}
-.intro-confetti {
-  position: absolute;
-  top: -8%;
-  border-radius: 1px;
-  opacity: 0;
-  animation-name: intro-confetti;
-  animation-timing-function: cubic-bezier(0.3, 0.1, 0.5, 1);
-  animation-fill-mode: both;
-}
-@keyframes intro-confetti {
-  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg); }
-  10% { opacity: 1; }
-  100% { opacity: 0.9; transform: translate3d(24px, 112vh, 0) rotate(540deg); }
+.intro-row { animation: intro-row 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes intro-row {
+  from { opacity: 0; transform: translate3d(-10px, 6px, 0); }
+  to { transform: translate3d(0, 0, 0); }
 }
 
 /* Transition dorée : flash d'or puis iris qui révèle le site */
