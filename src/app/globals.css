@@ -232,3 +232,16 @@ html[data-intro-seen] .intro-root { display: none; }
   .cursor-ring { display: none; }
   .scribble path { stroke-dashoffset: 0; }
 }
+
+/* Carte membre 3D */
+.card-radius { border-radius: 3.5% / 5.6%; }
+.card3d-face,
+.card3d-face * { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.card3d-spec {
+  background: radial-gradient(circle at var(--lx, 50%) var(--ly, 40%), rgba(255, 255, 255, var(--li, 0.1)) 0%, rgba(255, 255, 255, 0.03) 32%, transparent 55%);
+  mix-blend-mode: screen;
+}
+.card3d-spec-back {
+  background: radial-gradient(circle at var(--lxb, 50%) var(--ly, 40%), rgba(255, 255, 255, var(--li, 0.1)) 0%, rgba(255, 255, 255, 0.03) 32%, transparent 55%);
+  mix-blend-mode: screen;
+}

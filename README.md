@@ -55,6 +55,13 @@ Les 61 titres du PSG (championnats, coupes, supercoupes, titres internationaux) 
 années, sur fond de photos en fondu enchaîné, puis une transition dorée mène au site. Les titres viennent de
 `src/data/palmares.ts` (source : psg.fr/palmares) : **à mettre à jour à chaque nouveau titre**. Le loader n'est joué qu'une fois par session et ignoré avec `prefers-reduced-motion`.
 
+## Carte membre 3D (`/abonnement`)
+
+`src/components/membership/MembershipCard.tsx` : carte en CSS 3D (faces recto/verso, épaisseur en calques, profondeur par `translateZ`)
+pilotée par une boucle `requestAnimationFrame` avec interpolation : inclinaison suivant le curseur (±10° / ±15°), effet magnétique
+au survol, reflet spéculaire opposé au mouvement, ombre dynamique, flottement permanent et retour progressif. Cliquer retourne la
+carte. Les logos de la carte (`public/logos/card-logo-*.webp`) sont découpés des rendus de référence (`scripts/extract-card-assets.py`).
+
 ## Musique de fond
 
 `public/audio/tous-ensemble-on-chantera.mp3` (boucle) démarre dès que le navigateur l'autorise, sinon au premier clic / touche.
