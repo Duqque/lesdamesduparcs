@@ -36,7 +36,7 @@ export function Manifesto() {
       </h2>
 
       <p className="sr-only">{manifesto.text}</p>
-      <p aria-hidden className="mx-auto mt-10 max-w-[1000px] font-serif text-[clamp(24px,3.6vw,52px)] uppercase leading-[1.2] tracking-[0.005em] text-white md:mt-14">
+      <p aria-hidden className="mx-auto mt-10 max-w-[92vw] font-serif text-[clamp(20px,5.4vw,28px)] uppercase leading-[1.28] tracking-[0.01em] text-white md:mt-14 md:max-w-[30vw] md:text-[clamp(15px,1.5vw,26px)]">
         {typed}
         {typingNow && <span className="ml-1 inline-block h-[0.9em] w-[3px] translate-y-[0.1em] animate-pulse bg-psg-red-bright" />}
         <span className="text-transparent">{rest}</span>
