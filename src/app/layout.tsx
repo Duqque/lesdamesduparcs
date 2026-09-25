@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Barlow_Condensed, Caveat, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/layout/Providers";
-import { IntroSplash } from "@/components/layout/IntroSplash";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/footer/Footer";
+import { INTRO_STORAGE_KEY } from "@/lib/intro-key";
 
 const barlow = Barlow_Condensed({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-barlow", display: "swap" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -33,7 +33,17 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${barlow.variable} ${inter.variable} ${caveat.variable}`}>
+    <html lang="fr" className={`${barlow.variable} ${inter.variable} ${caveat.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(sessionStorage.getItem("${INTRO_STORAGE_KEY}")==="1")document.documentElement.dataset.introSeen=""}catch(e){}`,
+          }}
+        />
+        <noscript>
+          <style>{".intro-root{display:none}"}</style>
+        </noscript>
+      </head>
       <body className="min-h-svh">
         <a
           href="#contenu"
@@ -41,7 +51,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Aller au contenu
         </a>
-        <IntroSplash />
         <Providers>
           <Header />
           <div id="contenu">{children}</div>

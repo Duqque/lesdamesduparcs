@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@property --iris {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 @theme inline {
   --color-night-950: #030919;
   --color-night-900: #061226;
@@ -102,26 +108,89 @@ body {
   background: radial-gradient(ellipse at 60% 45%, transparent 45%, rgba(3, 9, 25, 0.7) 100%);
 }
 
-/* Intro : logo centré <1 s, purement CSS */
-.intro-splash {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: grid;
-  place-items: center;
-  background: var(--color-night-950);
-  animation: intro-out 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.55s forwards;
+/* Loader d'entrée : 1970 → année en cours */
+html[data-intro-seen] .intro-root { display: none; }
+
+.text-gold {
+  background: linear-gradient(180deg, #fff6d0 0%, #f7d774 35%, #e2a41b 70%, #b7791f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 28px rgba(245, 197, 66, 0.55));
+}
+
+.intro-gold-flash {
+  background: radial-gradient(ellipse at 50% 42%, rgba(255, 226, 138, 0.85) 0%, rgba(230, 165, 30, 0.55) 35%, rgba(120, 70, 5, 0.25) 70%, transparent 100%);
+  animation: intro-flash 1.6s ease-out both;
+}
+.intro-red-flash {
+  background: radial-gradient(ellipse at 50% 45%, rgba(217, 15, 44, 0.5) 0%, rgba(217, 15, 44, 0.12) 55%, transparent 80%);
+  animation: intro-flash 0.5s ease-out both;
+}
+@keyframes intro-flash {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  100% { opacity: 0.25; }
+}
+.intro-pop { animation: intro-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes intro-pop {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.94); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+.intro-confetti {
+  position: absolute;
+  top: -8%;
+  border-radius: 1px;
+  opacity: 0;
+  animation-name: intro-confetti;
+  animation-timing-function: cubic-bezier(0.3, 0.1, 0.5, 1);
+  animation-fill-mode: both;
+}
+@keyframes intro-confetti {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg); }
+  10% { opacity: 1; }
+  100% { opacity: 0.9; transform: translate3d(24px, 112vh, 0) rotate(540deg); }
+}
+
+/* Transition dorée : flash d'or puis iris qui révèle le site */
+.intro-loader {
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent var(--iris), #000 calc(var(--iris) + 1px));
+  mask-image: radial-gradient(circle at 50% 50%, transparent var(--iris), #000 calc(var(--iris) + 1px));
+}
+.intro-loader.is-exiting {
+  animation: intro-iris 1.35s cubic-bezier(0.65, 0, 0.25, 1) 0.5s both;
+}
+@keyframes intro-iris {
+  from { --iris: 0px; }
+  to { --iris: 76vmax; }
+}
+.intro-gold-wash {
+  background: radial-gradient(circle at 50% 50%, #fff1b8 0%, #f5c542 38%, #c58a12 100%);
+  opacity: 0;
+  animation: intro-wash 0.5s ease-out both, intro-wash-out 0.6s ease-in 0.9s both;
   pointer-events: none;
 }
-.intro-splash img {
-  animation: intro-logo 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+@keyframes intro-wash { to { opacity: 1; } }
+@keyframes intro-wash-out { to { opacity: 0; } }
+.intro-ring {
+  position: fixed;
+  z-index: 102;
+  top: 50%;
+  left: 50%;
+  width: 152vmax;
+  height: 152vmax;
+  margin: -76vmax 0 0 -76vmax;
+  border-radius: 999px;
+  border: 8px solid #ffe28a;
+  box-shadow: 0 0 70px 14px rgba(245, 197, 66, 0.75), inset 0 0 90px 10px rgba(245, 197, 66, 0.55);
+  pointer-events: none;
+  transform: scale(0);
+  animation: intro-ring 1.35s cubic-bezier(0.65, 0, 0.25, 1) 0.5s both;
 }
-@keyframes intro-out {
-  to { opacity: 0; visibility: hidden; }
-}
-@keyframes intro-logo {
-  from { opacity: 0; transform: scale(0.86); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes intro-ring {
+  0% { transform: scale(0); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
 }
 
 /* Tracé rouge manuscrit : se dessine à l'apparition */
@@ -193,7 +262,7 @@ body {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-  .intro-splash { display: none; }
+  .intro-root { display: none; }
   .grain::after { animation: none; }
   .cursor-ring { display: none; }
   .scribble path { stroke-dashoffset: 0; }

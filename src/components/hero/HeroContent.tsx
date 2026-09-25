@@ -3,10 +3,11 @@
 import { motion, type Variants } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Scribble } from "@/components/ui/Scribble";
+import { useIntroDone } from "@/lib/intro";
 
 const container: Variants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.13, delayChildren: 0.6 } },
+  show: { transition: { staggerChildren: 0.13, delayChildren: 0.35 } },
 };
 
 const item: Variants = {
@@ -15,12 +16,13 @@ const item: Variants = {
 };
 
 export function HeroContent() {
+  const introDone = useIntroDone();
   return (
     <motion.div
       className="relative z-10 flex w-full max-w-[640px] flex-col px-[var(--gutter)] pb-9 pt-[120px] xl:pb-0 xl:pt-[clamp(140px,10.4vw,164px)]"
       variants={container}
       initial="hidden"
-      animate="show"
+      animate={introDone ? "show" : "hidden"}
     >
       <h1 id="hero-title" className="flex flex-col">
         <motion.span

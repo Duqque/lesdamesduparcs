@@ -3,9 +3,11 @@
 import Image from "next/image";
 import { motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
+import { useIntroDone } from "@/lib/intro";
 
 export function HeroBackdrop() {
   const reduce = useReducedMotion();
+  const introDone = useIntroDone();
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
   const x = useSpring(mx, { stiffness: 55, damping: 18, mass: 0.6 });
@@ -27,11 +29,11 @@ export function HeroBackdrop() {
         className="absolute inset-[-4%]"
         style={{ x, y }}
         initial={reduce ? false : { scale: 1.16, opacity: 0 }}
-        animate={{ scale: 1.04, opacity: 1 }}
-        transition={{ duration: 1.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        animate={introDone ? { scale: 1.04, opacity: 1 } : { scale: 1.16, opacity: 0 }}
+        transition={{ duration: 1.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
       >
         <Image
-          src="/images/hero-supportrices-parc.webp"
+          src="/images/fans-drapeau-fumigene.webp"
           alt=""
           fill
           priority
