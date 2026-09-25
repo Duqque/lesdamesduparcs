@@ -1,8 +1,8 @@
-import { events } from "@/data/events";
+import { getUpcomingEvents } from "@/lib/server/events";
 import { buildIcs, icsHeaders } from "@/lib/ics";
 
-export const dynamic = "force-static";
+export const revalidate = 3600;
 
-export function GET() {
-  return new Response(buildIcs(events), { headers: icsHeaders("dames-du-parc-agenda.ics") });
+export async function GET() {
+  return new Response(buildIcs(await getUpcomingEvents()), { headers: icsHeaders("dames-du-parc-agenda.ics") });
 }

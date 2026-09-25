@@ -15,7 +15,7 @@ const item: Variants = {
   show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] } },
 };
 
-export function HeroContent() {
+export function HeroContent({ title = "Les Dames du Parc", subtitle, cta = "Rejoindre le groupe" }: { title?: string; subtitle?: string; cta?: string }) {
   const introDone = useIntroDone();
   return (
     <motion.div
@@ -29,7 +29,7 @@ export function HeroContent() {
           variants={item}
           className="font-display text-[clamp(36px,3.2vw,54px)] font-semibold uppercase leading-none tracking-[0.085em] text-white"
         >
-          Les Dames du Parc
+          {title}
         </motion.span>
         <motion.span
           variants={item}
@@ -43,13 +43,17 @@ export function HeroContent() {
         </motion.span>
       </h1>
       <motion.p variants={item} className="mt-8 max-w-[28rem] font-body text-[15px] leading-[1.65] text-white/90 md:text-[16px] xl:mt-9 xl:text-[16px]">
-        Supporter, vibrer, partager, s&rsquo;engager.
-        <br className="hidden sm:block" /> Les Dames du Parc, c&rsquo;est la passion du&nbsp;PSG
-        <br className="hidden sm:block" /> au&nbsp;féminin, toute l&rsquo;année, au Parc et partout.
+        {subtitle ? subtitle : (
+          <>
+            Supporter, vibrer, partager, s&rsquo;engager.
+            <br className="hidden sm:block" /> Les Dames du Parc, c&rsquo;est la passion du&nbsp;PSG
+            <br className="hidden sm:block" /> au&nbsp;féminin, toute l&rsquo;année, au Parc et partout.
+          </>
+        )}
       </motion.p>
       <motion.div variants={item} className="mt-9 xl:mt-12">
-        <Button size="lg" href="/communaute" className="w-full sm:w-auto sm:min-w-[232px]">
-          Rejoindre le groupe
+        <Button size="lg" href="/rejoindre-le-groupe" className="w-full sm:w-auto sm:min-w-[232px]">
+          {cta}
         </Button>
       </motion.div>
     </motion.div>

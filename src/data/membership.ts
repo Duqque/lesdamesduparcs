@@ -3,15 +3,16 @@ export const membership = {
   unit: "saison",
   season: "2026 / 2027",
   joinHref: "/rejoindre-le-groupe/inscription",
+  infoHref: "/rejoindre-le-groupe/adhesion",
   loginHref: "/profil",
 } as const;
 
-/** Exemples illustratifs, à remplacer par les vraies offres partenaires. */
+/** Avantages de l'adhésion (proposition 2026-2027). */
 export const benefits = [
-  { id: "discounts", kicker: "Réductions", big: "−10 %", sub: "chez nos partenaires" },
-  { id: "offers", kicker: "Offres membres", big: "Exclusives", sub: "toute la saison" },
-  { id: "partners", kicker: "Avantages partenaires", big: "Privilèges", sub: "bars, boutiques, sorties" },
-  { id: "experiences", kicker: "Expériences", big: "Accès privé", sub: "soirées & coulisses" },
+  { id: "events", kicker: "Événements", big: "Accès membres", sub: "soirées, afterworks, matchs" },
+  { id: "priority", kicker: "Inscriptions", big: "Priorité", sub: "avant l’ouverture à toutes" },
+  { id: "card", kicker: "Carte", big: "Virtuelle", sub: "avec son QR code" },
+  { id: "private", kicker: "Espace privé", big: "Entre membres", sub: "annonces et échanges" },
 ] as const;
 
 export const agenda = [
@@ -21,8 +22,9 @@ export const agenda = [
   { id: "a4", date: "2026-11-22", tag: "Membres", title: "Rencontre des Dames du Parc" },
 ] as const;
 
-export const newsletters = [
-  "Édition 12 · Retour sur la soirée des Dames",
-  "Édition 11 · Interview : une membre, une histoire",
-  "Édition 10 · Cap sur Marseille",
+/** Aperçu de l'espace privé des membres. */
+export const privateSpace = [
+  { kicker: "Annonces", text: "Ouverture des inscriptions, actualités membres" },
+  { kicker: "Événements", text: "Infos pratiques et rappels avant chaque rendez-vous" },
+  { kicker: "Discussions", text: "Réactions aux matchs, vie de la communauté" },
 ] as const;

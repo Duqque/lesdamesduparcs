@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CreditCard, FileText, Gift, LogIn, LogOut, Receipt, User as UserIcon, type LucideIcon } from "lucide-react";
+import { ArrowRight, CreditCard, FileText, Gift, LogIn, LogOut, Receipt, ShieldCheck, User as UserIcon, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/Button";
 
-const icons: Record<string, LucideIcon> = { card: CreditCard, attestation: FileText, transactions: Receipt, benefits: Gift };
+const icons: Record<string, LucideIcon> = { admin: ShieldCheck, card: CreditCard, attestation: FileText, transactions: Receipt, benefits: Gift };
 
 interface Props {
   menu: ReadonlyArray<{ id: string; label: string; href: string }>;
@@ -13,8 +13,9 @@ interface Props {
 }
 
 /** Contenu de l'espace membre, affiché dans la fenêtre ouverte par l'icône de profil du header. */
-export function MemberPanel({ menu, onNavigate }: Props) {
+export function MemberPanel({ menu: memberMenu, onNavigate }: Props) {
   const { session, logout } = useAuth();
+  const menu = session.status === "admin" ? [{ id: "admin", label: "Ouvrir l’administration", href: "/admin" }] : memberMenu;
   const shell =
     "relative overflow-hidden rounded-[14px] border border-white/[0.12] bg-night-900/95 px-6 pb-6 pt-7 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.95)] backdrop-blur-xl before:absolute before:inset-y-0 before:left-0 before:w-px before:bg-[linear-gradient(180deg,var(--color-psg-red),transparent_55%)]";
 
@@ -45,8 +46,8 @@ export function MemberPanel({ menu, onNavigate }: Props) {
           })}
         </ul>
         <div className="mt-3 grid grid-cols-2 gap-2.5">
-          <Button href="/profil" size="sm" variant="outline" arrow={false}>
-            Mon profil
+          <Button href={session.status === "admin" ? "/admin/compte" : "/profil"} size="sm" variant="outline" arrow={false}>
+            {session.status === "admin" ? "Mon compte" : "Mon profil"}
           </Button>
           <button
             type="button"

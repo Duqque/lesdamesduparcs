@@ -1,0 +1,19 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
+import { PageViewTracker } from "./PageViewTracker";
+
+/** Habillage du site public (en-tête, pied de page) : absent du back-office. */
+export function SiteFrame({ header, footer, children }: { header: ReactNode; footer: ReactNode; children: ReactNode }) {
+  const admin = usePathname().startsWith("/admin");
+  if (admin) return <>{children}</>;
+  return (
+    <>
+      <PageViewTracker />
+      {header}
+      <div id="contenu">{children}</div>
+      {footer}
+    </>
+  );
+}

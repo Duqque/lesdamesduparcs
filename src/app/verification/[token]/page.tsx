@@ -3,8 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BadgeCheck, Download, FileText, ShieldAlert } from "lucide-react";
-import { association } from "@/data/association";
-import { getSession } from "@/lib/server/session";
+import { settings } from "@/lib/server/admin-store";
+import { getAdmin } from "@/lib/server/admin-auth";
 import { getMemberByToken, toPublic } from "@/lib/server/store";
 import { guardianRelations, isMinor } from "@/lib/members";
 
@@ -24,10 +24,10 @@ function Row({ k, children }: { k: string; children: React.ReactNode }) {
 /** Page ouverte par le QR code de la carte : preuve d'adhésion, comme une licence. Détails complets pour les administrateurs connectés. */
 export default async function VerificationPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const [stored, session] = await Promise.all([getMemberByToken(token), getSession()]);
+  const [stored, adminCtx, { association }] = await Promise.all([getMemberByToken(token), getAdmin(), settings.get()]);
   if (!stored) notFound();
   const m = toPublic(stored);
-  const admin = session?.role === "admin";
+  const admin = Boolean(adminCtx?.can("members.pii"));
   const valid = m.validUntil >= new Date().toISOString().slice(0, 10);
   const minor = isMinor(m.birthDate, m.joinedAt.slice(0, 10));
 
@@ -99,7 +99,7 @@ export default async function VerificationPage({ params }: { params: Promise<{ t
       ) : (
         <p className="mt-8 text-mist t-small">
           Les informations personnelles complètes et les pièces du dossier sont réservées aux administrateurs de l&rsquo;association.{" "}
-          <Link href="/connexion" className="text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">Connexion administrateur</Link>
+          <Link href="/admin/connexion" className="text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">Connexion administrateur</Link>
         </p>
       )}
 

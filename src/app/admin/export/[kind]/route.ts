@@ -1,0 +1,100 @@
+import { NextResponse } from "next/server";
+import { eur, fmtDate, fmtDateTime } from "@/lib/admin/format";
+import { pick } from "@/lib/admin/params";
+import { audit, getAdmin } from "@/lib/server/admin-auth";
+import { filterMembers, loadMemberRows, type MemberFilters } from "@/lib/server/admin-data";
+import { TX_STATUS_LABEL, getTransactions, type Tx } from "@/lib/server/business";
+import { getAllEventsAdmin } from "@/lib/server/events";
+import { csvResponse, pdfResponse, toCsv, toPdf, type Col } from "@/lib/server/export";
+import { listAllRegistrations } from "@/lib/server/store";
+import type { Registration } from "@/lib/registration";
+
+const MEMBER_KEYS = ["q", "vue", "plan", "statut", "paiement", "ville", "age", "du", "au", "expDu", "expAu", "mineure", "tri"] as const;
+const STATUS = { active: "Active", expired: "Expirée", suspended: "Suspendue", anonymized: "Anonymisée" } as const;
+const REG_STATUS = { confirmed: "Confirmée", paid: "Payée", awaiting_payment: "Paiement en attente", waitlist: "Liste d'attente", cancelled: "Annulée", refunded: "Remboursée" } as const;
+
+async function respond<T>(format: string, name: string, title: string, subtitle: string, rows: T[], cols: Col<T>[]) {
+  if (format === "pdf") return pdfResponse(name, await toPdf(title, subtitle, rows, cols));
+  return csvResponse(name, toCsv(rows, cols));
+}
+
+/** Exports CSV / PDF : ils appliquent les filtres reçus dans l'adresse, et sont réservés aux rôles autorisés. */
+export async function GET(req: Request, ctx: { params: Promise<{ kind: string }> }) {
+  const admin = await getAdmin();
+  if (!admin) return NextResponse.redirect(new URL("/admin/connexion", req.url));
+  const { kind } = await ctx.params;
+  const url = new URL(req.url);
+  const format = url.searchParams.get("format") === "pdf" ? "pdf" : "csv";
+  const stamp = new Date().toISOString().slice(0, 10);
+  const deny = () => new Response("Accès refusé.", { status: 403 });
+
+  if (kind === "adherentes") {
+    if (!admin.can("members.export")) return deny();
+    const f = pick(Object.fromEntries(url.searchParams), MEMBER_KEYS) as MemberFilters;
+    const rows = filterMembers(await loadMemberRows(), f).filter((r) => r.status !== "anonymized");
+    const pii = admin.can("members.pii");
+    const fin = admin.can("finance.view");
+    const cols: Col<(typeof rows)[number]>[] = [
+      { label: "N° membre", value: (r) => r.member.memberNumber, w: 1.6 },
+      { label: "Nom", value: (r) => r.member.lastName },
+      { label: "Prénom", value: (r) => r.member.firstName },
+      { label: "E-mail", value: (r) => r.member.email, w: 2 },
+      { label: "Téléphone", value: (r) => r.member.phone },
+      ...(pii ? [{ label: "Naissance", value: (r: (typeof rows)[number]) => fmtDate(r.member.birthDate) }, { label: "Ville", value: (r: (typeof rows)[number]) => r.member.address.city }, { label: "Code postal", value: (r: (typeof rows)[number]) => r.member.address.postalCode }] : []),
+      { label: "Formule", value: (r) => r.planName },
+      { label: "Statut", value: (r) => STATUS[r.status] },
+      ...(fin ? [{ label: "Paiement", value: (r: (typeof rows)[number]) => (r.payment ? TX_STATUS_LABEL[r.payment] : "") }] : []),
+      { label: "Adhésion", value: (r) => fmtDate(r.joinedAt) },
+      { label: "Expiration", value: (r) => fmtDate(r.expiresAt) },
+    ];
+    await audit(admin, "export", "adhérentes", `Export ${format.toUpperCase()} de ${rows.length} adhérente(s)`);
+    return respond(format, `adherentes-${stamp}`, "Adhérentes", `${rows.length} adhérente(s) · export du ${fmtDate(new Date().toISOString())}`, rows, cols);
+  }
+
+  if (kind === "transactions") {
+    if (!admin.can("finance.export")) return deny();
+    const statut = url.searchParams.get("statut");
+    const type = url.searchParams.get("type");
+    const q = url.searchParams.get("q")?.toLowerCase();
+    const du = url.searchParams.get("du");
+    const au = url.searchParams.get("au");
+    const rows = (await getTransactions()).filter((t) => (!statut || t.status === statut) && (!type || t.type === type) && (!du || t.at.slice(0, 10) >= du) && (!au || t.at.slice(0, 10) <= au) && (!q || [t.name, t.email, t.label, t.reference].some((v) => v?.toLowerCase().includes(q))));
+    const cols: Col<Tx>[] = [
+      { label: "Date", value: (t) => fmtDateTime(t.at) },
+      { label: "Nom", value: (t) => t.name, w: 1.5 },
+      { label: "Type", value: (t) => t.type },
+      { label: "Objet", value: (t) => t.label, w: 2.5 },
+      { label: "Montant", value: (t) => eur(t.amountCents) },
+      { label: "Méthode", value: (t) => t.method },
+      { label: "Statut", value: (t) => TX_STATUS_LABEL[t.status] },
+      { label: "Référence", value: (t) => t.reference },
+    ];
+    await audit(admin, "export", "transactions", `Export ${format.toUpperCase()} de ${rows.length} transaction(s)`);
+    return respond(format, `transactions-${stamp}`, "Transactions", `${rows.length} transaction(s) · export du ${fmtDate(new Date().toISOString())}`, rows, cols);
+  }
+
+  if (kind === "inscriptions" || kind === "presences") {
+    if (!admin.can("events.attendance")) return deny();
+    const eventId = url.searchParams.get("evenement");
+    const events = await getAllEventsAdmin();
+    let rows = await listAllRegistrations();
+    if (eventId) rows = rows.filter((r) => r.eventId === eventId);
+    const title = (id: string) => events.find((e) => e.id === id)?.title ?? id;
+    const fin = admin.can("finance.view");
+    const cols: Col<Registration>[] = [
+      { label: "Événement", value: (r) => title(r.eventId), w: 2 },
+      { label: "Nom", value: (r) => `${r.lastName} ${r.firstName}`, w: 1.5 },
+      { label: "E-mail", value: (r) => r.email, w: 2 },
+      { label: "Téléphone", value: (r) => r.phone },
+      { label: "Places", value: (r) => r.places },
+      { label: "Statut", value: (r) => REG_STATUS[r.status] },
+      ...(fin ? [{ label: "Montant", value: (r: Registration) => eur(r.amountCents) }] : []),
+      { label: "Inscription", value: (r) => fmtDate(r.createdAt) },
+      { label: "Présence", value: (r) => (r.attended === true ? "Présente" : r.attended === false ? "Absente" : "") },
+    ];
+    await audit(admin, "export", kind, `Export ${format.toUpperCase()} de ${rows.length} inscription(s)`);
+    return respond(format, `${kind}-${stamp}`, kind === "presences" ? "Présences" : "Inscriptions", `${rows.length} ligne(s) · export du ${fmtDate(new Date().toISOString())}`, rows, cols);
+  }
+
+  return new Response("Export inconnu.", { status: 404 });
+}

@@ -2,27 +2,23 @@ import type { Metadata, Viewport } from "next";
 import { Barlow } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/layout/Providers";
+import { SiteFrame } from "@/components/layout/SiteFrame";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/footer/Footer";
 import { INTRO_STORAGE_KEY } from "@/lib/intro-key";
+import { accentOverride, getNavConfig, siteMeta } from "@/lib/server/site";
 
 /** Une seule famille typographique sur tout le site : seules la graisse et la casse varient. */
 const barlow = Barlow({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: "--font-barlow", display: "swap" });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Les Dames du Parc : plus qu'un groupe, une famille",
-    template: "%s · Les Dames du Parc",
-  },
-  description:
-    "Les Dames du Parc, groupe de supportrices 100 % féminin du Paris Saint-Germain : passion, partage, féminité. Au Parc des Princes et partout.",
-  openGraph: {
-    title: "Les Dames du Parc",
-    description: "Plus qu'un groupe, une famille. Supportrices du Paris Saint-Germain.",
-    locale: "fr_FR",
-    type: "website",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await siteMeta();
+  return {
+    title: { default: `${site.title} : plus qu'un groupe, une famille`, template: `%s · ${site.title}` },
+    description: site.description || "Les Dames du Parc, groupe de supportrices 100 % féminin du Paris Saint-Germain : passion, partage, féminité. Au Parc des Princes et partout.",
+    openGraph: { title: site.title, description: "Plus qu'un groupe, une famille. Supportrices du Paris Saint-Germain.", locale: "fr_FR", type: "website" },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#030919",
@@ -30,7 +26,8 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const [navConfig, accent] = await Promise.all([getNavConfig(), accentOverride()]);
   return (
     <html lang="fr" className={barlow.variable} suppressHydrationWarning>
       <head>
@@ -39,6 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             __html: `try{if(sessionStorage.getItem("${INTRO_STORAGE_KEY}")==="1")document.documentElement.dataset.introSeen=""}catch(e){}`,
           }}
         />
+        {accent && <style>{`:root{--color-psg-red:${accent};--color-psg-red-bright:${accent}}`}</style>}
         <noscript>
           <style>{".intro-root{display:none}"}</style>
         </noscript>
@@ -51,9 +49,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Aller au contenu
         </a>
         <Providers>
-          <Header />
-          <div id="contenu">{children}</div>
-          <Footer />
+          <SiteFrame header={<Header navConfig={navConfig} />} footer={<Footer />}>
+            {children}
+          </SiteFrame>
         </Providers>
       </body>
     </html>

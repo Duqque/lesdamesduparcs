@@ -59,6 +59,9 @@ export interface MemberPublic {
   /** ISO : date d'adhésion et fin de validité (fin de saison) */
   joinedAt: string;
   validUntil: string;
+  /** Statut administratif : suspendue ou anonymisée par l'équipe (absent = active) */
+  status?: "active" | "suspended" | "anonymized";
+  notes?: string;
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

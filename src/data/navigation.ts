@@ -1,8 +1,9 @@
 import type { NavItem } from "@/types";
+import { chapters } from "@/data/chapters";
 
 /** À gauche du logo */
 export const leftNav: NavItem[] = [
-  { label: "Le groupe", href: "/groupe" },
+  { label: "Le groupe", href: "/groupe", children: chapters.map((c) => ({ label: c.title, href: `/groupe/${c.slug}` })) },
   { label: "Actualités", href: "/actualites" },
 ];
 

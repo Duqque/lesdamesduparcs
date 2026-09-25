@@ -148,6 +148,37 @@ pointent vers le domaine public. Le paiement de la cotisation n'est pas encore b
 - À prévoir avant la mise en production : HTTPS, limitation de débit partagée (celle fournie est en mémoire), e-mails de
   confirmation, webhooks Stripe, mentions RGPD.
 
+## Back-office (`/admin`)
+
+Plateforme métier connectée aux données du site (adhérentes, adhésions, paiements, événements, inscriptions, contenu). Connexion séparée
+de l'espace membre : `/admin/connexion`.
+
+- **Comptes et sécurité** : mot de passe haché (scrypt), sessions côté serveur avec expiration par inactivité (30 min par défaut),
+  blocage après 5 tentatives, double authentification TOTP (facultative ou imposée à la super administratrice), déconnexion de toutes les
+  sessions, journal des connexions (adresse IP, connexions depuis une nouvelle adresse signalées), réinitialisation du mot de passe par lien
+  généré par la super administratrice. La super administratrice de départ est créée depuis `SUPERADMIN_EMAIL` / `SUPERADMIN_PASSWORD` / `SUPERADMIN_NAME`.
+- **Rôles** (`src/lib/admin/permissions.ts`) : super administratrice, administratrice, trésorière, communication, bénévole événementiel.
+  Chaque page, chaque action et chaque export vérifient la permission. **La structure et le design du site (sections de l'accueil,
+  navigation, SEO, couleur d'accent, pied de page) ne sont modifiables que par la super administratrice.**
+- **Adhérentes** : liste filtrable (nom, formule, statut, paiement, ville, âge, dates…), fiche complète (adhésions, paiements, événements,
+  présences), création, renouvellement, suspension, anonymisation, envoi d'e-mail, import CSV, export de ses données, formules d'adhésion.
+- **Événements** : création en sept étapes (avec répétition), publication planifiée, inscriptions, liste d'attente automatique (une place
+  libérée est proposée à la première personne), présences avec pointage par numéro ou QR code (caméra), calendrier global.
+- **Finances** : transactions unifiées (adhésions, événements, boutique), recettes, paiements en attente ou échoués, marquage payé,
+  annulation, remboursement (suivi comptable : le remboursement effectif se fait chez le prestataire), relances.
+- **Contenu et site** : articles (brouillon, programmé, publié), catégories, tags, médiathèque (contrôle du contenu réel des fichiers),
+  textes et éléments mis en avant de l'accueil, partenaires, offres, codes promotionnels.
+- **Communication** : campagnes par segments, modèles, automatisations (bienvenue, confirmation, rappels J-30/J-7, rappels d'événement…).
+  L'envoi passe par Resend (`RESEND_API_KEY`) ; sans clé, les messages sont consignés « non envoyés ». Les rappels planifiés sont traités
+  toutes les 10 minutes quand l'administration est ouverte, ou par un appel à `POST /api/cron/tick` avec `Authorization: Bearer $CRON_SECRET`.
+- **Analytics et rapports** : membres, finances, événements, mesure d'audience interne sans cookie ni adresse IP, rapports mensuels en PDF.
+- **Exports** CSV (« Excel » : CSV avec point-virgule qui s'ouvre dans Excel) et PDF, qui respectent les filtres. Journal d'activité avec ancien et nouveau contenu.
+- **Recherche globale** (⌘ K / Ctrl+K) et notifications, limitées aux données que le rôle peut voir.
+
+Stockage : fichiers JSON dans `.data/` (`src/lib/server/db.ts` isole l'accès : passer à une base SQL ne touchera que ce fichier).
+À faire avant l'ouverture au public : base de données, sauvegardes de `.data/`, service d'e-mail, application des codes promotionnels au paiement,
+remboursements automatiques via Stripe, édition complète du contenu des pages du site.
+
 ## Accueil
 
 Une seule colonne de rubriques qui apparaissent au fil du scroll : hero, manifeste (grand texte écrit lettre par lettre au scroll,

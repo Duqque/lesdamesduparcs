@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion, useTransform, type MotionValue } from "framer-motion";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
-import { agenda, benefits, membership, newsletters } from "@/data/membership";
+import { agenda, benefits, membership, privateSpace } from "@/data/membership";
 import { formatDay, formatMonthShort } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { useWindow } from "./pose";
@@ -216,8 +216,8 @@ function Fragment({ p, i }: { p: MotionValue<number>; i: number }) {
   const s = useScene(p, 0.72 + i * 0.008, 0.75 + i * 0.008, 0.785, 0.815);
   return (
     <motion.div style={{ opacity: s.opacity, y: s.y, filter: s.filter }} className={cn(panel, "pointer-events-none w-full max-w-[290px] p-3 text-left md:p-4")}>
-      <p className="font-body text-[9px] font-semibold uppercase tracking-[0.22em] text-psg-red-bright">Newsletter</p>
-      <p className="mt-1.5 font-body text-[12px] font-semibold leading-snug text-white md:text-[13.5px]">{newsletters[i]}</p>
+      <p className="font-body text-[9px] font-semibold uppercase tracking-[0.22em] text-psg-red-bright">{privateSpace[i].kicker}</p>
+      <p className="mt-1.5 font-body text-[12px] font-semibold leading-snug text-white md:text-[13.5px]">{privateSpace[i].text}</p>
     </motion.div>
   );
 }
@@ -226,8 +226,8 @@ export function NewsletterScene({ p }: SceneProps) {
   return (
     <>
       <Scene p={p} range={[0.715, 0.745, 0.79, 0.815]} className="zone-top">
-        <p className={label}>Newsletter</p>
-        <p className="mt-2 font-display text-[clamp(24px,3.2vw,46px)] font-semibold uppercase tracking-[0.08em] text-white">Ne rate rien</p>
+        <p className={label}>Espace privé</p>
+        <p className="mt-2 font-display text-[clamp(24px,3.2vw,46px)] font-semibold uppercase tracking-[0.08em] text-white">Entre membres</p>
       </Scene>
       <div className="zone-left pointer-events-none z-[4] hidden flex-col items-end gap-4 md:flex">
         <Fragment p={p} i={0} />
@@ -342,6 +342,11 @@ function Cta() {
         Devenir membre
       </Button>
       <p className="mt-4 font-body text-[13px] text-mist">
+        <Link href={membership.infoHref} className="font-semibold text-white underline decoration-white/30 underline-offset-4 transition-colors hover:decoration-white">
+          Tout savoir sur l&rsquo;adhésion
+        </Link>
+      </p>
+      <p className="mt-2 font-body text-[13px] text-mist">
         Déjà membre ?{" "}
         <Link href={membership.loginHref} className="font-semibold text-white underline decoration-white/30 underline-offset-4 transition-colors hover:decoration-white">
           Se connecter

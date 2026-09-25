@@ -1,14 +1,14 @@
-import { getEvent } from "@/data/events";
-import { getSession } from "@/lib/server/session";
+import { getEvent } from "@/lib/server/events";
+import { getAdmin } from "@/lib/server/admin-auth";
 import { json } from "@/lib/server/http";
 import { listRegistrations, takenPlaces } from "@/lib/server/store";
 
 /** Liste des inscriptions : réservée aux administrateurs. */
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
-  const session = await getSession();
-  if (!session || session.role !== "admin") return json({ error: "Accès réservé aux administrateurs." }, 403);
+  const admin = await getAdmin();
+  if (!admin?.can("events.attendance")) return json({ error: "Accès réservé aux administrateurs." }, 403);
   const { slug } = await params;
-  const event = getEvent(slug);
+  const event = await getEvent(slug);
   if (!event) return json({ error: "Événement introuvable." }, 404);
   const list = await listRegistrations(slug);
   return json({

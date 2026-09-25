@@ -18,14 +18,14 @@ export function GroupHero() {
             du Parc
           </h1>
           <p className="mt-8 max-w-lg text-white/85 t-lead">
-            Des supportrices du Paris Saint-Germain, rassemblées par une même ferveur et par la fierté d&rsquo;aimer le club de la capitale.
+            Une communauté de supportrices réunies par la même passion : le Paris Saint-Germain.
           </p>
           <div className="mt-12 flex flex-col gap-4 sm:flex-row">
-            <Button size="lg" href="/rejoindre-le-groupe">
-              Devenir membre
+            <Button size="lg" href="/groupe/notre-histoire">
+              Lire notre histoire
             </Button>
-            <Button size="lg" variant="outline" href="/communaute">
-              La communauté
+            <Button size="lg" variant="outline" href="/rejoindre-le-groupe">
+              Devenir membre
             </Button>
           </div>
         </div>

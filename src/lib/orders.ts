@@ -1,4 +1,4 @@
-export type OrderStatus = "awaiting_payment" | "paid";
+export type OrderStatus = "awaiting_payment" | "paid" | "cancelled" | "refunded";
 
 export interface OrderLine {
   productId: string;

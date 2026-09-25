@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { seoFor } from "@/lib/server/site";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -8,10 +9,9 @@ import { ShopHero } from "@/components/shop/ShopHero";
 import { Reveal } from "@/components/ui/Reveal";
 import { products } from "@/data/shop";
 
-export const metadata: Metadata = {
-  title: "Boutique",
-  description: "La boutique des Dames du Parc : écharpes, sweats, t-shirts et accessoires aux couleurs de Paris. Achat rapide, sans compte.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return seoFor("/boutique", { title: "Boutique", description: "La boutique des Dames du Parc : écharpes, sweats, t-shirts et accessoires aux couleurs de Paris. Achat rapide, sans compte." });
+}
 
 const label = "t-eyebrow";
 const h2 = "mt-4 t-h2";

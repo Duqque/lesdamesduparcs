@@ -129,10 +129,10 @@ export function CardObject({ motion: m, name, season, number, qrValue }: Props) 
             className="card-radius absolute inset-[3%] flex flex-col justify-center bg-[linear-gradient(135deg,#0c1a33,#050b18)] px-[7%] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)]"
           >
             <p className="font-body text-[1.9cqw] font-medium uppercase tracking-[0.4em] text-psg-red-bright">Dames du Parc</p>
-            <p className="mt-[1.6cqw] font-display text-[7cqw] font-semibold uppercase leading-none tracking-[0.08em] text-white">Newsletter</p>
-            <p className="mt-[2cqw] max-w-[70%] font-body text-[2.6cqw] leading-snug text-white/75">Les dernières nouvelles de la communauté.</p>
+            <p className="mt-[1.6cqw] font-display text-[7cqw] font-semibold uppercase leading-none tracking-[0.08em] text-white">Espace privé</p>
+            <p className="mt-[2cqw] max-w-[70%] font-body text-[2.6cqw] leading-snug text-white/75">Annonces, événements et échanges réservés aux membres.</p>
             <span className="mt-[3cqw] w-fit border border-white/45 px-[2.4cqw] py-[1.2cqw] font-body text-[1.9cqw] font-semibold uppercase tracking-[0.16em] text-white">
-              Lire la dernière édition →
+              Rejoindre l’espace →
             </span>
           </motion.div>
         </div>

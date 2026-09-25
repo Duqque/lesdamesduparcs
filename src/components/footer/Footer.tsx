@@ -3,8 +3,11 @@ import Link from "next/link";
 import { socialLinks } from "@/data/navigation";
 import { FleurDeLisIcon, socialIcons } from "@/components/icons/BrandIcons";
 import { Scribble } from "@/components/ui/Scribble";
+import { settings } from "@/lib/server/admin-store";
 
-export function Footer() {
+export async function Footer() {
+  const { site, association } = await settings.get();
+  const links = socialLinks.map((l) => ({ ...l, href: (association[l.id as "instagram"] as string) || l.href }));
   return (
     <footer className="border-t border-white/[0.07] bg-night-950">
       <div className="mx-auto flex max-w-[1800px] flex-col items-center gap-10 px-[var(--gutter)] py-16 md:flex-row md:justify-between md:gap-8 xl:h-[150px] xl:py-0">
@@ -18,7 +21,7 @@ export function Footer() {
 
         <div className="flex flex-col items-center gap-5 sm:flex-row sm:gap-9">
           <ul className="flex items-center gap-1">
-            {socialLinks.map((s) => {
+            {links.map((s) => {
               const Icon = socialIcons[s.id];
               return (
                 <li key={s.id}>
@@ -37,7 +40,7 @@ export function Footer() {
           </ul>
           <span aria-hidden className="hidden h-8 w-px bg-white/15 sm:block" />
           <p className="relative font-script text-[26px] font-medium xl:text-[28px] leading-none text-white">
-            Paris toujours, ensemble&nbsp;!
+            {site.footerText.replace(/ ([!?:;])/g, "\u00a0$1")}
             <Scribble className="absolute -bottom-2 left-[14%] h-2 w-[62%]" />
           </p>
         </div>

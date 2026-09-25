@@ -18,7 +18,7 @@ interface StatusData {
   mine: { id: string; status: RegistrationStatus; places: number; amountCents: number } | null;
 }
 
-const statusLabel: Record<RegistrationStatus, string> = { confirmed: "Inscription confirmée", awaiting_payment: "En attente de paiement", paid: "Inscription confirmée et payée" };
+const statusLabel: Record<RegistrationStatus, string> = { confirmed: "Inscription confirmée", awaiting_payment: "En attente de paiement", paid: "Inscription confirmée et payée", waitlist: "Sur liste d’attente", cancelled: "Inscription annulée", refunded: "Inscription remboursée" };
 
 function Section({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (

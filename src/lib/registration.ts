@@ -1,6 +1,6 @@
 import type { ClubEvent } from "@/types";
 
-export type RegistrationStatus = "confirmed" | "awaiting_payment" | "paid";
+export type RegistrationStatus = "confirmed" | "awaiting_payment" | "paid" | "waitlist" | "cancelled" | "refunded";
 
 export interface RegistrationInput {
   firstName: string;
@@ -23,6 +23,9 @@ export interface Registration extends RegistrationInput {
   amountCents: number;
   status: RegistrationStatus;
   stripeSessionId?: string;
+  /** Présence relevée après l'événement (null : non renseignée) */
+  attended?: boolean | null;
+  attendedAt?: string;
   createdAt: string;
 }
 

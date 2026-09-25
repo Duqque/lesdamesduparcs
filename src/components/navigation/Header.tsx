@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { IdCard, Menu, X } from "lucide-react";
-import { joinLink, leftNav, rightNav } from "@/data/navigation";
+import { Fragment, useEffect, useState } from "react";
+import { ChevronDown, IdCard, Menu, X } from "lucide-react";
+import { joinLink, leftNav, mainNav, rightNav } from "@/data/navigation";
+import { applyNav, type NavConfig } from "@/lib/nav-config";
 import { useScrolled } from "@/hooks/useScrolled";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
@@ -23,17 +24,17 @@ function NavLinks({ items, pathname }: { items: typeof leftNav; pathname: string
     <>
       {items.map((item) => {
         const active = pathname.startsWith(item.href);
-        return (
+        const link = (
           <Link
-            key={item.href}
             href={item.href}
-            aria-current={active ? "page" : undefined}
+            aria-current={pathname === item.href ? "page" : undefined}
             className={cn(
-              "group/nav relative flex min-h-11 items-center font-body text-[14px] font-medium tracking-[0.01em] transition-colors duration-300",
+              "group/nav relative flex min-h-11 items-center gap-1.5 font-body text-[14px] font-medium tracking-[0.01em] transition-colors duration-300",
               active ? "text-white" : "text-white/70 hover:text-white",
             )}
           >
             {item.label}
+            {item.children && <ChevronDown aria-hidden className="size-3.5 transition-transform duration-300 group-hover/menu:rotate-180 group-focus-within/menu:rotate-180" />}
             <span
               aria-hidden
               className={cn(
@@ -43,13 +44,39 @@ function NavLinks({ items, pathname }: { items: typeof leftNav; pathname: string
             />
           </Link>
         );
+        if (!item.children) return <Fragment key={item.href}>{link}</Fragment>;
+        return (
+          <div key={item.href} className="group/menu relative">
+            {link}
+            <div className="invisible absolute left-0 top-full z-50 w-[min(640px,calc(100vw-48px))] pt-3 opacity-0 transition-[opacity,visibility] duration-200 group-focus-within/menu:visible group-focus-within/menu:opacity-100 group-hover/menu:visible group-hover/menu:opacity-100">
+              <ul className="grid grid-cols-2 gap-1 overflow-hidden rounded-[10px] border border-white/[0.1] bg-night-950/95 p-3 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.9)] backdrop-blur-md">
+                {item.children.map((c) => (
+                  <li key={c.href} className="min-w-0">
+                    <Link
+                      href={c.href}
+                      aria-current={pathname === c.href ? "page" : undefined}
+                      className={cn(
+                        "flex min-h-11 items-center gap-3 rounded-[8px] px-3 py-2 font-body text-[14px] leading-tight transition-colors duration-200 hover:bg-white/[0.07] hover:text-white",
+                        pathname === c.href ? "bg-white/[0.06] text-white" : "text-white/75",
+                      )}
+                    >
+                      <span aria-hidden className="h-4 w-0.5 shrink-0 rounded-full bg-psg-red-bright" />
+                      <span className="min-w-0 break-words">{c.label}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        );
       })}
     </>
   );
 }
 
-export function Header() {
+export function Header({ navConfig }: { navConfig?: NavConfig }) {
   const pathname = usePathname();
+  const apply = (items: typeof leftNav) => applyNav(items, navConfig ?? { hidden: [], labels: {} });
   const scrolled = useScrolled(24);
   const [open, setOpen] = useState(false);
 
@@ -95,7 +122,7 @@ export function Header() {
               </Button>
             </div>
             <nav aria-label="Navigation principale" className="hidden items-center gap-[clamp(28px,3.4vw,64px)] lg:ml-auto lg:flex lg:pr-[clamp(24px,3vw,64px)]">
-              <NavLinks items={leftNav} pathname={pathname} />
+              <NavLinks items={apply(leftNav)} pathname={pathname} />
             </nav>
           </div>
 
@@ -115,7 +142,7 @@ export function Header() {
           {/* Droite */}
           <div className="flex items-center justify-end gap-3">
             <nav aria-label="Navigation secondaire" className="hidden items-center gap-[clamp(28px,3.4vw,64px)] lg:flex lg:pl-[clamp(24px,3vw,64px)]">
-              <NavLinks items={rightNav} pathname={pathname} />
+              <NavLinks items={apply(rightNav)} pathname={pathname} />
             </nav>
             <span className="hidden lg:block lg:flex-1" />
             <CartButton className={squareBtn} />
@@ -124,7 +151,7 @@ export function Header() {
           </div>
         </div>
       </header>
-      <MobileMenu open={open} pathname={pathname} onNavigate={() => setOpen(false)} />
+      <MobileMenu open={open} pathname={pathname} items={apply(mainNav)} onNavigate={() => setOpen(false)} />
     </>
   );
 }

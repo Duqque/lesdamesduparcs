@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
-import { formatEuros, type Registration } from "@/lib/registration";
+import { formatEuros, type Registration, type RegistrationStatus } from "@/lib/registration";
 import type { ClubEvent } from "@/types";
 
 interface Data {
@@ -12,7 +12,7 @@ interface Data {
   registrations: Registration[];
 }
 
-const statusLabel = { confirmed: "Confirmée", awaiting_payment: "Paiement en attente", paid: "Payée" } as const;
+const statusLabel: Record<RegistrationStatus, string> = { confirmed: "Confirmée", awaiting_payment: "Paiement en attente", paid: "Payée", waitlist: "Liste d’attente", cancelled: "Annulée", refunded: "Remboursée" };
 
 const csvCell = (v: unknown) => {
   const s = String(v ?? "");

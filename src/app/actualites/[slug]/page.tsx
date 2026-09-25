@@ -6,25 +6,27 @@ import { ArrowLeft } from "lucide-react";
 import { DiscreetLinks } from "@/components/news/DiscreetLinks";
 import { NewsCard, Tone } from "@/components/news/NewsCard";
 import { Reveal } from "@/components/ui/Reveal";
-import { getNews, news } from "@/data/news";
+import { getNewsItem, getPublishedNews } from "@/lib/server/content";
 import { formatShortDate } from "@/lib/format";
 
-export function generateStaticParams() {
-  return news.map((n) => ({ slug: n.id }));
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  return (await getPublishedNews()).map((n) => ({ slug: n.id }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const item = getNews(slug);
+  const item = await getNewsItem(slug);
   if (!item) return {};
   return { title: item.title, description: item.excerpt, openGraph: { title: item.title, description: item.excerpt, images: [item.image] } };
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const item = getNews(slug);
+  const item = await getNewsItem(slug);
   if (!item) notFound();
-  const more = news.filter((n) => n.id !== item.id).slice(0, 3);
+  const more = (await getPublishedNews()).filter((n) => n.id !== item.id).slice(0, 3);
 
   return (
     <main className="overflow-x-clip">

@@ -9,16 +9,17 @@ import { EventAccess } from "@/components/events/EventAccess";
 import { ReserveBar } from "@/components/events/ReserveBar";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
-import { allEvents, getEvent, isPast } from "@/data/events";
+import { isPast } from "@/data/events";
+import { getEvent, getPublishedEvents } from "@/lib/server/events";
 import { formatLongDate, formatTime } from "@/lib/format";
 
-export function generateStaticParams() {
-  return allEvents().map((e) => ({ slug: e.id }));
+export async function generateStaticParams() {
+  return (await getPublishedEvents()).map((e) => ({ slug: e.id }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const event = getEvent(slug);
+  const event = await getEvent(slug);
   if (!event) return {};
   return { title: event.title, description: event.summary, openGraph: { title: event.title, description: event.summary, images: [event.image] } };
 }
@@ -28,11 +29,11 @@ const h2 = "mt-4 t-h2";
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const event = getEvent(slug);
+  const event = await getEvent(slug);
   if (!event) notFound();
 
   const past = isPast(event) || event.registration.mode === "closed";
-  const others = allEvents().filter((e) => e.id !== event.id && !isPast(e)).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4);
+  const others = (await getPublishedEvents()).filter((e) => e.id !== event.id && !isPast(e)).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",

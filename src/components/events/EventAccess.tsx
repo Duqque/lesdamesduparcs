@@ -80,7 +80,14 @@ export function EventAccess({ event }: { event: ClubEvent }) {
                 </button>
               </div>
 
-              {session.status === "admin" && <AdminRegistrations event={event} />}
+              {session.status === "admin" && (
+                <>
+                  <Link href={`/admin/evenements/${event.id}`} className="mb-6 inline-flex min-h-11 items-center font-body text-[14px] font-medium text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">
+                    Gérer cet événement dans l&rsquo;administration
+                  </Link>
+                  <AdminRegistrations event={event} />
+                </>
+              )}
               {session.status === "member" &&
                 (cfg.mode === "form" ? (
                   <RegistrationForm event={event} member={session} />

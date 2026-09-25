@@ -1,7 +1,10 @@
 import "server-only";
 import QRCode from "qrcode";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
-import { association as asso } from "@/data/association";
+import { association as assoDefaults } from "@/data/association";
+import type { AssociationInfo } from "./admin-store";
+
+type Asso = AssociationInfo | typeof assoDefaults;
 import { guardianRelations, isMinor, type MemberPublic } from "@/lib/members";
 import { LOGO_COLOR_PNG, LOGO_PNG } from "./pdf-assets";
 
@@ -28,7 +31,7 @@ const fmtDate = (iso: string) => {
   return `${d}/${m}/${y}`;
 };
 
-async function setup(title: string): Promise<Ctx> {
+async function setup(title: string, asso: Asso): Promise<Ctx> {
   const doc = await PDFDocument.create();
   doc.setTitle(title);
   doc.setAuthor(asso.legalName);
@@ -111,7 +114,7 @@ function qr(c: Ctx, value: string, x: number, top: number, size: number, pad = 3
 
 const dashed = (c: Ctx, top: number) => c.page.drawLine({ start: { x: 40, y: y(top) }, end: { x: W - 40, y: y(top) }, thickness: 0.7, color: GREY, dashArray: [3, 3] });
 
-function footer(c: Ctx) {
+function footer(c: Ctx, asso: Asso) {
   c.page.drawLine({ start: { x: 40, y: y(768) }, end: { x: W - 40, y: y(768) }, thickness: 0.6, color: GREY });
   const line1 = `${asso.legalName.toUpperCase()} - ${asso.address} - ${asso.postalCode} ${asso.city.toUpperCase()}`;
   const line2 = `SIRET ${asso.siret} - ${asso.form} - RNA ${asso.rna} - Tél : ${asso.phone} - ${asso.website} - ${asso.email}`;
@@ -121,8 +124,8 @@ function footer(c: Ctx) {
 }
 
 /** Attestation d'adhésion : une page A4, sur le modèle d'une attestation de licence sportive. */
-export async function buildAttestation(m: MemberPublic, verifyUrl: string) {
-  const c = await setup(`Attestation d'adhésion ${m.memberNumber}`);
+export async function buildAttestation(m: MemberPublic, verifyUrl: string, asso: Asso = assoDefaults) {
+  const c = await setup(`Attestation d'adhésion ${m.memberNumber}`, asso);
   const logo = await c.doc.embedPng(Buffer.from(LOGO_PNG, "base64"));
   const logoColor = await c.doc.embedPng(Buffer.from(LOGO_COLOR_PNG, "base64"));
   const fullName = `${m.lastName} ${m.firstName}`.toUpperCase();
@@ -250,13 +253,13 @@ export async function buildAttestation(m: MemberPublic, verifyUrl: string) {
   text(c, `${seasonShort}`, W - 40, bt + 178, 13, { font: c.bold, color: NAVY, align: "right" });
   text(c, "Vérification : " + verifyUrl, 40, bt + 180, 6.5, { color: GREY });
 
-  footer(c);
+  footer(c, asso);
   return c.doc.save();
 }
 
 /** Modèle d'autorisation parentale à imprimer, signer et rejoindre au formulaire d'adhésion. */
-export async function buildAuthorizationTemplate() {
-  const c = await setup("Autorisation parentale - adhésion");
+export async function buildAuthorizationTemplate(asso: Asso = assoDefaults) {
+  const c = await setup("Autorisation parentale - adhésion", asso);
   const logo = await c.doc.embedPng(Buffer.from(LOGO_PNG, "base64"));
   c.page.drawImage(logo, { x: 40, y: y(112), width: 72, height: 72 });
   text(c, "Autorisation parentale", 350, 52, 22, { font: c.bold, align: "center", color: NAVY });
@@ -300,6 +303,6 @@ export async function buildAuthorizationTemplate() {
   line("Le :", next + 30, 305, 250);
   roundRect(c, 320, next + 62, 235, 90, 4, { stroke: rgb(0.7, 0.72, 0.78), lineWidth: 0.7 });
   text(c, "Signature du responsable légal", 330, next + 70, 9, { color: GREY });
-  footer(c);
+  footer(c, asso);
   return c.doc.save();
 }

@@ -35,7 +35,7 @@ const STEPS = [
   { at: 0.2, name: "Identité" },
   { at: 0.42, name: "Avantages" },
   { at: 0.58, name: "Événements" },
-  { at: 0.7, name: "Newsletter" },
+  { at: 0.7, name: "Espace privé" },
   { at: 0.81, name: "Carte virtuelle" },
   { at: 0.89, name: "Communauté" },
   { at: 0.945, name: "Rejoindre" },

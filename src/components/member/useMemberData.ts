@@ -7,8 +7,10 @@ import type { MemberPublic } from "@/lib/members";
 export interface MemberSpace {
   member: Omit<MemberPublic, "authorizations"> & { authorizations: Array<{ id: string; name: string }> };
   verifyUrl: string;
-  orders: Array<{ id: string; createdAt: string; status: "awaiting_payment" | "paid"; totalCents: number; items: number; label: string }>;
-  registrations: Array<{ id: string; eventId: string; title: string; createdAt: string; status: "confirmed" | "awaiting_payment" | "paid"; amountCents: number; places: number }>;
+  membership: { planName: string; season: string; startsAt: string; endsAt: string; status: string } | null;
+  transactions: Array<{ id: string; at: string; type: string; label: string; amountCents: number; status: "paid" | "pending" | "failed" | "refunded" | "cancelled"; method: string }>;
+  benefits: Array<{ id: string; title: string; text: string }>;
+  offers: Array<{ id: string; title: string; text: string; partner?: string; code?: string }>;
 }
 
 /** Fiche, carte, commandes et inscriptions de la membre connectée (null tant que non chargé ou si non connectée). */

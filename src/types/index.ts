@@ -41,7 +41,15 @@ export interface EventRegistrationConfig {
   maxAge?: number;
   /** Une seule place par inscription (ex. une participante) */
   singlePlace?: boolean;
+  /** Back-office */
+  minCapacity?: number;
+  waitlist?: boolean;
+  membersOnly?: boolean;
+  tiers?: Array<{ label: string; priceCents: number }>;
+  paymentMode?: "online" | "onsite" | "manual" | "optional" | "none";
 }
+
+export type EventStatus = "draft" | "scheduled" | "published" | "archived";
 
 export interface ClubEvent {
   /** Identifiant et slug de l'URL : /evenements/[id] */
@@ -68,6 +76,13 @@ export interface ClubEvent {
   speakers: EventSpeaker[];
   practical: Array<{ label: string; value: string }>;
   href: string;
+  /** Back-office : publication et localisation */
+  status?: EventStatus;
+  publishAt?: string;
+  city?: string;
+  gps?: string;
+  mapUrl?: string;
+  gallery?: string[];
 }
 
 export interface NewsItem {
@@ -111,6 +126,8 @@ export interface Playlist {
 export interface NavItem {
   label: string;
   href: string;
+  /** Sous-pages affichées dans un menu déroulant */
+  children?: readonly NavItem[];
 }
 
 export interface Community {

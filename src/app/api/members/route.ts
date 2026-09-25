@@ -1,18 +1,21 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { json, throttled } from "@/lib/server/http";
-import { authConfigured, getSession, setSession } from "@/lib/server/session";
+import { authConfigured, setSession } from "@/lib/server/session";
+import { getAdmin } from "@/lib/server/admin-auth";
 import { hashPassword } from "@/lib/server/password";
 import { addMember, listMembers, type StoredMember } from "@/lib/server/store";
 import { MAX_AUTH_FILE_BYTES, generateMemberNumber, MAX_AUTH_FILES, isMinor, validateMember, type Guardian, type MemberInput } from "@/lib/members";
 import { seasonOf } from "@/lib/season";
+import { createMembership, defaultPlan } from "@/lib/server/business";
+import { sendTemplate } from "@/lib/server/email";
 
 const MAX_BODY = MAX_AUTH_FILES * MAX_AUTH_FILE_BYTES + 256 * 1024;
 const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
 /** Liste des membres : réservée aux administrateurs. */
 export async function GET() {
-  const s = await getSession();
-  if (s?.role !== "admin") return json({ error: "Accès réservé aux administrateurs." }, 403);
+  const admin = await getAdmin();
+  if (!admin?.can("members.view")) return json({ error: "Accès réservé aux administrateurs." }, 403);
   const list = (await listMembers()).map((m) => ({
     memberNumber: m.memberNumber,
     token: m.token,
@@ -100,6 +103,9 @@ export async function POST(req: Request) {
   if (!result.ok) return json({ error: "Un compte existe déjà avec cette adresse e-mail.", errors: { email: "Adresse déjà utilisée : connectez-vous." } }, 409);
 
   const m = result.member;
+  const plan = await defaultPlan();
+  if (plan) await createMembership(m, plan);
+  await sendTemplate("welcome", m.email, { prenom: m.firstName, saison: m.season, numero: m.memberNumber }, "welcome");
   await setSession({ role: "member", firstName: m.firstName, lastName: m.lastName, email: m.email, memberNumber: m.memberNumber });
   return json({ ok: true, memberNumber: m.memberNumber }, 201);
 }

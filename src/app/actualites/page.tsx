@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
+import { seoFor } from "@/lib/server/site";
 import { DiscreetLinks } from "@/components/news/DiscreetLinks";
 import { FeaturedNews } from "@/components/news/FeaturedNews";
 import { NewsCard } from "@/components/news/NewsCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { socialLinks } from "@/data/navigation";
 import { socialIcons } from "@/components/icons/BrandIcons";
-import { news } from "@/data/news";
+import { getPublishedNews } from "@/lib/server/content";
 
-export const metadata: Metadata = {
-  title: "Actualités",
-  description: "Les actualités des Dames du Parc : matchs, déplacements, portraits et vie de l'association, aux couleurs du Paris Saint-Germain.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return seoFor("/actualites", { title: "Actualités", description: "Les actualités des Dames du Parc : matchs, déplacements, portraits et vie de l'association, aux couleurs du Paris Saint-Germain." });
+}
 
-export default function NewsPage() {
+export const revalidate = 300;
+
+export default async function NewsPage() {
+  const news = await getPublishedNews();
   const [featured, ...rest] = news;
   return (
     <main className="overflow-x-clip">

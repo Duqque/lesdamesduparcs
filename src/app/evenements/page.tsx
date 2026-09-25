@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
+import { seoFor } from "@/lib/server/site";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { EventGridCard } from "@/components/events/EventGridCard";
 import { PastEvents } from "@/components/events/PastEvents";
-import { allEvents, isPast } from "@/data/events";
+import { getPublishedEvents } from "@/lib/server/events";
+import { isPast } from "@/data/events";
 
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: "Événements",
-  description: "Les événements des Dames du Parc : matchs, soirées, ateliers, rencontres et déplacements, à venir et passés.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return seoFor("/evenements", { title: "Événements", description: "Les événements des Dames du Parc : matchs, soirées, ateliers, rencontres et déplacements, à venir et passés." });
+}
 
-export default function EventsPage() {
-  const all = allEvents();
+export default async function EventsPage() {
+  const all = await getPublishedEvents();
   const upcoming = all.filter((e) => !isPast(e)).sort((a, b) => a.date.localeCompare(b.date));
   const past = all.filter((e) => isPast(e)).sort((a, b) => b.date.localeCompare(a.date));
 

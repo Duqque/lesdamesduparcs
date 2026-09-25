@@ -1,8 +1,8 @@
-import { getEvent } from "@/data/events";
+import { getEvent } from "@/lib/server/events";
 import { formatEuros, validateRegistration, type RegistrationInput } from "@/lib/registration";
 import { getSession } from "@/lib/server/session";
 import { json, siteUrl, throttled } from "@/lib/server/http";
-import { addRegistration, listRegistrations, takenPlaces, updateRegistration } from "@/lib/server/store";
+import { addRegistration, addWaitlistRegistration, listRegistrations, takenPlaces, updateRegistration } from "@/lib/server/store";
 import { createCheckoutSession, stripeConfigured } from "@/lib/server/stripe";
 
 type Ctx = { params: Promise<{ slug: string }> };
@@ -10,7 +10,7 @@ type Ctx = { params: Promise<{ slug: string }> };
 /** État public : places restantes, et inscription éventuelle de la membre connectée. */
 export async function GET(_req: Request, { params }: Ctx) {
   const { slug } = await params;
-  const event = getEvent(slug);
+  const event = await getEvent(slug);
   if (!event) return json({ error: "Événement introuvable." }, 404);
   const list = await listRegistrations(slug);
   const session = await getSession();
@@ -26,7 +26,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 /** Inscription : réservée aux membres connectées avec leur carte. */
 export async function POST(req: Request, { params }: Ctx) {
   const { slug } = await params;
-  const event = getEvent(slug);
+  const event = await getEvent(slug);
   if (!event) return json({ error: "Événement introuvable." }, 404);
   if (event.registration.mode !== "form") return json({ error: "Inscription via la billetterie." }, 400);
 
@@ -38,10 +38,11 @@ export async function POST(req: Request, { params }: Ctx) {
   if (!input) return json({ error: "Requête invalide." }, 400);
 
   const list = await listRegistrations(slug);
-  if (list.some((r) => r.memberNumber === session.memberNumber)) return json({ error: "Vous êtes déjà inscrite à cet événement." }, 409);
+  if (list.some((r) => r.memberNumber === session.memberNumber && r.status !== "cancelled" && r.status !== "refunded")) return json({ error: "Vous êtes déjà inscrite à cet événement." }, 409);
 
   const remaining = Math.max(event.registration.capacity - takenPlaces(list), 0);
-  const errors = validateRegistration(input, event, remaining);
+  const wantsWait = Boolean(event.registration.waitlist) && remaining <= 0;
+  const errors = validateRegistration(input, event, wantsWait ? 99 : remaining);
   if (Object.keys(errors).length) return json({ error: "Certains champs sont à corriger.", errors }, 422);
 
   const places = event.registration.singlePlace ? 1 : Number(input.places);
@@ -59,6 +60,12 @@ export async function POST(req: Request, { params }: Ctx) {
     comment: input.comment?.trim().slice(0, 500),
     consents: { rules: true, privacy: true, image: Boolean(input.consents?.image) },
   };
+
+  if (wantsWait) {
+    const waiting = await addWaitlistRegistration({ ...clean, eventId: slug, memberNumber: session.memberNumber, amountCents, status: "waitlist" });
+    if (!waiting) return json({ error: "Vous êtes déjà inscrite à cet événement." }, 409);
+    return json({ registration: { id: waiting.id, status: "waitlist" }, message: "L'événement est complet : vous êtes inscrite sur la liste d'attente. Vous serez prévenue si une place se libère." }, 201);
+  }
 
   const added = await addRegistration(
     {

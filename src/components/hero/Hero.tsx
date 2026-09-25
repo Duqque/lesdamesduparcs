@@ -1,7 +1,7 @@
 import { HeroBackdrop } from "./HeroBackdrop";
 import { HeroContent } from "./HeroContent";
 
-export function Hero() {
+export function Hero({ title, subtitle, cta }: { title?: string; subtitle?: string; cta?: string }) {
   return (
     <section
       aria-labelledby="hero-title"
@@ -12,7 +12,7 @@ export function Hero() {
         aria-hidden
         className="absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(3,9,25,0.55)_0%,rgba(3,9,25,0.05)_24%,rgba(3,9,25,0.35)_52%,rgba(3,9,25,0.96)_100%)] xl:bg-[linear-gradient(90deg,#030919_0%,rgba(3,9,25,0.92)_20%,rgba(3,9,25,0.45)_46%,rgba(3,9,25,0)_72%),linear-gradient(180deg,rgba(3,9,25,0.6)_0%,rgba(3,9,25,0)_22%,rgba(3,9,25,0)_78%,rgba(3,9,25,0.55)_100%)]"
       />
-      <HeroContent />
+      <HeroContent title={title} subtitle={subtitle} cta={cta} />
     </section>
   );
 }
