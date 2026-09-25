@@ -33,6 +33,7 @@ export function Waveform({ peaks, progress, playing, currentTime, duration, onSe
   return (
     <div
       role="slider"
+      data-audio-control
       tabIndex={0}
       aria-label="Progression du chant"
       aria-valuemin={0}

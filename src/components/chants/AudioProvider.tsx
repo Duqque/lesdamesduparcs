@@ -17,6 +17,8 @@ interface ChantAudio {
   toggleMute: () => void;
 }
 
+const PREF_KEY = "ddp-music";
+
 const Ctx = createContext<ChantAudio | null>(null);
 
 export function useChantAudio() {
@@ -30,7 +32,7 @@ export function AudioProvider({ chant, children }: { chant: Chant; children: Rea
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(chant.duration);
-  const [volume, setVolumeState] = useState(0.8);
+  const [volume, setVolumeState] = useState(0.6);
   const [muted, setMuted] = useState(false);
 
   useEffect(() => {
@@ -56,11 +58,38 @@ export function AudioProvider({ chant, children }: { chant: Chant; children: Rea
     };
   }, []);
 
+  useEffect(() => {
+    const audio = ref.current;
+    if (!audio) return;
+    audio.volume = 0.6;
+    try {
+      if (localStorage.getItem(PREF_KEY) === "off") return;
+    } catch {}
+    const events = ["pointerdown", "keydown", "touchend"] as const;
+    const remove = () => events.forEach((e) => window.removeEventListener(e, tryPlay));
+    function tryPlay(e?: Event) {
+      if (e?.target instanceof Element && e.target.closest("[data-audio-control]")) return;
+      audio!.play().then(remove).catch(() => {});
+    }
+    events.forEach((e) => window.addEventListener(e, tryPlay, { passive: true }));
+    tryPlay();
+    return remove;
+  }, []);
+
   const toggle = useCallback(() => {
     const audio = ref.current;
     if (!audio) return;
-    if (audio.paused) audio.play().catch(() => setPlaying(false));
-    else audio.pause();
+    if (audio.paused) {
+      audio.play().catch(() => setPlaying(false));
+      try {
+        localStorage.setItem(PREF_KEY, "on");
+      } catch {}
+    } else {
+      audio.pause();
+      try {
+        localStorage.setItem(PREF_KEY, "off");
+      } catch {}
+    }
   }, []);
 
   const seek = useCallback(
@@ -109,7 +138,7 @@ export function AudioProvider({ chant, children }: { chant: Chant; children: Rea
 
   return (
     <Ctx.Provider value={value}>
-      <audio ref={ref} src={chant.audioSrc} preload="none" />
+      <audio ref={ref} src={chant.audioSrc} preload="auto" loop />
       {children}
     </Ctx.Provider>
   );

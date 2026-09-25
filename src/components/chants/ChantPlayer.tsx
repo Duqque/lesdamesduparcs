@@ -36,6 +36,7 @@ export function ChantPlayer() {
         <button
           type="button"
           onClick={toggle}
+          data-audio-control
           aria-label={playing ? `Mettre en pause ${chant.title}` : `Écouter ${chant.title}`}
           aria-pressed={playing}
           className="grid size-[42px] shrink-0 place-items-center rounded-full bg-psg-red text-white shadow-[0_8px_22px_-8px_rgba(217,15,44,0.9)] transition-[transform,background-color] duration-300 hover:scale-[1.06] hover:bg-psg-red-bright"
@@ -43,13 +44,14 @@ export function ChantPlayer() {
           {playing ? <Pause aria-hidden className="size-[18px]" fill="currentColor" /> : <Play aria-hidden className="ml-0.5 size-[18px]" fill="currentColor" />}
         </button>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-body text-[14.5px] font-semibold text-white">{chant.title}</p>
+          <p className="line-clamp-2 font-body text-[13.5px] font-semibold leading-tight text-white">{chant.title}</p>
           <p className="truncate font-body text-[12px] text-mist">{chant.artist}</p>
         </div>
         <div className="group/vol flex items-center">
           <button
             type="button"
             onClick={toggleMute}
+            data-audio-control
             aria-label={muted ? "Activer le son" : "Couper le son"}
             aria-pressed={muted}
             className="grid size-9 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
@@ -64,6 +66,7 @@ export function ChantPlayer() {
             value={muted ? 0 : volume}
             onChange={(e) => setVolume(Number(e.target.value))}
             aria-label="Volume"
+            data-audio-control
             className="h-1 w-0 cursor-pointer appearance-none rounded-full bg-white/25 opacity-0 accent-psg-red transition-[width,opacity] duration-300 focus:w-14 focus:opacity-100 group-hover/vol:w-14 group-hover/vol:opacity-100 [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
           />
         </div>

@@ -10,6 +10,7 @@ import { currentMember } from "@/data/members";
 import { useScrolled } from "@/hooks/useScrolled";
 import { cn } from "@/lib/cn";
 import { MobileMenu } from "./MobileMenu";
+import { SoundToggle } from "./SoundToggle";
 
 const iconBtn =
   "relative grid size-11 place-items-center rounded-full text-white/90 transition-colors duration-200 hover:bg-white/10 hover:text-white";
@@ -101,6 +102,7 @@ export function Header() {
             >
               {signature.join(" · ")}
             </p>
+            <SoundToggle />
             <button type="button" aria-label="Rechercher" className={cn(iconBtn, "hidden sm:grid")}>
               <Search aria-hidden className="size-[19px]" strokeWidth={1.8} />
             </button>
