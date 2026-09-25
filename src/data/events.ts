@@ -21,6 +21,7 @@ export const events: ClubEvent[] = [
     variant: "photo",
     access: "Billetterie membres",
     summary: "Rendez-vous avant le coup d'envoi pour un Classique qui se vit debout, écharpe au vent.",
+    registration: { mode: "external", priceCents: 0, capacity: 0 },
     description: [
       "Il est des affiches qui dépassent le simple cadre d'un match. Le Classique en fait partie. Les Dames du Parc se retrouvent ensemble pour l'occasion, en tribune, avec l'ambition de faire du Parc des Princes une chaudière.",
       "Rendez-vous est donné en amont de la rencontre pour récupérer sa place, découvrir les nouveaux chants et avancer groupées jusqu'aux portiques.",
@@ -54,6 +55,7 @@ export const events: ClubEvent[] = [
     variant: "photo",
     access: "Membres",
     summary: "Une soirée pour se retrouver, chanter et refaire le match entre supportrices.",
+    registration: { mode: "form", priceCents: 1000, capacity: 80 },
     description: [
       "La Soirée des Dames est le rendez-vous convivial de la saison. On y retrouve des visages familiers, on fait de nouvelles rencontres et l'on chante bien plus fort que la musique.",
       "Au programme : ambiance de tribune, jeux autour du PSG, tombola aux couleurs du club et surprises réservées aux membres.",
@@ -86,6 +88,7 @@ export const events: ClubEvent[] = [
     variant: "text",
     access: "Sur inscription",
     summary: "Deux heures pour maîtriser les chants du groupe, débutantes bienvenues.",
+    registration: { mode: "form", priceCents: 0, capacity: 30 },
     description: [
       "Chanter en tribune s'apprend. Cet atelier propose de découvrir les chants des Dames du Parc, les paroles comme les rythmes, dans une ambiance détendue.",
       "Aucune expérience n'est requise : il suffit d'avoir envie de mettre de la voix au service de Paris.",
@@ -118,6 +121,7 @@ export const events: ClubEvent[] = [
     variant: "photo",
     access: "Sur inscription",
     summary: "Initiation au judo, rencontres d'athlètes et match au Parc des Princes pour des jeunes filles de 11 à 16 ans.",
+    registration: { mode: "form", priceCents: 0, capacity: 40, guardianRequired: true, minAge: 11, maxAge: 16, singlePlace: true },
     description: [
       "Cette journée s'inscrit dans l'esprit du programme « Allez les filles » du PSG, mené par PSG For Communities pour permettre à des jeunes filles de découvrir les bienfaits du sport, de gagner en confiance et de s'ouvrir à la culture.",
       "Le matin, le dojo du PSG Judo devient le terrain de jeu du groupe. Priscilla Gneto, judoka médaillée olympique et marraine du programme, guide une initiation puis échange avec les participantes. L'après-midi, des athlètes du club prennent le relais pour partager leur parcours.",
@@ -178,6 +182,7 @@ export const events: ClubEvent[] = [
     variant: "text",
     access: "Membres",
     summary: "Échanges, idées et projets : les membres construisent la suite de la saison.",
+    registration: { mode: "form", priceCents: 0, capacity: 60 },
     description: [
       "Chaque saison, les membres se retrouvent pour dresser un premier bilan et proposer des idées : déplacements, soirées, actions solidaires.",
       "L'occasion aussi d'accueillir les nouvelles arrivées et de mettre des visages sur les pseudonymes des réseaux.",
@@ -210,6 +215,7 @@ export const events: ClubEvent[] = [
     variant: "photo",
     access: "Sur inscription",
     summary: "Une journée de match à l'extérieur, du car au retour, entre supportrices.",
+    registration: { mode: "form", priceCents: 3500, capacity: 50 },
     description: [
       "Suivre Paris à l'extérieur change la façon de vivre une rencontre. Le car devient un salon roulant, les chants font le trajet avec nous.",
       "La destination et le match seront annoncés dès la programmation officielle. Les places sont limitées et réservées en priorité aux membres.",

@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { MembershipExperience } from "@/components/membership/MembershipExperience";
-import { currentMember } from "@/data/members";
 import { membership } from "@/data/membership";
-import { formatYear } from "@/lib/format";
+import { JoinClient } from "./JoinClient";
 
 export const metadata: Metadata = {
   title: "Rejoindre le groupe",
@@ -10,17 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function JoinPage() {
-  const { profile, membership: m } = currentMember;
-  const number = m.memberNumber.replace(/^DDP-/, "").replace("-", " ");
   return (
     <main>
-      <MembershipExperience
-        name={`${profile.firstName} ${profile.lastName}`}
-        since={formatYear(m.joinedAt)}
-        number={number}
-        season={membership.season}
-        qrValue={`https://www.lesdamesduparc.fr/membre/${m.memberNumber}`}
-      />
+      <JoinClient season={membership.season} />
     </main>
   );
 }

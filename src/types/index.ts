@@ -29,6 +29,20 @@ export interface EventProgramItem {
   text: string;
 }
 
+export interface EventRegistrationConfig {
+  /** « form » : inscription sur le site (membres) · « external » : via la billetterie */
+  mode: "form" | "external";
+  /** Prix par place, en centimes (0 = gratuit) */
+  priceCents: number;
+  capacity: number;
+  /** Événement pour mineures : date de naissance, responsable légal et autorisation requis */
+  guardianRequired?: boolean;
+  minAge?: number;
+  maxAge?: number;
+  /** Une seule place par inscription (ex. une participante) */
+  singlePlace?: boolean;
+}
+
 export interface ClubEvent {
   /** Identifiant et slug de l'URL : /evenements/[id] */
   id: string;
@@ -48,6 +62,7 @@ export interface ClubEvent {
   /** Mention courte affichée sur la carte (ex. « Sur inscription ») */
   access: string;
   summary: string;
+  registration: EventRegistrationConfig;
   description: string[];
   program: EventProgramItem[];
   speakers: EventSpeaker[];

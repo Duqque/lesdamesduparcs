@@ -10,7 +10,7 @@ import { ChantPlayer } from "@/components/chants/ChantPlayer";
 import { ChantsBanner } from "@/components/chants/ChantsBanner";
 import { PhotoGallery } from "@/components/gallery/PhotoGallery";
 import { Reveal } from "@/components/ui/Reveal";
-import { currentMember, memberMenu } from "@/data/members";
+import { memberMenu } from "@/data/members";
 import { nextMatch } from "@/data/matches";
 import { featuredEvent } from "@/data/events";
 import { community } from "@/data/community";
@@ -62,7 +62,7 @@ export default function HomePage() {
 
       <div className="contents xl:flex xl:flex-col xl:gap-[clamp(28px,3vw,56px)] xl:pt-0">
         <Reveal className="order-2 md:order-3 md:col-span-2 xl:col-span-1">
-          <MemberPanel user={currentMember} menu={memberMenu} />
+          <MemberPanel menu={memberMenu} />
         </Reveal>
         <Reveal delay={0.1} className="order-4 md:col-span-2 xl:col-span-1">
           <ChantPlayer />

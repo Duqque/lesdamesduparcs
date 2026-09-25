@@ -89,7 +89,7 @@ export function IdentityScene({ p, name, since, number, season }: SceneProps & {
       <Scene p={p} range={[0.205, 0.235, 0.305, 0.33]} className="zone-left hidden md:block">
         <p className={label}>Votre carte</p>
         {nameEl}
-        <p className="mt-3 font-body text-[15px] text-mist">Membre depuis {since}</p>
+        <p className="mt-3 font-body text-[15px] text-mist">{since ? `Membre depuis ${since}` : "Membre"}</p>
       </Scene>
       <Scene p={p} range={[0.215, 0.245, 0.305, 0.33]} className="zone-right hidden md:block">
         <p className={label}>Saison</p>
@@ -99,7 +99,7 @@ export function IdentityScene({ p, name, since, number, season }: SceneProps & {
       <Scene p={p} range={[0.205, 0.235, 0.305, 0.33]} className="zone-top md:hidden">
         <p className={label}>Votre carte</p>
         {nameEl}
-        <p className="mt-2 font-body text-[13px] text-mist">Membre depuis {since}</p>
+        <p className="mt-2 font-body text-[13px] text-mist">{since ? `Membre depuis ${since}` : "Membre"}</p>
       </Scene>
       <Scene p={p} range={[0.215, 0.245, 0.305, 0.33]} className="zone-bottom md:hidden">
         <p className={label}>Saison</p>

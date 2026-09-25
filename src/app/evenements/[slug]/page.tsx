@@ -3,7 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarPlus, Clock, MapPin, Ticket } from "lucide-react";
+import { Suspense } from "react";
 import { CalendarCard } from "@/components/events/CalendarCard";
+import { EventAccess } from "@/components/events/EventAccess";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { events, getEvent } from "@/data/events";
@@ -71,8 +73,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </li>
           </ul>
           <div className="mt-12 flex flex-col gap-4 sm:flex-row">
-            <Button size="lg" href={event.href}>
-              Réserver ma place
+            <Button size="lg" href="#inscription">
+              S&rsquo;inscrire
             </Button>
             <Button size="lg" variant="outline" href={`/evenements/${event.id}/event.ics`} download arrow={false}>
               Ajouter à mon agenda
@@ -174,9 +176,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 ))}
               </dl>
               <div className="mt-6 flex flex-col gap-2.5">
-                <Button size="lg" href={event.href} className="w-full">
+                <Button size="lg" href="#inscription" className="w-full">
                   <Ticket aria-hidden className="mr-1 inline size-4" />
-                  Réserver ma place
+                  S&rsquo;inscrire
                 </Button>
                 <Button size="lg" variant="outline" href={`/evenements/${event.id}/event.ics`} download arrow={false} className="w-full">
                   Ajouter à mon agenda
@@ -187,6 +189,10 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           </Reveal>
         </aside>
       </div>
+
+      <Suspense fallback={null}>
+        <EventAccess event={event} />
+      </Suspense>
 
       <section aria-labelledby="autres" className="pb-32 md:pb-48">
         <div className="mx-auto flex max-w-[1300px] items-end justify-between px-[var(--gutter)]">
