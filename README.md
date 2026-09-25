@@ -53,12 +53,20 @@ prépare l'espace membre.
 Une seule famille (Barlow) sur tout le site : seules la taille, la graisse et la casse varient. L'échelle est définie dans
 `globals.css` (`t-display`, `t-h1`, `t-h2`, `t-h3`, `t-eyebrow`, `t-lead`, `t-small`, `t-caption`) : à utiliser plutôt que des tailles ad hoc.
 
-## Loader d'entrée
+## Loader d'entrée : « entrer dans le Parc »
 
-`src/components/intro/IntroLoader.tsx` : compteur **1970 → année en cours** (calculée à l'exécution) avec barre de progression.
-Les 61 titres du PSG (championnats, coupes, supercoupes, titres internationaux) s'ajoutent à une liste minimaliste au fil des
-années, sur fond de photos en fondu enchaîné, puis une transition dorée mène au site. Les titres viennent de
-`src/data/palmares.ts` (source : psg.fr/palmares) : **à mettre à jour à chaque nouveau titre**. Le loader n'est joué qu'une fois par session et ignoré avec `prefers-reduced-motion`.
+`src/components/intro/IntroLoader.tsx` + `parcScene.ts` (Three.js, chargé à la demande) : scène WebGL plein écran, sans barre de progression,
+seulement un pourcentage discret. Une progression unique (0 → 100 %, ~8 s + palier de 1,4 s) pilote :
+
+- le **Parc des Princes de nuit** (photo en 3 couches avec parallaxe : toit, tribunes, pelouse) qui sort de l'obscurité, puis les
+  **projecteurs** qui s'allument section par section (du centre vers les bords), faisceaux, brume et bandeau « Ici c'est Paris » ;
+- un **travelling arrière** lent avec légère montée ;
+- la **médaille 3D** du logo (relief, tissage carbone, métal rouge, vernis, reflets d'environnement, éclairage de contour) qui se révèle avec
+  les projecteurs, tourne de quelques degrés et flotte, avec deux balayages de lumière (allumage puis fin de chargement).
+
+Textures générées par `scripts/build-loader-assets.py` (sources dans `scripts/source/`, sorties dans `public/loader/`).
+Joué une fois par session ; ignoré avec `prefers-reduced-motion` ou sans WebGL ; bouton « Passer ». Aperçu figé d'une étape : `/?introDebug=0.7`
+(vider `sessionStorage` avant).
 
 ## Expérience carte membre (`/rejoindre-le-groupe`)
 
