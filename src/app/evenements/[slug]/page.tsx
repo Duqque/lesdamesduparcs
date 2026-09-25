@@ -4,8 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarPlus, Clock, MapPin, Ticket } from "lucide-react";
 import { Suspense } from "react";
-import { CalendarCard } from "@/components/events/CalendarCard";
+import { ScheduleTile } from "@/components/events/ScheduleTile";
 import { EventAccess } from "@/components/events/EventAccess";
+import { ReserveBar } from "@/components/events/ReserveBar";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { events, getEvent } from "@/data/events";
@@ -74,7 +75,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           </ul>
           <div className="mt-12 flex flex-col gap-4 sm:flex-row">
             <Button size="lg" href="#inscription">
-              S&rsquo;inscrire
+              Réserver ma place
             </Button>
             <Button size="lg" variant="outline" href={`/evenements/${event.id}/event.ics`} download arrow={false}>
               Ajouter à mon agenda
@@ -178,7 +179,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               <div className="mt-6 flex flex-col gap-2.5">
                 <Button size="lg" href="#inscription" className="w-full">
                   <Ticket aria-hidden className="mr-1 inline size-4" />
-                  S&rsquo;inscrire
+                  Réserver ma place
                 </Button>
                 <Button size="lg" variant="outline" href={`/evenements/${event.id}/event.ics`} download arrow={false} className="w-full">
                   Ajouter à mon agenda
@@ -193,8 +194,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       <Suspense fallback={null}>
         <EventAccess event={event} />
       </Suspense>
+      <ReserveBar event={event} />
 
-      <section aria-labelledby="autres" className="pb-32 md:pb-48">
+      <section aria-labelledby="autres" className="pb-40 md:pb-56">
         <div className="mx-auto flex max-w-[1300px] items-end justify-between px-[var(--gutter)]">
           <div>
             <p className={label}>À suivre</p>
@@ -209,7 +211,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         <ul className="mt-14 flex snap-x gap-6 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:gap-8 [&::-webkit-scrollbar]:hidden">
           {others.map((e) => (
             <li key={e.id} className="shrink-0 snap-start">
-              <CalendarCard event={e} />
+              <ScheduleTile event={e} />
             </li>
           ))}
         </ul>

@@ -86,14 +86,31 @@ dérive lente, rotation liée au scroll, reflet spéculaire, clic pour le faire 
 
 ## Calendrier et événements (`/evenements`)
 
-Calendrier horizontal façon fil d'actualité (`EventCarousel.tsx`, `CalendarCard.tsx`) : `scroll-snap`, carte centrale mise en valeur,
-glisser à la souris, flèches, clavier, filtres par type, frise des mois. Chaque carte mène à `/evenements/[slug]` (description,
-déroulé, intervenants, infos pratiques, autres rendez-vous). Export vers l'agenda : `/evenements/calendrier.ics` (tout) et
-`/evenements/[slug]/event.ics` (un événement), générés dans `src/lib/ics.ts`.
+Calendrier « affiche de programme » (`ScheduleBoard.tsx`, `ScheduleTile.tsx`) : panneau verre sur photo floutée, grand titre condensé,
+tuiles-affiches à défilement horizontal (souris, doigt, flèches), codées par couleur (rouge : match, marine : déplacement, ivoire :
+vie du groupe) et filtrables via la légende. Chaque tuile mène à `/evenements/[slug]` (description, déroulé, intervenants, infos
+pratiques, inscription). Un bouton « Réserver ma place » reste fixé en bas de l'écran (`ReserveBar.tsx`). Export agenda :
+`/evenements/calendrier.ics` et `/evenements/[slug]/event.ics` (`src/lib/ics.ts`).
 
-Les événements sont dans `src/data/events.ts` et sont **fictifs** (dates, tarifs, places). Seuls Priscilla Gneto (judo, PSG Judo)
-et le cadre du programme « Allez les filles » (filles de 11 à 16 ans, PSG For Communities) viennent de l'article du PSG ; l'adresse
-exacte du dojo, la liste des athlètes et la présence des joueuses des féminines sont à confirmer.
+Les événements (`src/data/events.ts`) sont **fictifs** (dates, tarifs, places). Seuls Priscilla Gneto (judo, PSG Judo) et le cadre du
+programme « Allez les filles » (filles de 11 à 16 ans, PSG For Communities) viennent de l'article du PSG.
+
+## Connexion, inscriptions et paiement
+
+Le visiteur n'est **jamais connecté d'office** : la session est un cookie signé (HMAC) lu côté serveur (`src/lib/server/session.ts`).
+Deux espaces, sur `/connexion` et sur chaque page d'événement : **Membre** (numéro de carte + e-mail) et **Administrateur**
+(e-mail + mot de passe). Les comptes viennent de variables d'environnement (`DEMO_*`, voir `.env.example`) : c'est un socle de
+démonstration à remplacer par une vraie base de membres et un hachage de mots de passe.
+
+- **Inscription** (`RegistrationForm.tsx`) : réservée aux membres connectées ; contrôlée côté serveur (`/api/events/[slug]/register`,
+  validation partagée dans `src/lib/registration.ts`, âge et responsable légal pour les mineures, capacité, doublons).
+- **Administrateur** (`AdminRegistrations.tsx`) : inscriptions, places prises, encaissé, export CSV.
+- **Stockage** : fichier local `.data/registrations.json` (ignoré par Git), à remplacer par une base de données en production.
+- **Paiement** : Stripe Checkout (page hébergée par Stripe, aucun numéro de carte n'est saisi sur le site). Renseigner
+  `STRIPE_SECRET_KEY` et `NEXT_PUBLIC_SITE_URL`. Le retour est vérifié auprès de Stripe avant de marquer l'inscription « payée ».
+  Sans clé, l'inscription est enregistrée « en attente de paiement ».
+- À prévoir avant la mise en production : HTTPS, limitation de débit partagée (celle fournie est en mémoire), e-mails de
+  confirmation, webhooks Stripe, mentions RGPD.
 
 ## Musique de fond
 

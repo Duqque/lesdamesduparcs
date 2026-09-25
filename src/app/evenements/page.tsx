@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { EventCarousel } from "@/components/events/EventCarousel";
+import { ScheduleBoard } from "@/components/events/ScheduleBoard";
 import { events, highlightedEventId } from "@/data/events";
+import { membership } from "@/data/membership";
 
 export const metadata: Metadata = {
   title: "Événements",
@@ -11,7 +12,7 @@ export default function EventsPage() {
   const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
   return (
     <main className="overflow-x-clip">
-      <EventCarousel events={sorted} startId={highlightedEventId} />
+      <ScheduleBoard events={sorted} highlightedId={highlightedEventId} season={membership.season} />
     </main>
   );
 }
