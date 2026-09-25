@@ -46,7 +46,7 @@ export function Header() {
         <div className="relative mx-auto flex h-full max-w-[1800px] items-center px-[var(--gutter)]">
           <Link
             href="/"
-            aria-label="Les Dames du Parc — accueil"
+            aria-label="Les Dames du Parc, accueil"
             onClick={() => setOpen(false)}
             className={cn(
               "z-10 shrink-0 rounded-full transition-[width,height,top] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",

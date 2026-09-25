@@ -8,7 +8,7 @@ export function Footer() {
   return (
     <footer className="border-t border-white/[0.07] bg-night-950">
       <div className="mx-auto flex max-w-[1800px] flex-col items-center gap-8 px-[var(--gutter)] py-9 md:flex-row md:justify-between md:gap-6 xl:h-[84px] xl:py-0">
-        <Link href="/" className="flex items-center gap-4 md:w-[260px]" aria-label="Les Dames du Parc — Paris">
+        <Link href="/" className="flex items-center gap-4 md:w-[260px]" aria-label="Les Dames du Parc, Paris">
           <Image src="/logos/dames-du-parc-logo.webp" alt="" width={56} height={56} className="size-[54px] rounded-full" />
           <span>
             <span className="block font-body text-[13px] font-semibold uppercase tracking-[0.08em] text-white">Les Dames du Parc</span>

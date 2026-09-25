@@ -77,6 +77,13 @@ Le contenu (avantages, agenda, newsletters, prix) est dans `src/data/membership.
 **Apple Wallet :** le bouton simule la génération ; le vrai fichier `.pkpass` demande un certificat Apple Developer et une
 route serveur de signature, non implémentés.
 
+## Page « Le groupe » (`/groupe`)
+
+Présentation rédigée de l'association (textes dans `src/app/groupe/page.tsx` et `src/data/group.ts`, sans tirets longs) autour d'un
+médaillon 3D du logo officiel (`src/components/group/Logo3D.tsx`) : épaisseur en calques, inclinaison à la souris avec inertie,
+dérive lente, rotation liée au scroll, reflet spéculaire, clic pour le faire tourner. Le logo officiel est dans
+`public/logos/dames-du-parc-logo.webp` (aussi utilisé sur la carte membre).
+
 ## Musique de fond
 
 `public/audio/tous-ensemble-on-chantera.mp3` (boucle) démarre dès que le navigateur l'autorise, sinon au premier clic / touche.

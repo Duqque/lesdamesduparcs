@@ -280,3 +280,15 @@ html[data-intro-seen] .intro-root { display: none; }
 }
 .zone-left { right: calc(50% + var(--cw) / 2 + 2.6vw); text-align: right; }
 .zone-right { left: calc(50% + var(--cw) / 2 + 2.6vw); text-align: left; }
+
+/* Médaillon 3D du logo */
+.logo3d-face,
+.logo3d-face * { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.logo3d-spec {
+  background: radial-gradient(circle at var(--lx, 50%) var(--ly, 40%), rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.06) 30%, transparent 55%);
+  mix-blend-mode: soft-light;
+}
+.logo3d-spec-back {
+  background: radial-gradient(circle at var(--lxb, 50%) var(--ly, 40%), rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.06) 30%, transparent 55%);
+  mix-blend-mode: soft-light;
+}

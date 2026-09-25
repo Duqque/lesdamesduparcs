@@ -12,7 +12,7 @@ const caveat = Caveat({ subsets: ["latin"], weight: ["500", "600"], variable: "-
 
 export const metadata: Metadata = {
   title: {
-    default: "Les Dames du Parc — Plus qu'un groupe, une famille",
+    default: "Les Dames du Parc : plus qu'un groupe, une famille",
     template: "%s · Les Dames du Parc",
   },
   description:
