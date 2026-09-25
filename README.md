@@ -112,6 +112,12 @@ démonstration à remplacer par une vraie base de membres et un hachage de mots 
 - À prévoir avant la mise en production : HTTPS, limitation de débit partagée (celle fournie est en mémoire), e-mails de
   confirmation, webhooks Stripe, mentions RGPD.
 
+## Accueil
+
+Une seule colonne de rubriques qui apparaissent au fil du scroll : hero, manifeste (grand texte écrit lettre par lettre au scroll,
+petite écharpe 3D), rendez-vous, citation et playlist, chant du groupe, actualités, galerie (deux rangées). L'espace membre n'est
+plus affiché sur la page : il s'ouvre uniquement depuis l'icône de profil du header (`AccountMenu.tsx`).
+
 ## Musique de fond
 
 `public/audio/tous-ensemble-on-chantera.mp3` (boucle) démarre dès que le navigateur l'autorise, sinon au premier clic / touche.

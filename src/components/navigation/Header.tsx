@@ -4,13 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { IdCard, Menu, User as UserIcon, X } from "lucide-react";
+import { IdCard, Menu, X } from "lucide-react";
 import { joinLink, leftNav, rightNav } from "@/data/navigation";
-import { useAuth } from "@/components/auth/AuthProvider";
 import { useScrolled } from "@/hooks/useScrolled";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
 import { MobileMenu } from "./MobileMenu";
+import { AccountMenu } from "./AccountMenu";
 import { SoundToggle } from "./SoundToggle";
 
 /** Bouton carré sombre, dans le style des boutons d'icône du site de référence. */
@@ -51,8 +51,6 @@ export function Header() {
   const pathname = usePathname();
   const scrolled = useScrolled(24);
   const [open, setOpen] = useState(false);
-  const { session } = useAuth();
-  const signedIn = session.status === "member" || session.status === "admin";
 
   useEffect(() => {
     if (!open) return;
@@ -114,9 +112,7 @@ export function Header() {
             </nav>
             <span className="hidden lg:block lg:flex-1" />
             <SoundToggle className={cn(squareBtn, "size-11")} />
-            <Link href={signedIn ? "/profil" : "/connexion"} aria-label={signedIn ? "Mon compte" : "Se connecter"} className={squareBtn}>
-              <UserIcon aria-hidden className="size-[19px]" strokeWidth={1.7} />
-            </Link>
+            <AccountMenu buttonClassName={squareBtn} />
             <div className="ml-1 hidden md:block">
               <Button href={joinLink.href} size="sm" icon={IdCard} arrow={false}>
                 <span className="xl:hidden">Rejoindre</span>

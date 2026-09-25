@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow_Condensed, Caveat, Inter } from "next/font/google";
+import { Barlow_Condensed, Caveat, Inter, Marcellus } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/layout/Providers";
 import { Header } from "@/components/navigation/Header";
@@ -8,6 +8,7 @@ import { INTRO_STORAGE_KEY } from "@/lib/intro-key";
 
 const barlow = Barlow_Condensed({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-barlow", display: "swap" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const marcellus = Marcellus({ subsets: ["latin"], weight: "400", variable: "--font-marcellus", display: "swap" });
 const caveat = Caveat({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-caveat", display: "swap" });
 
 export const metadata: Metadata = {
@@ -33,7 +34,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${barlow.variable} ${inter.variable} ${caveat.variable}`} suppressHydrationWarning>
+    <html lang="fr" className={`${barlow.variable} ${inter.variable} ${caveat.variable} ${marcellus.variable}`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

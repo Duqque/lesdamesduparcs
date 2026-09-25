@@ -1,17 +1,17 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Hero } from "@/components/hero/Hero";
 import { Manifesto } from "@/components/manifesto/Manifesto";
-import { MemberPanel } from "@/components/member/MemberPanel";
 import { MatchCard } from "@/components/matches/MatchCard";
 import { EventCard } from "@/components/events/EventCard";
 import { CommunityCard } from "@/components/community/CommunityCard";
 import { QuoteSection } from "@/components/community/QuoteSection";
 import { ShopCard } from "@/components/shop/ShopCard";
-import { NewsList } from "@/components/news/NewsList";
+import { NewsCard } from "@/components/news/NewsCard";
 import { ChantPlayer } from "@/components/chants/ChantPlayer";
 import { ChantsBanner } from "@/components/chants/ChantsBanner";
 import { PhotoGallery } from "@/components/gallery/PhotoGallery";
 import { Reveal } from "@/components/ui/Reveal";
-import { memberMenu } from "@/data/members";
 import { nextMatch } from "@/data/matches";
 import { featuredEvent } from "@/data/events";
 import { community } from "@/data/community";
@@ -19,28 +19,23 @@ import { news } from "@/data/news";
 import { quote } from "@/data/chants";
 import { gallery } from "@/data/gallery";
 
+const label = "font-body text-[12px] font-semibold uppercase tracking-[0.3em] text-psg-red-bright";
+const h2 = "mt-4 font-display text-[clamp(30px,4.2vw,56px)] font-semibold uppercase leading-[1.04] tracking-[0.05em] text-white";
+const wrap = "mx-auto w-full max-w-[1300px] px-[var(--gutter)]";
+
 /*
- * Grille unique, recomposée par breakpoint :
- *  - mobile : 1 colonne (hero → membre → cartes → chant → actus → citation/playlist)
- *  - tablette : 2 colonnes
- *  - xl : colonne principale + colonne latérale, fidèle à la maquette
- * En dessous de xl, les wrappers de colonnes sont en `display: contents` pour que
- * leurs enfants puissent être réordonnés directement dans la grille.
+ * Accueil : une seule colonne de rubriques qui apparaissent au fil du scroll.
+ * L'espace membre n'est plus affiché ici : il s'ouvre depuis l'icône de profil du header.
  */
 export default function HomePage() {
   return (
     <>
-    <main className="mx-auto grid max-w-[1800px] grid-cols-1 gap-6 px-[var(--gutter)] pb-20 pt-[calc(72px+48px)] md:grid-cols-2 md:gap-8 md:pt-[calc(var(--header-h)+64px)] xl:grid-cols-[minmax(0,1fr)_clamp(290px,19.4vw,340px)] xl:items-start xl:gap-x-[clamp(28px,2.6vw,48px)] xl:gap-y-0 xl:px-0 xl:pb-24 xl:pt-[calc(var(--header-h)+clamp(72px,7vw,132px))] xl:pr-[clamp(32px,3.4vw,72px)]">
-      <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-[clamp(28px,3vw,56px)]">
-        <div className="order-1 col-span-full -mx-[var(--gutter)] xl:order-none xl:mx-0">
-          <Hero />
-        </div>
+      <main className="pt-[calc(72px+48px)] md:pt-[calc(var(--header-h)+64px)] xl:pt-[calc(var(--header-h)+clamp(72px,7vw,132px))]">
+        <Hero />
 
-        <div className="order-2 col-span-full -mx-[var(--gutter)] xl:order-none xl:mx-0">
-          <Manifesto />
-        </div>
+        <Manifesto />
 
-        <div className="order-4 col-span-full grid grid-cols-1 gap-6 md:order-3 md:grid-cols-3 md:gap-8 xl:order-none xl:pl-[var(--gutter)]">
+        <section aria-label="Prochains rendez-vous" className={`${wrap} grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8`}>
           <Reveal className="flex md:col-span-3">
             <MatchCard match={nextMatch} />
           </Reveal>
@@ -53,9 +48,9 @@ export default function HomePage() {
           <Reveal delay={0.24} className="flex">
             <ShopCard />
           </Reveal>
-        </div>
+        </section>
 
-        <div className="order-7 col-span-full grid grid-cols-1 gap-6 xl:order-none md:grid-cols-[1fr_1.2fr] md:gap-8 xl:grid-cols-[minmax(0,0.98fr)_minmax(0,1.02fr)] xl:pl-[var(--gutter)]">
+        <div className={`${wrap} mt-6 grid grid-cols-1 gap-6 md:mt-8 md:grid-cols-[1fr_1.2fr] md:gap-8`}>
           <Reveal className="flex">
             <QuoteSection text={quote.text} image={quote.image} />
           </Reveal>
@@ -63,21 +58,46 @@ export default function HomePage() {
             <ChantsBanner />
           </Reveal>
         </div>
-      </div>
 
-      <div className="contents xl:flex xl:flex-col xl:gap-[clamp(28px,3vw,56px)] xl:pt-0">
-        <Reveal className="order-3 md:order-4 md:col-span-2 xl:order-none xl:col-span-1">
-          <MemberPanel menu={memberMenu} />
-        </Reveal>
-        <Reveal delay={0.1} className="order-5 md:col-span-2 xl:order-none xl:col-span-1">
-          <ChantPlayer />
-        </Reveal>
-        <Reveal delay={0.2} className="order-6 md:col-span-2 xl:order-none xl:col-span-1">
-          <NewsList items={news.slice(0, 4)} />
-        </Reveal>
-      </div>
-    </main>
-    <PhotoGallery photos={gallery.slice(0, 5)} compact />
+        <section aria-labelledby="chant-title" className={`${wrap} pt-32 md:pt-48`}>
+          <div className="grid items-center gap-12 md:grid-cols-[1fr_minmax(0,520px)] md:gap-24">
+            <Reveal>
+              <p className={label}>À écouter</p>
+              <h2 id="chant-title" className={h2}>
+                Le chant du groupe
+              </h2>
+              <p className="mt-6 max-w-md font-body text-[16px] leading-[1.85] text-white/75">Un refrain qui se transmet de tribune en tribune. Lancez la musique, apprenez les paroles, chantez avant de rejoindre le Parc.</p>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <ChantPlayer />
+            </Reveal>
+          </div>
+        </section>
+
+        <section aria-labelledby="actus-title" className={`${wrap} pt-32 md:pt-48`}>
+          <Reveal className="flex items-end justify-between gap-6">
+            <div>
+              <p className={label}>À la une</p>
+              <h2 id="actus-title" className={h2}>
+                Actualités
+              </h2>
+            </div>
+            <Link href="/actualites" className="group hidden min-h-11 items-center gap-2 font-body text-[13.5px] font-medium text-white/80 transition-colors hover:text-white sm:inline-flex">
+              Toutes les actualités <ArrowRight aria-hidden className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </Reveal>
+          <ul className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+            {news.slice(0, 3).map((item, i) => (
+              <li key={item.id}>
+                <Reveal delay={i * 0.08} className="h-full">
+                  <NewsCard item={item} />
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </main>
+      <PhotoGallery photos={gallery.slice(0, 5)} compact />
     </>
   );
 }
