@@ -255,3 +255,28 @@ html[data-intro-seen] .intro-root { display: none; }
   opacity: 0.05;
   mix-blend-mode: overlay;
 }
+
+/* Expérience carte : la carte est fixe au centre, tout le reste vit dans des zones autour d'elle */
+.card-stage { --cw: min(58vw, 340px); }
+@media (min-width: 768px) {
+  .card-stage { --cw: min(28vw, 80svh); }
+}
+.zone-top,
+.zone-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding-inline: var(--gutter);
+  text-align: center;
+}
+.zone-top { bottom: calc(50% + var(--cw) / 3.2 + 6svh); }
+.zone-bottom { top: calc(50% + var(--cw) / 3.2 + 6svh); }
+.zone-left,
+.zone-right {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  width: min(28vw, 440px);
+}
+.zone-left { right: calc(50% + var(--cw) / 2 + 2.6vw); text-align: right; }
+.zone-right { left: calc(50% + var(--cw) / 2 + 2.6vw); text-align: left; }

@@ -58,13 +58,19 @@ années, sur fond de photos en fondu enchaîné, puis une transition dorée mèn
 ## Expérience carte membre (`/abonnement`)
 
 La carte est le fil conducteur de la page : un conteneur haut avec une scène `sticky` plein écran, dont toute la chorégraphie est
-pilotée par la progression du scroll (`useScroll` + `useSpring` de framer-motion, sans GSAP). `src/components/membership/pose.ts`
-définit les points de passage (rotations X/Y/Z, profondeur, échelle, décalage X/Y, bureau et mobile) ; `Scenes.tsx` contient les
-8 scènes : carte, identité imprimée, avantages en orbite, agenda qui glisse de derrière la carte, newsletter au verso, carte
-virtuelle avec QR code et bouton Apple Wallet, foule de cartes, puis prix (12 € / saison) et adhésion. La souris ajoute une
-inclinaison discrète (±4° / ±3°) ; `prefers-reduced-motion` coupe le flottement, la souris et l'entrée.
+pilotée par la progression du scroll (`useScroll` + `useSpring` de framer-motion, sans GSAP).
 
-`CardObject.tsx` est la carte en CSS 3D (recto/verso, épaisseur en calques, `translateZ` par élément, reflets, grain, ombre).
+**Règles de mise en page :** la carte est **fixe au centre** (elle ne se translate ni ne change d'échelle : seules ses rotations
+évoluent), sa largeur est plafonnée à **28 % de la largeur** sur bureau/tablette (`--cw` dans `globals.css`), et **rien ne la
+recouvre** : chaque scène vit dans une zone dédiée (`.zone-top`, `.zone-bottom`, `.zone-left`, `.zone-right`) calculée à partir de
+la taille de la carte. L'orbite des avantages est dimensionnée pour ne jamais croiser la carte. Sur mobile la carte passe à 58 %
+de la largeur (une carte à 30 % serait illisible) et les scènes se recomposent au-dessus / au-dessous.
+
+`pose.ts` définit les rotations par étape ; `Scenes.tsx` contient les 9 scènes : carte, identité imprimée, retournement, avantages
+en orbite, agenda, newsletter au verso, carte virtuelle avec QR code et bouton Apple Wallet, foule de cartes, prix (12 € / saison).
+La souris ajoute une inclinaison discrète (±4° / ±3°) ; `prefers-reduced-motion` coupe la dérive, la souris et l'entrée.
+
+`CardObject.tsx` est la carte en CSS 3D (recto/verso, épaisseur en calques, `translateZ` par élément, reflets, grain).
 Les logos (`public/logos/card-logo-*.webp`) sont découpés des rendus de référence (`scripts/extract-card-assets.py`).
 Le contenu (avantages, agenda, newsletters, prix) est dans `src/data/membership.ts` — **exemples illustratifs à remplacer**.
 

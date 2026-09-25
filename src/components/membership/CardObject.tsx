@@ -7,16 +7,12 @@ import { QrCode } from "./QrCode";
 const EDGE_LAYERS = [-1.65, -1.1, -0.55, 0, 0.55, 1.1, 1.65];
 
 export interface CardMotion {
-  /** x / y / scale appliqués à la boîte (2D) */
-  box: MotionStyle;
-  /** rotations + profondeur appliquées à l'objet 3D */
+  /** rotations appliquées à l'objet 3D (la carte ne change jamais de place) */
   card: MotionStyle;
   identity: MotionValue<number>;
   wordmark: MotionValue<number>;
   qr: MotionValue<number>;
   newsletter: MotionValue<number>;
-  shadowOpacity: MotionValue<number>;
-  shadowScale: MotionValue<number>;
 }
 
 interface Props {
@@ -30,14 +26,10 @@ interface Props {
 /** Carte membre en CSS 3D : faces, épaisseur, couches de profondeur et reflets. Le mouvement vient de l'extérieur. */
 export function CardObject({ motion: m, name, season, number, qrValue }: Props) {
   return (
-    <motion.div
-      style={m.box}
-      className="relative aspect-[1.6] w-[min(72vw,520px,52svh)] [container-type:inline-size] [perspective:1300px] md:w-[min(46vw,600px,66svh)]"
-    >
-      <motion.div
+    <div className="relative aspect-[1.6] w-[var(--cw)] [container-type:inline-size] [perspective:1300px]">
+      <div
         aria-hidden
-        style={{ opacity: m.shadowOpacity, scaleX: m.shadowScale }}
-        className="pointer-events-none absolute inset-x-[10%] -bottom-[9%] h-[10%] rounded-[50%] bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.9),transparent_70%)] blur-[18px]"
+        className="pointer-events-none absolute inset-x-[10%] -bottom-[9%] h-[10%] rounded-[50%] bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.9),transparent_70%)] opacity-60 blur-[18px]"
       />
       <motion.div
         role="img"
@@ -145,6 +137,6 @@ export function CardObject({ motion: m, name, season, number, qrValue }: Props) 
           </motion.div>
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }

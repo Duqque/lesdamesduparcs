@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import { useIntroDone } from "@/lib/intro";
 import { cn } from "@/lib/cn";
 import { CardObject, type CardMotion } from "./CardObject";
-import { POSE, useMix, useTrack } from "./pose";
+import { POSE, useTrack } from "./pose";
 import {
   AgendaScene,
   BenefitsScene,
@@ -95,18 +95,10 @@ export function MembershipExperience({ name, since, number, season, qrValue }: P
     };
   }, [desk, mx, my, reduce]);
 
-  /* Pose de la carte : scroll = moteur principal, souris = vie */
+  /* Pose de la carte : rotations seules (la carte ne change jamais de place), scroll = moteur, souris = vie */
   const ryTrack = useTrack(p, POSE.ry);
   const rxTrack = useTrack(p, POSE.rx);
   const rzTrack = useTrack(p, POSE.rz);
-  const z = useTrack(p, POSE.z);
-  const scale = useMix(desk, useTrack(p, POSE.scaleD), useTrack(p, POSE.scaleM));
-  const xD = useTrack(p, POSE.xD);
-  const yVh = useMix(desk, useTrack(p, POSE.yD), useTrack(p, POSE.yM));
-
-  const floatY = useTransform(t, (v) => Math.sin((v * 2 * Math.PI) / 7) * 6);
-  const x = useTransform([xD, desk], ([v, k]) => `${(v as number) * (k as number)}vw`);
-  const y = useTransform([yVh, floatY], ([v, f]) => `calc(${v}svh + ${f}px)`);
 
   const rotateY = useTransform([ryTrack, mxS, desk, t], ([a, m, k, tt]) => (a as number) + (m as number) * 4 * (k as number) + Math.cos(((tt as number) * 2 * Math.PI) / 11) * 0.6);
   const rotateX = useTransform([rxTrack, myS, desk, t], ([a, m, k, tt]) => (a as number) + (m as number) * 3 * (k as number) + Math.sin(((tt as number) * 2 * Math.PI) / 9) * 0.5);
@@ -120,34 +112,29 @@ export function MembershipExperience({ name, since, number, season, qrValue }: P
   const wordmark = useTransform(identity, (v) => 1 - v);
   const qr = useTransform(p, [0, 0.83, 0.865, 0.93, 0.95, 1], [0, 0, 1, 1, 0, 0]);
   const newsletter = useTransform(p, [0, 0.72, 0.75, 0.79, 0.82, 1], [0, 0, 1, 1, 0, 0]);
-  const shadowOpacity = useTransform(floatY, (f) => 0.5 + ((f + 6) / 12) * 0.25);
-  const shadowScale = useTransform(floatY, (f) => 0.88 + ((f + 6) / 12) * 0.1);
 
   const cardMotion: CardMotion = {
-    box: { x, y, scale } as MotionStyle,
-    card: { rotateX, rotateY, rotateZ, z, "--lx": lx, "--lxb": lxb, "--ly": ly, "--li": 0.13 } as MotionStyle,
+    card: { rotateX, rotateY, rotateZ, "--lx": lx, "--lxb": lxb, "--ly": ly, "--li": 0.13 } as MotionStyle,
     identity,
     wordmark,
     qr,
     newsletter,
-    shadowOpacity,
-    shadowScale,
   };
 
   const goldGlow = useTransform(p, [0.8, 0.85, 0.9, 0.93], [0, 1, 1, 0]);
-  const finalDim = useTransform(p, [0.94, 0.985], [0, 0.55]);
+  const finalDim = useTransform(p, [0.94, 0.985], [0, 0.4]);
 
   return (
     <section ref={containerRef} aria-label="Expérience carte membre" className="relative h-[1000svh] md:h-[1200svh]">
-      <div className="sticky top-0 h-svh w-full overflow-hidden bg-night-950 [perspective:1600px]">
+      <div className="card-stage sticky top-0 h-svh w-full overflow-hidden bg-night-950 [perspective:1600px]">
         <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_50%,rgba(26,52,112,0.42),transparent_72%)]" />
         <motion.div aria-hidden style={{ opacity: goldGlow }} className="absolute inset-0 bg-[radial-gradient(ellipse_55%_45%_at_50%_50%,rgba(245,197,66,0.16),transparent_70%)]" />
         <motion.div aria-hidden style={{ opacity: finalDim }} className="absolute inset-0 bg-night-950" />
 
         <div className="absolute inset-0 z-[2] grid place-items-center">
           <motion.div
-            initial={reduce ? false : { opacity: 0, y: 60, scale: 0.9 }}
-            animate={introDone ? { opacity: 1, y: 0, scale: 1 } : undefined}
+            initial={reduce ? false : { opacity: 0, scale: 0.94 }}
+            animate={introDone ? { opacity: 1, scale: 1 } : undefined}
             transition={{ duration: 1.3, ease: [0.16, 1, 0.3, 1] }}
           >
             <CardObject motion={cardMotion} name={name} season={season} number={number} qrValue={qrValue} />
