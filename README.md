@@ -48,10 +48,20 @@ Les composants reçoivent des données structurées (`<MatchCard match={nextMatc
 le contenu de `src/data/`. Le type `User` (profil, adhésion, billets, événements, avantages, équipe, notifications, achats)
 prépare l'espace membre.
 
+## Loader d'entrée
+
+`src/components/intro/IntroLoader.tsx` : compteur **1970 → année en cours** (calculée à l'exécution) avec barre de progression.
+Un palier apparaît à chaque championnat de France remporté, et un effet doré (confettis, flash) pour chacune des Ligues des
+champions, puis une transition dorée vers le site. Les années viennent de `src/data/palmares.ts` (source : psg.fr/palmares) :
+**à mettre à jour à chaque nouveau titre**. Le loader n'est joué qu'une fois par session et ignoré avec `prefers-reduced-motion`.
+
+## Musique de fond
+
+`public/audio/tous-ensemble-on-chantera.mp3` (boucle) démarre dès que le navigateur l'autorise, sinon au premier clic / touche.
+Le bouton haut-parleur du header et le lecteur « Le chant du groupe » la contrôlent ; le choix « coupé » est mémorisé.
+
 ## Assets provisoires — à remplacer
 
-Les photos (`public/images/`), les logos (`public/logos/`) et l'extrait audio (`public/audio/`) sont **provisoires** :
-photos et logos sont découpés depuis la maquette (`scripts/extract-mockup-assets.py`), l'audio est synthétisé
-(`scripts/generate-placeholder-audio.py`). Remplacer par le logo officiel, de vraies photographies HD et l'enregistrement
-du chant en gardant les mêmes noms de fichiers (ou en mettant à jour `src/data/`). Les liens Spotify et réseaux sociaux
-sont aussi des valeurs génériques.
+Les logos (`public/logos/`) sont **provisoires**, découpés depuis la maquette (`scripts/extract-mockup-assets.py`) : remplacer
+par le logo officiel des Dames du Parc et les écussons. Les photos de `public/images/` proviennent des visuels fournis ; vérifier
+les droits d'utilisation avant mise en ligne. Les liens Spotify et réseaux sociaux sont des valeurs génériques.

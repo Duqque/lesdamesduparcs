@@ -8,6 +8,7 @@ import { ShopCard } from "@/components/shop/ShopCard";
 import { NewsList } from "@/components/news/NewsList";
 import { ChantPlayer } from "@/components/chants/ChantPlayer";
 import { ChantsBanner } from "@/components/chants/ChantsBanner";
+import { PhotoGallery } from "@/components/gallery/PhotoGallery";
 import { Reveal } from "@/components/ui/Reveal";
 import { currentMember, memberMenu } from "@/data/members";
 import { nextMatch } from "@/data/matches";
@@ -15,6 +16,7 @@ import { featuredEvent } from "@/data/events";
 import { community } from "@/data/community";
 import { news } from "@/data/news";
 import { quote } from "@/data/chants";
+import { gallery } from "@/data/gallery";
 
 /*
  * Grille unique, recomposée par breakpoint :
@@ -26,6 +28,7 @@ import { quote } from "@/data/chants";
  */
 export default function HomePage() {
   return (
+    <>
     <main className="mx-auto grid max-w-[1800px] grid-cols-1 gap-3.5 px-[var(--gutter)] pb-8 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_clamp(290px,19.4vw,340px)] xl:items-start xl:gap-x-[clamp(16px,1.4vw,24px)] xl:gap-y-0 xl:px-0 xl:pb-0 xl:pr-[1.5vw]">
       <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-[14px]">
         <div className="order-1 col-span-full -mx-[var(--gutter)] xl:mx-0">
@@ -69,5 +72,7 @@ export default function HomePage() {
         </Reveal>
       </div>
     </main>
+    <PhotoGallery photos={gallery} />
+    </>
   );
 }
