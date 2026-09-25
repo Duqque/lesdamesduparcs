@@ -3,15 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { getProduct } from "@/data/shop";
+import { useShop } from "./ShopProvider";
 import { setQty, type CartLine } from "@/lib/cart";
 import { formatPrice } from "@/lib/money";
 
 export function CartLines({ lines, onNavigate, compact = false }: { lines: CartLine[]; onNavigate?: () => void; compact?: boolean }) {
+  const { products } = useShop();
   return (
     <ul className="divide-y divide-white/10">
       {lines.map((l) => {
-        const p = getProduct(l.productId);
+        const p = products.find((x) => x.id === l.productId);
         if (!p) return null;
         return (
           <li key={`${l.productId}-${l.size ?? ""}`} className="flex gap-4 py-5">

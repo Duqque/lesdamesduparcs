@@ -8,7 +8,7 @@ import { getEventAdmin } from "@/lib/server/events";
 export const metadata = { title: "Modifier l'événement" };
 
 export default async function EditEventPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SP> }) {
-  await requireAdmin("events.edit");
+  const ctx = await requireAdmin("events.edit");
   const { id } = await params;
   const sp = await searchParams;
   const event = await getEventAdmin(id);
@@ -17,7 +17,7 @@ export default async function EditEventPage({ params, searchParams }: { params: 
     <>
       <PageHeader back={{ href: `/admin/evenements/${id}`, label: event.title }} title="Modifier l'événement" />
       <Flash error={first(sp.erreur)} />
-      <EventForm event={event} />
+      <EventForm event={event} canPricing={ctx.can("events.pricing")} />
     </>
   );
 }

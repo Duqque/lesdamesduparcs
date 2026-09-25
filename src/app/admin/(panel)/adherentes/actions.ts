@@ -131,7 +131,8 @@ export async function sendMemberEmailAction(id: string, formData: FormData) {
 
 export async function memberPaymentAction(id: string, txId: string, status: TxStatus, formData: FormData) {
   const ctx = await requireAdmin("finance.edit");
-  await setTxStatus(txId, status, { method: (String(formData.get("method") ?? "") || undefined) as PayMethod | undefined });
+  const res = await setTxStatus(txId, status, { method: (String(formData.get("method") ?? "") || undefined) as PayMethod | undefined });
+  if (!res.ok) back(id, { erreur: res.error });
   await audit(ctx, "paiement", "transaction", `Paiement ${txId} passé à « ${status} »`, { entityId: txId });
   revalidatePath("/admin/finances");
   back(id, { ok: "Paiement mis à jour." });

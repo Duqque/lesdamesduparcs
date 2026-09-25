@@ -11,6 +11,12 @@ export const PERMISSIONS = [
   "events.view",
   "events.edit",
   "events.attendance",
+  "events.pricing", // tarifs, modes de paiement, prix des événements
+  "shop.view",
+  "shop.edit", // fiches produits, photos, visibilité
+  "shop.pricing", // prix, prix barrés, frais de livraison
+  "shop.stock",
+  "shop.orders", // suivi des commandes et de leur expédition
   "finance.view",
   "finance.edit", // marquer payé, annuler, rembourser
   "finance.export",
@@ -41,9 +47,9 @@ export const ROLE_LABELS: Record<Role, string> = {
 
 export const ROLE_DESCRIPTIONS: Record<Role, string> = {
   super: "Accès complet, y compris la structure et le design du site, les administratrices et la configuration.",
-  admin: "Adhérentes, événements, contenu, communication et statistiques. Ne modifie ni la structure ni le design du site.",
-  tresoriere: "Paiements, finances, remboursements et exports financiers.",
-  communication: "Articles, photos, médiathèque, événements, textes du site et campagnes.",
+  admin: "Adhérentes, événements et leurs tarifs, boutique (produits, prix, stocks, commandes), contenu, communication et statistiques. Ne modifie ni la structure ni le design du site.",
+  tresoriere: "Paiements, finances, remboursements, exports financiers, tarifs des événements, prix et commandes de la boutique.",
+  communication: "Articles, photos, médiathèque, événements (sans les tarifs), fiches produits (sans les prix), textes du site et campagnes.",
   benevole: "Inscriptions, listes et présences aux événements.",
 };
 
@@ -53,11 +59,11 @@ export const ROLE_PERMISSIONS: Record<Role, ReadonlySet<Permission>> = {
   super: new Set(PERMISSIONS),
   admin: set(
     "dashboard.view", "members.view", "members.pii", "members.edit", "members.export", "plans.manage",
-    "events.view", "events.edit", "events.attendance", "content.edit", "media.manage", "community.edit",
+    "events.view", "events.edit", "events.attendance", "events.pricing", "shop.view", "shop.edit", "shop.pricing", "shop.stock", "shop.orders", "content.edit", "media.manage", "community.edit",
     "communication.send", "analytics.view", "reports.generate", "site.content",
   ),
-  tresoriere: set("dashboard.view", "members.view", "finance.view", "finance.edit", "finance.export", "analytics.view", "reports.generate"),
-  communication: set("dashboard.view", "events.view", "events.edit", "content.edit", "media.manage", "community.edit", "communication.send", "site.content", "analytics.view"),
+  tresoriere: set("dashboard.view", "members.view", "events.view", "events.pricing", "shop.view", "shop.pricing", "shop.orders", "finance.view", "finance.edit", "finance.export", "analytics.view", "reports.generate"),
+  communication: set("dashboard.view", "events.view", "events.edit", "shop.view", "shop.edit", "content.edit", "media.manage", "community.edit", "communication.send", "site.content", "analytics.view"),
   benevole: set("dashboard.view", "members.view", "events.view", "events.attendance"),
 };
 
@@ -72,6 +78,12 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   "events.view": "Voir les événements",
   "events.edit": "Créer et modifier les événements",
   "events.attendance": "Inscriptions et présences",
+  "events.pricing": "Tarifs et paiement des événements",
+  "shop.view": "Voir la boutique",
+  "shop.edit": "Produits et photos",
+  "shop.pricing": "Prix et livraison de la boutique",
+  "shop.stock": "Stocks",
+  "shop.orders": "Commandes",
   "finance.view": "Voir les finances",
   "finance.edit": "Encaisser, annuler, rembourser",
   "finance.export": "Exports financiers",

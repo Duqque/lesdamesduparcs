@@ -1,21 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { products, shopCategories, type ShopCategory } from "@/data/shop";
+import { useShop } from "./ShopProvider";
 import { cn } from "@/lib/cn";
 import { ProductCard } from "./ProductCard";
 
 type Sort = "new" | "asc" | "desc";
 
 export function Catalog() {
-  const [cat, setCat] = useState<ShopCategory | "Tout">("Tout");
+  const { products, categories: shopCategories } = useShop();
+  const [cat, setCat] = useState<string>("Tout");
   const [sort, setSort] = useState<Sort>("new");
   const list = useMemo(() => {
     const l = products.filter((p) => cat === "Tout" || p.category === cat);
     if (sort === "asc") return [...l].sort((a, b) => a.priceCents - b.priceCents);
     if (sort === "desc") return [...l].sort((a, b) => b.priceCents - a.priceCents);
     return [...l].sort((a, b) => Number(Boolean(b.isNew)) - Number(Boolean(a.isNew)));
-  }, [cat, sort]);
+  }, [cat, sort, products]);
 
   return (
     <div>

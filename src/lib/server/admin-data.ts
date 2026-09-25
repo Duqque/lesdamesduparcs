@@ -7,7 +7,8 @@ import { admins, loginEvents, resetRequests } from "./admin-store";
 import { effectiveStatus, getTransactions, memberships, payments, syncMemberships, type Membership, type Payment, type Tx, type TxStatus } from "./business";
 import { articlesDb } from "./content";
 import { getAllEventsAdmin } from "./events";
-import { listAllRegistrations, listStoredMembers } from "./store";
+import { listAllRegistrations, listOrders, listStoredMembers } from "./store";
+import { productsDb, shopConfig, totalStock } from "./shop";
 
 /* ---------- Adhérentes : vue jointe membre + adhésion + paiement ---------- */
 
@@ -162,6 +163,13 @@ export async function dashboardData(range: { start: Date; end: Date; days: numbe
     const wait = regs.filter((r) => r.eventId === e.id && r.status === "waitlist").length;
     if (wait) alerts.push({ level: "important", text: `${wait} personne${wait > 1 ? "s" : ""} en liste d'attente : ${e.title}`, href: `/admin/evenements/${e.id}?vue=attente` });
   }
+  const [orders, prods, shopCfg] = await Promise.all([listOrders(), productsDb.all(), shopConfig.get()]);
+  const toPrepare = orders.filter((o) => o.status === "paid" && (!o.fulfilment || o.fulfilment === "to_prepare")).length;
+  if (toPrepare) alerts.push({ level: "important", text: `${toPrepare} commande${toPrepare > 1 ? "s" : ""} boutique à préparer`, href: "/admin/boutique/commandes?suivi=to_prepare" });
+  const out = prods.filter((p) => p.status === "active" && p.trackStock && totalStock(p) <= 0).length;
+  const low = prods.filter((p) => p.status === "active" && p.trackStock && totalStock(p) > 0 && totalStock(p) <= shopCfg.lowStock).length;
+  if (out) alerts.push({ level: "urgent", text: `${out} produit${out > 1 ? "s" : ""} en rupture de stock`, href: "/admin/boutique?stock=rupture" });
+  if (low) alerts.push({ level: "important", text: `${low} produit${low > 1 ? "s" : ""} en stock bas`, href: "/admin/boutique?stock=bas" });
   const newToday = rows.filter((r) => r.joinedAt.slice(0, 10) === today).length;
   if (newToday) alerts.push({ level: "info", text: `${newToday} nouvelle${newToday > 1 ? "s" : ""} adhésion${newToday > 1 ? "s" : ""} aujourd'hui`, href: "/admin/adherentes?vue=nouvelles" });
 
@@ -215,7 +223,7 @@ export async function adminNotifications(ctx: AdminContext): Promise<Alert[]> {
   const list: Alert[] = [];
   if (ctx.can("dashboard.view")) {
     const d = await dashboardData({ start: addDays(new Date(), -29), end: new Date(), days: 30 });
-    list.push(...d.alerts.filter((a) => (ctx.can("finance.view") ? true : !a.href.includes("finances"))));
+    list.push(...d.alerts.filter((a) => (ctx.can("finance.view") || !a.href.includes("finances")) && (ctx.can("shop.view") || !a.href.includes("boutique")) && (ctx.can("members.view") || !a.href.includes("adherentes"))));
   }
   if (ctx.can("admins.manage")) {
     const [reqs, logins] = await Promise.all([resetRequests.find((r) => r.status === "open"), loginEvents.find((e) => Date.now() - new Date(e.createdAt).getTime() < 86_400_000)]);

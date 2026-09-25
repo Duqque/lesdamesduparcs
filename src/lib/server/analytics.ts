@@ -107,3 +107,24 @@ export async function siteAnalytics(days = 30) {
     newMembers, newRegs,
   };
 }
+
+export async function shopAnalytics() {
+  const { listOrders } = await import("./store");
+  const orders = (await listOrders()).filter((o) => o.status === "paid");
+  const months = lastMonths(12);
+  const monthly = months.map((m) => orders.filter((o) => monthKey(o.createdAt) === m).reduce((n, o) => n + o.totalCents, 0));
+  const byProduct = new Map<string, { name: string; qty: number; revenue: number }>();
+  for (const o of orders) for (const l of o.lines) {
+    const cur = byProduct.get(l.productId) ?? { name: l.name, qty: 0, revenue: 0 };
+    cur.qty += l.qty;
+    cur.revenue += l.unitCents * l.qty;
+    byProduct.set(l.productId, cur);
+  }
+  const revenue = orders.reduce((n, o) => n + o.totalCents, 0);
+  return {
+    orders: orders.length, revenue, average: orders.length ? revenue / orders.length : 0, discounts: orders.reduce((n, o) => n + (o.discountCents ?? 0), 0),
+    months, monthly,
+    top: [...byProduct.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 8),
+    delivery: [{ label: "Livraison à domicile", value: orders.filter((o) => o.delivery.mode === "home").length }, { label: "Retrait lors d'un événement", value: orders.filter((o) => o.delivery.mode === "event").length }],
+  };
+}

@@ -4,13 +4,14 @@ import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { CartLines } from "@/components/shop/CartLines";
 import { Button } from "@/components/ui/Button";
-import { shipping } from "@/data/shop";
+import { useShop } from "@/components/shop/ShopProvider";
 import { computeTotals, useCartLines } from "@/lib/cart";
 import { formatPrice } from "@/lib/money";
 
 export function CartView() {
   const lines = useCartLines();
-  const totals = computeTotals(lines);
+  const shop = useShop();
+  const totals = computeTotals(lines, shop);
   const ship = totals.shippingCents("home");
   return (
     <main className="mx-auto max-w-[1100px] px-[var(--gutter)] pb-40 pt-[190px] md:pt-[240px]">
@@ -40,7 +41,7 @@ export function CartView() {
                 <dd className="tabular-nums">{formatPrice(totals.subtotalCents + ship)}</dd>
               </div>
             </dl>
-            <p className="mt-4 font-body text-[12.5px] leading-relaxed text-mist">Livraison offerte dès {formatPrice(shipping.freeFromCents)}, ou retrait gratuit lors d&rsquo;un événement du groupe.</p>
+            <p className="mt-4 font-body text-[12.5px] leading-relaxed text-mist">Livraison offerte dès {formatPrice(shop.rules.freeFromCents)}, ou retrait gratuit lors d&rsquo;un événement du groupe.</p>
             <div className="mt-6 flex flex-col gap-3">
               <Button href="/commande" size="lg" arrow={false} className="w-full">Commander</Button>
               <Link href="/boutique" className="text-center font-body text-[13.5px] text-white/80 underline decoration-white/25 underline-offset-4 hover:decoration-white">Continuer mes achats</Link>

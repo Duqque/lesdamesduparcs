@@ -5,24 +5,26 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, RotateCcw, Truck } from "lucide-react";
 import { Price, ProductCard } from "@/components/shop/ProductCard";
 import { ProductActions } from "@/components/shop/ProductActions";
-import { getProduct, products, shipping } from "@/data/shop";
+import { getPublicCatalog, getProductPublic } from "@/lib/server/shop";
+import { isSoldOut } from "@/lib/shop";
 import { formatPrice } from "@/lib/money";
 
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.id }));
+export async function generateStaticParams() {
+  return (await getPublicCatalog()).products.map((p) => ({ slug: p.id }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const p = getProduct(slug);
+  const p = await getProductPublic(slug);
   return p ? { title: p.name, description: p.description, openGraph: { title: p.name, description: p.description, images: [p.images[0]] } } : {};
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const [product, catalog] = await Promise.all([getProductPublic(slug), getPublicCatalog()]);
   if (!product) notFound();
-  const related = products.filter((p) => p.id !== product.id).slice(0, 3);
+  const shipping = catalog.rules;
+  const related = catalog.products.filter((p) => p.id !== product.id).slice(0, 3);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -30,7 +32,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     name: product.name,
     description: product.description,
     image: product.images,
-    offers: { "@type": "Offer", priceCurrency: "EUR", price: (product.priceCents / 100).toFixed(2), availability: "https://schema.org/InStock" },
+    offers: { "@type": "Offer", priceCurrency: "EUR", price: (product.priceCents / 100).toFixed(2), availability: isSoldOut(product) ? "https://schema.org/OutOfStock" : "https://schema.org/InStock" },
   };
 
   return (

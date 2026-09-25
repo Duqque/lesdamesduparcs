@@ -6,7 +6,8 @@ import { filterMembers, loadMemberRows, type MemberFilters } from "@/lib/server/
 import { TX_STATUS_LABEL, getTransactions, type Tx } from "@/lib/server/business";
 import { getAllEventsAdmin } from "@/lib/server/events";
 import { csvResponse, pdfResponse, toCsv, toPdf, type Col } from "@/lib/server/export";
-import { listAllRegistrations } from "@/lib/server/store";
+import { listAllRegistrations, listOrders } from "@/lib/server/store";
+import { productsDb, totalStock } from "@/lib/server/shop";
 import type { Registration } from "@/lib/registration";
 
 const MEMBER_KEYS = ["q", "vue", "plan", "statut", "paiement", "ville", "age", "du", "au", "expDu", "expAu", "mineure", "tri"] as const;
@@ -94,6 +95,44 @@ export async function GET(req: Request, ctx: { params: Promise<{ kind: string }>
     ];
     await audit(admin, "export", kind, `Export ${format.toUpperCase()} de ${rows.length} inscription(s)`);
     return respond(format, `${kind}-${stamp}`, kind === "presences" ? "Présences" : "Inscriptions", `${rows.length} ligne(s) · export du ${fmtDate(new Date().toISOString())}`, rows, cols);
+  }
+
+  if (kind === "commandes") {
+    if (!admin.can("shop.orders")) return deny();
+    const paiement = url.searchParams.get("paiement");
+    const suivi = url.searchParams.get("suivi");
+    const du = url.searchParams.get("du");
+    const au = url.searchParams.get("au");
+    const q = url.searchParams.get("q")?.toLowerCase();
+    const rows = (await listOrders()).filter((o) => (!paiement || o.status === paiement) && (!suivi || (suivi === "aucun" ? !o.fulfilment : o.fulfilment === suivi)) && (!du || o.createdAt.slice(0, 10) >= du) && (!au || o.createdAt.slice(0, 10) <= au) && (!q || `${o.id} ${o.contact.firstName} ${o.contact.lastName} ${o.contact.email}`.toLowerCase().includes(q)));
+    const fin = admin.can("finance.view");
+    const cols: Col<(typeof rows)[number]>[] = [
+      { label: "N°", value: (o) => o.id.slice(0, 8).toUpperCase() },
+      { label: "Date", value: (o) => fmtDateTime(o.createdAt) },
+      { label: "Client", value: (o) => `${o.contact.lastName} ${o.contact.firstName}`, w: 1.5 },
+      { label: "E-mail", value: (o) => o.contact.email, w: 2 },
+      { label: "Articles", value: (o) => o.lines.map((l) => `${l.qty}x ${l.name}${l.size ? ` (${l.size})` : ""}`).join(", "), w: 3 },
+      ...(fin ? [{ label: "Total", value: (o: (typeof rows)[number]) => eur(o.totalCents) }] : []),
+      { label: "Paiement", value: (o) => ({ paid: "Payée", awaiting_payment: "En attente", refunded: "Remboursée", cancelled: "Annulée" })[o.status] },
+      { label: "Suivi", value: (o) => o.fulfilment ?? "" },
+      { label: "Livraison", value: (o) => (o.delivery.mode === "home" ? `${o.delivery.address?.line1 ?? ""} ${o.delivery.address?.postalCode ?? ""} ${o.delivery.address?.city ?? ""}` : "Retrait événement"), w: 2 },
+    ];
+    await audit(admin, "export", "commandes", `Export ${format.toUpperCase()} de ${rows.length} commande(s)`);
+    return respond(format, `commandes-${stamp}`, "Commandes", `${rows.length} commande(s) · export du ${fmtDate(new Date().toISOString())}`, rows, cols);
+  }
+
+  if (kind === "produits") {
+    if (!admin.can("shop.view")) return deny();
+    const rows = await productsDb.all();
+    const cols: Col<(typeof rows)[number]>[] = [
+      { label: "Référence", value: (p) => p.sku },
+      { label: "Produit", value: (p) => p.name, w: 3 },
+      { label: "Catégorie", value: (p) => p.category },
+      { label: "Prix", value: (p) => eur(p.priceCents) },
+      { label: "Stock", value: (p) => (p.trackStock ? totalStock(p) : "non suivi") },
+      { label: "Statut", value: (p) => ({ draft: "Brouillon", active: "En vente", archived: "Archivé" })[p.status] },
+    ];
+    return respond(format, `produits-${stamp}`, "Produits", `${rows.length} produit(s)`, rows, cols);
   }
 
   return new Response("Export inconnu.", { status: 404 });

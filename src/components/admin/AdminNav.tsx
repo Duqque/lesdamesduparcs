@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { BarChart3, Calendar, ChevronDown, Gift, Globe, Home, Megaphone, Menu, Newspaper, Settings, Users, Wallet, X } from "lucide-react";
+import { BarChart3, Calendar, ChevronDown, Gift, Globe, Home, Megaphone, Menu, Newspaper, Settings, ShoppingBag, Users, Wallet, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { NavGroup } from "./nav";
 
-const icons = { home: Home, users: Users, calendar: Calendar, wallet: Wallet, globe: Globe, newspaper: Newspaper, gift: Gift, megaphone: Megaphone, chart: BarChart3, settings: Settings };
+const icons = { home: Home, users: Users, calendar: Calendar, wallet: Wallet, shop: ShoppingBag, globe: Globe, newspaper: Newspaper, gift: Gift, megaphone: Megaphone, chart: BarChart3, settings: Settings };
 
 /** Navigation latérale permanente (bureau) ou tiroir (mobile). Les groupes s'ouvrent selon la page courante. */
 export function AdminNav({ groups, roleLabel, name }: { groups: NavGroup[]; roleLabel: string; name: string }) {

@@ -11,6 +11,7 @@ import { eventsDb, getEventAdmin, type EventRow } from "@/lib/server/events";
 import { getMemberByNumber, getMemberByToken, listAllRegistrations, updateRegistration } from "@/lib/server/store";
 import { formatLongDate } from "@/lib/format";
 import { safeReturn } from "@/lib/admin/params";
+import { setTxStatus } from "@/lib/server/business";
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const lines = (v: string) => v.split("\n").map((x) => x.trim()).filter(Boolean);
@@ -60,6 +61,7 @@ function parseEvent(f: FormData, id: string): Omit<EventRow, "createdAt" | "upda
       membersOnly,
       tiers: tiers.length ? tiers : undefined,
       paymentMode: (s(f, "paymentMode") || "online") as "online" | "onsite" | "manual" | "optional" | "none",
+      paymentInstructions: s(f, "paymentInstructions") || undefined,
       guardianRequired: f.get("guardianRequired") === "on" || undefined,
       minAge: Number(s(f, "minAge")) || undefined,
       maxAge: Number(s(f, "maxAge")) || undefined,
@@ -99,7 +101,10 @@ export async function saveEventAction(formData: FormData) {
   if (editing) {
     const before = await getEventAdmin(editing);
     const data = parseEvent(formData, editing);
+    // Sans la permission « tarifs », les prix et modes de paiement existants sont conservés tels quels.
+    if (!ctx.can("events.pricing") && before) data.registration = { ...data.registration, priceCents: before.registration.priceCents, tiers: before.registration.tiers, paymentMode: before.registration.paymentMode, paymentInstructions: before.registration.paymentInstructions };
     await eventsDb.update(editing, { ...data, origin: before?.origin } as Partial<EventRow>);
+    if (before && ctx.can("events.pricing") && (before.registration.priceCents !== data.registration.priceCents || before.registration.paymentMode !== data.registration.paymentMode)) await audit(ctx, "tarification", "événement", `Tarif de « ${title} » : ${(before.registration.priceCents / 100).toFixed(2)} € (${before.registration.paymentMode ?? "online"}) → ${(data.registration.priceCents / 100).toFixed(2)} € (${data.registration.paymentMode})`, { entityId: editing, before: { priceCents: before.registration.priceCents, paymentMode: before.registration.paymentMode }, after: { priceCents: data.registration.priceCents, paymentMode: data.registration.paymentMode } });
     await audit(ctx, "modification", "événement", `Événement modifié : ${title}`, { entityId: editing, before: before && { date: before.date, status: before.status, capacity: before.registration.capacity }, after: { date: data.date, status: data.status, capacity: data.registration.capacity } });
     refresh(editing);
     redirect(`/admin/evenements/${editing}?ok=${encodeURIComponent("Événement enregistré.")}`);
@@ -113,6 +118,7 @@ export async function saveEventAction(formData: FormData) {
     let id = i === 0 ? base : `${base}-${i + 1}`;
     while (await eventsDb.get(id)) id = `${id}-${Math.random().toString(36).slice(2, 5)}`;
     const data = parseEvent(formData, id);
+    if (!ctx.can("events.pricing")) data.registration = { ...data.registration, priceCents: 0, tiers: undefined, paymentMode: "none", paymentInstructions: undefined };
     data.date = shift(date, repeat, i);
     await eventsDb.insert(data);
     await audit(ctx, "création", "événement", `Événement créé : ${title} (${data.date})`, { entityId: id });
@@ -157,7 +163,10 @@ export async function registrationAction(eventId: string, regId: string, op: Reg
   const reg = (await listAllRegistrations()).find((r) => r.id === regId);
   if (!reg) redirect(returnTo);
   const map = { confirm: reg.amountCents > 0 ? "awaiting_payment" : "confirmed", cancel: "cancelled", refund: "refunded", paid: "paid", waitlist: "waitlist", promote: reg.amountCents > 0 ? "awaiting_payment" : "confirmed", unpaid: "awaiting_payment" } as const;
-  await updateRegistration(regId, { status: map[op] });
+  if (op === "refund") {
+    const res = await setTxStatus(`registration:${regId}`, "refunded");
+    if (!res.ok) redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}erreur=${encodeURIComponent(res.error)}`);
+  } else await updateRegistration(regId, { status: map[op] });
   const ev = await getEventAdmin(eventId);
   await audit(ctx, op === "refund" ? "remboursement" : "inscription", "inscription", `${reg.firstName} ${reg.lastName} : ${ev?.title ?? eventId} → ${map[op]}`, { entityId: regId, before: reg.status, after: map[op] });
   if (op === "promote" || op === "confirm") await sendTemplate("event_confirmation", reg.email, { prenom: reg.firstName, objet: ev?.title ?? "", date: ev ? formatLongDate(ev.date) : "" }, "eventConfirmation");

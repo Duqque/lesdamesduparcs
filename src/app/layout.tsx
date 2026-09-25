@@ -7,6 +7,7 @@ import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/footer/Footer";
 import { INTRO_STORAGE_KEY } from "@/lib/intro-key";
 import { accentOverride, getNavConfig, siteMeta } from "@/lib/server/site";
+import { getPublicCatalog } from "@/lib/server/shop";
 
 /** Une seule famille typographique sur tout le site : seules la graisse et la casse varient. */
 const barlow = Barlow({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: "--font-barlow", display: "swap" });
@@ -27,7 +28,7 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const [navConfig, accent] = await Promise.all([getNavConfig(), accentOverride()]);
+  const [navConfig, accent, shop] = await Promise.all([getNavConfig(), accentOverride(), getPublicCatalog()]);
   return (
     <html lang="fr" className={barlow.variable} suppressHydrationWarning>
       <head>
@@ -48,7 +49,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         >
           Aller au contenu
         </a>
-        <Providers>
+        <Providers shop={shop}>
           <SiteFrame header={<Header navConfig={navConfig} />} footer={<Footer />}>
             {children}
           </SiteFrame>

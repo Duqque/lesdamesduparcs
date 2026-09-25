@@ -1,4 +1,5 @@
 export type OrderStatus = "awaiting_payment" | "paid" | "cancelled" | "refunded";
+export type Fulfilment = "to_prepare" | "preparing" | "shipped" | "ready_for_pickup" | "delivered";
 
 export interface OrderLine {
   productId: string;
@@ -29,6 +30,13 @@ export interface Order {
   delivery: { mode: "home" | "event"; address?: Address };
   memberNumber?: string;
   stripeSessionId?: string;
+  /** Suivi de préparation et d'expédition (back-office) */
+  fulfilment?: Fulfilment;
+  tracking?: string;
+  carrier?: string;
+  note?: string;
+  promoCode?: string;
+  discountCents?: number;
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -39,6 +47,7 @@ export interface CheckoutInput {
   contact: { email: string; firstName: string; lastName: string; phone?: string };
   delivery: { mode: "home" | "event"; address?: Address };
   acceptTerms: boolean;
+  promoCode?: string;
 }
 
 /** Validation des champs du formulaire de commande (partagée client / serveur). */

@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ShoppingBag, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { computeTotals, setDrawer, useCartLines, useDrawerOpen } from "@/lib/cart";
-import { shipping } from "@/data/shop";
+import { useShop } from "./ShopProvider";
 import { formatPrice } from "@/lib/money";
 import { CartLines } from "./CartLines";
 
@@ -14,7 +14,8 @@ import { CartLines } from "./CartLines";
 export function CartDrawer() {
   const open = useDrawerOpen();
   const lines = useCartLines();
-  const totals = computeTotals(lines);
+  const shop = useShop();
+  const totals = computeTotals(lines, shop);
   const close = () => setDrawer(false);
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export function CartDrawer() {
     };
   }, [open]);
 
-  const missing = Math.max(shipping.freeFromCents - totals.subtotalCents, 0);
+  const missing = Math.max(shop.rules.freeFromCents - totals.subtotalCents, 0);
 
   return (
     <AnimatePresence>

@@ -3,9 +3,11 @@
 import { ShoppingBag } from "lucide-react";
 import { computeTotals, setDrawer, useCartLines } from "@/lib/cart";
 import { cn } from "@/lib/cn";
+import { useShop } from "./ShopProvider";
 
 export function CartButton({ className }: { className?: string }) {
-  const count = computeTotals(useCartLines()).count;
+  const shop = useShop();
+  const count = computeTotals(useCartLines(), shop).count;
   return (
     <button type="button" onClick={() => setDrawer(true)} aria-label={`Panier, ${count} article${count > 1 ? "s" : ""}`} className={cn(className)}>
       <ShoppingBag aria-hidden className="size-[19px]" strokeWidth={1.7} />

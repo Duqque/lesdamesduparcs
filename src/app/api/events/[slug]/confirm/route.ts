@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
 import { siteUrl } from "@/lib/server/http";
 import { getRegistration, updateRegistration } from "@/lib/server/store";
+import { sendTemplate } from "@/lib/server/email";
+import { getEvent } from "@/lib/server/events";
+import { eur } from "@/lib/admin/format";
 import { retrieveCheckoutSession, stripeConfigured } from "@/lib/server/stripe";
 
 /** Retour de Stripe Checkout : vérifie le paiement auprès de Stripe avant de confirmer l'inscription. */
@@ -20,7 +23,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   try {
     const checkout = await retrieveCheckoutSession(sessionId);
     if (checkout.payment_status === "paid" && checkout.metadata?.registration === registration.id) {
-      await updateRegistration(registration.id, { status: "paid" });
+      if (registration.status !== "paid") {
+        await updateRegistration(registration.id, { status: "paid" });
+        await sendTemplate("payment", registration.email, { prenom: registration.firstName, montant: eur(registration.amountCents), objet: (await getEvent(slug))?.title ?? slug }, "paymentConfirmation");
+      }
       return back("succes");
     }
   } catch {

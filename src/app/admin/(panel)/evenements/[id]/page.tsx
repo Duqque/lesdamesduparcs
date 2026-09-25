@@ -62,6 +62,16 @@ export default async function EventDetailPage({ params, searchParams }: { params
         <Kpi label="Remplissage" value={cap ? `${Math.round((taken / cap) * 100)} %` : "—"} hint={present ? `${present} présente(s)` : undefined} />
       </div>
 
+      <Panel className="mt-4" title="Tarifs et paiement" action={ctx.can("events.pricing") && ctx.can("events.edit") && <Link href={`/admin/evenements/${id}/modifier`} className="font-body text-[12.5px] text-mist underline underline-offset-4 hover:text-white">Modifier les tarifs</Link>}>
+        <dl className="grid gap-x-8 gap-y-3 font-body text-[13.5px] sm:grid-cols-2 lg:grid-cols-4">
+          <div><dt className="text-mist">Prix par place</dt><dd className="mt-1 text-white">{ev.registration.paymentMode === "none" || ev.registration.priceCents === 0 ? "Gratuit" : eur(ev.registration.priceCents)}</dd></div>
+          <div><dt className="text-mist">Tarifs par formule</dt><dd className="mt-1 text-white">{ev.registration.tiers?.length ? ev.registration.tiers.map((t) => `${t.label} : ${eur(t.priceCents)}`).join(" · ") : "Aucun"}</dd></div>
+          <div><dt className="text-mist">Mode de paiement</dt><dd className="mt-1 text-white">{{ online: "En ligne, obligatoire", optional: "En ligne, facultatif", onsite: "Sur place", manual: "Manuel (virement, chèque)", none: "Aucun" }[ev.registration.paymentMode ?? "online"]}</dd></div>
+          {finance && <div><dt className="text-mist">À encaisser</dt><dd className="mt-1 text-white">{eur(regs.filter((r) => r.status === "awaiting_payment" || (r.status === "confirmed" && r.amountCents > 0)).reduce((n, r) => n + r.amountCents, 0))}</dd></div>}
+        </dl>
+        {ev.registration.paymentInstructions && <p className="mt-4 font-body text-[12.5px] text-mist">Consignes : {ev.registration.paymentInstructions}</p>}
+      </Panel>
+
       {wait.length > 0 && cap > 0 && taken >= cap && <p className="mt-4 rounded-[10px] border border-sky-400/30 bg-sky-400/10 px-4 py-3 font-body text-[13.5px] text-sky-100">Événement complet : {wait.length} personne(s) en liste d&rsquo;attente. Si une place se libère, la première personne est prévenue automatiquement.</p>}
 
       <Panel className="mt-4" flush title={

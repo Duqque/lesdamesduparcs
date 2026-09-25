@@ -2,7 +2,7 @@ import { SubmitButton } from "@/components/admin/SubmitButton";
 import { Field, Flash, PageHeader, Panel, area, inp } from "@/components/admin/ui";
 import { first, type SP } from "@/lib/admin/params";
 import { requireAdmin } from "@/lib/server/admin-auth";
-import { templates } from "@/lib/server/content";
+import { ensureTemplates, templates } from "@/lib/server/content";
 import { saveTemplateAction } from "../actions";
 
 export const metadata = { title: "Modèles d'e-mails" };
@@ -10,10 +10,11 @@ export const metadata = { title: "Modèles d'e-mails" };
 export default async function TemplatesPage({ searchParams }: { searchParams: Promise<SP> }) {
   await requireAdmin("communication.send");
   const sp = await searchParams;
+  await ensureTemplates();
   const list = await templates.all();
   return (
     <>
-      <PageHeader title="Modèles" subtitle="Les messages envoyés automatiquement. Variables disponibles : {{prenom}}, {{numero}}, {{saison}}, {{montant}}, {{objet}}, {{date}}, {{fin}}." />
+      <PageHeader title="Modèles" subtitle="Les messages envoyés automatiquement. Variables disponibles : {{prenom}}, {{numero}}, {{saison}}, {{montant}}, {{objet}}, {{date}}, {{fin}}, {{suivi}}, {{consignes}}." />
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
       <div className="space-y-4">
         {list.map((t) => (

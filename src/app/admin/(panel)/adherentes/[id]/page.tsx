@@ -145,7 +145,7 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
                     <Td>
                       <div className="flex flex-wrap gap-1.5">
                         {t.status !== "paid" && <form action={memberPaymentAction.bind(null, id, t.id, "paid")}><SubmitButton variant="small">Marquer payé</SubmitButton></form>}
-                        {t.status === "paid" && <form action={memberPaymentAction.bind(null, id, t.id, "refunded")}><SubmitButton variant="small" confirm="Marquer ce paiement comme remboursé ? Le remboursement effectif reste à faire auprès du prestataire de paiement.">Rembourser</SubmitButton></form>}
+                        {t.status === "paid" && <form action={memberPaymentAction.bind(null, id, t.id, "refunded")}><SubmitButton variant="small" confirm="Marquer ce paiement comme remboursé ? Si le paiement a été fait par carte via Stripe, le remboursement est effectué automatiquement chez Stripe.">Rembourser</SubmitButton></form>}
                         {t.status === "pending" && <form action={memberPaymentAction.bind(null, id, t.id, "cancelled")}><SubmitButton variant="small" confirm="Annuler ce paiement ?">Annuler</SubmitButton></form>}
                       </div>
                     </Td>

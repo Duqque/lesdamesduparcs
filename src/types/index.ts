@@ -47,6 +47,8 @@ export interface EventRegistrationConfig {
   membersOnly?: boolean;
   tiers?: Array<{ label: string; priceCents: number }>;
   paymentMode?: "online" | "onsite" | "manual" | "optional" | "none";
+  /** Consignes de règlement affichées aux inscrites (virement, chèque…) */
+  paymentInstructions?: string;
 }
 
 export type EventStatus = "draft" | "scheduled" | "published" | "archived";

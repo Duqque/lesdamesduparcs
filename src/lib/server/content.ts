@@ -151,7 +151,7 @@ export interface EmailTemplate extends Row {
   subject: string;
   body: string;
 }
-export const templates = collection<EmailTemplate>("email_templates", () => [
+export const DEFAULT_TEMPLATES: Array<Omit<EmailTemplate, "createdAt" | "updatedAt">> = [
   { id: "welcome", key: "welcome", name: "Bienvenue (nouvelle adhésion)", subject: "Bienvenue chez Les Dames du Parc", body: "Bonjour {{prenom}},\n\nBienvenue chez Les Dames du Parc. Ton adhésion {{saison}} est enregistrée : ton numéro de membre est {{numero}}.\n\nTu retrouves ta carte et ton attestation dans ton espace membre." },
   { id: "payment", key: "payment", name: "Confirmation de paiement", subject: "Paiement reçu", body: "Bonjour {{prenom}},\n\nNous avons bien reçu ton paiement de {{montant}} pour {{objet}}. Merci !" },
   { id: "payment_failed", key: "payment_failed", name: "Relance de paiement", subject: "Ton paiement n'a pas abouti", body: "Bonjour {{prenom}},\n\nTon paiement pour {{objet}} n'a pas pu être finalisé. Tu peux le régler depuis ton espace membre." },
@@ -159,7 +159,19 @@ export const templates = collection<EmailTemplate>("email_templates", () => [
   { id: "event_confirmation", key: "event_confirmation", name: "Confirmation d'inscription à un événement", subject: "Inscription confirmée : {{objet}}", body: "Bonjour {{prenom}},\n\nTon inscription à {{objet}} est confirmée. À très vite !" },
   { id: "event_reminder", key: "event_reminder", name: "Rappel d'événement", subject: "Rappel : {{objet}}", body: "Bonjour {{prenom}},\n\nUn rappel pour {{objet}} : {{date}}. Toutes les informations sont dans ton espace membre." },
   { id: "waitlist", key: "waitlist", name: "Place libérée (liste d'attente)", subject: "Une place s'est libérée : {{objet}}", body: "Bonjour {{prenom}},\n\nUne place vient de se libérer pour {{objet}}. Confirme ta venue rapidement : elle est proposée à la personne suivante en l'absence de réponse." },
-]);
+  { id: "order_paid", key: "order_paid", name: "Commande boutique payée", subject: "Ta commande {{objet}} est confirmée", body: "Bonjour {{prenom}},\n\nMerci pour ta commande ({{objet}}), d'un montant de {{montant}}. Nous la préparons et t'écrivons dès son expédition." },
+  { id: "order_shipped", key: "order_shipped", name: "Commande expédiée", subject: "Ta commande {{objet}} est en route", body: "Bonjour {{prenom}},\n\nTa commande {{objet}} vient de partir. Suivi : {{suivi}}." },
+  { id: "order_ready", key: "order_ready", name: "Commande prête au retrait", subject: "Ta commande {{objet}} est prête", body: "Bonjour {{prenom}},\n\nTa commande {{objet}} est prête : tu pourras la retirer lors du prochain événement des Dames du Parc. Nous te préciserons la date et le lieu." },
+  { id: "event_payment_due", key: "event_payment_due", name: "Inscription : paiement à régler", subject: "Règlement de ton inscription : {{objet}}", body: "Bonjour {{prenom}},\n\nTon inscription à {{objet}} est enregistrée. Montant à régler : {{montant}}.\n\n{{consignes}}" },
+];
+
+export const templates = collection<EmailTemplate>("email_templates", () => DEFAULT_TEMPLATES);
+
+/** Ajoute les modèles introduits depuis la création du fichier (mises à jour du site). */
+export async function ensureTemplates() {
+  const have = new Set((await templates.all()).map((t) => t.key));
+  for (const t of DEFAULT_TEMPLATES) if (!have.has(t.key)) await templates.insert(t as never);
+}
 
 export interface EmailLog extends Row {
   to: string;

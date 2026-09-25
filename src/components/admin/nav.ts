@@ -7,7 +7,7 @@ export interface NavLeaf {
 }
 export interface NavGroup {
   label: string;
-  icon: "home" | "users" | "calendar" | "wallet" | "globe" | "newspaper" | "gift" | "megaphone" | "chart" | "settings";
+  icon: "home" | "users" | "calendar" | "wallet" | "shop" | "globe" | "newspaper" | "gift" | "megaphone" | "chart" | "settings";
   href?: string;
   perm?: Permission;
   children?: NavLeaf[];
@@ -44,6 +44,15 @@ export const ADMIN_NAV: NavGroup[] = [
       { label: "Paiements échoués", href: "/admin/finances/transactions?statut=failed" },
       { label: "Remboursements", href: "/admin/finances/transactions?statut=refunded" },
       { label: "Exports", href: "/admin/finances/exports", perm: "finance.export" },
+    ],
+  },
+  {
+    label: "Boutique", icon: "shop", perm: "shop.view", children: [
+      { label: "Produits", href: "/admin/boutique" },
+      { label: "Stock", href: "/admin/boutique/stock" },
+      { label: "Commandes", href: "/admin/boutique/commandes", perm: "shop.orders" },
+      { label: "Codes promotionnels", href: "/admin/communaute/codes-promo", perm: "community.edit" },
+      { label: "Livraison et réglages", href: "/admin/boutique/reglages", perm: "shop.pricing" },
     ],
   },
   {
@@ -87,6 +96,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { label: "Membres", href: "/admin/analytics" },
       { label: "Finances", href: "/admin/analytics/finances", perm: "finance.view" },
       { label: "Événements", href: "/admin/analytics/evenements" },
+      { label: "Boutique", href: "/admin/analytics/boutique", perm: "shop.view" },
       { label: "Site", href: "/admin/analytics/site" },
       { label: "Rapports", href: "/admin/analytics/rapports", perm: "reports.generate" },
     ],

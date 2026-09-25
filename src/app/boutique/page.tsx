@@ -7,7 +7,7 @@ import { Catalog } from "@/components/shop/Catalog";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { Reveal } from "@/components/ui/Reveal";
-import { products } from "@/data/shop";
+import { getPublicCatalog } from "@/lib/server/shop";
 
 export async function generateMetadata(): Promise<Metadata> {
   return seoFor("/boutique", { title: "Boutique", description: "La boutique des Dames du Parc : écharpes, sweats, t-shirts et accessoires aux couleurs de Paris. Achat rapide, sans compte." });
@@ -16,7 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 const label = "t-eyebrow";
 const h2 = "mt-4 t-h2";
 
-export default function ShopPage() {
+export default async function ShopPage() {
+  const { products } = await getPublicCatalog();
   const fresh = products.filter((p) => p.isNew).slice(0, 3);
   return (
     <main className="mx-auto max-w-[1300px] px-[var(--gutter)] pb-40 pt-[150px] md:pt-[190px]">

@@ -15,6 +15,11 @@ interface StatusData {
   capacity: number;
   remaining: number;
   paymentEnabled: boolean;
+  waitlist?: boolean;
+  paymentMode?: "online" | "onsite" | "manual" | "optional" | "none";
+  paymentInstructions?: string;
+  unitCents?: number;
+  tier?: string | null;
   mine: { id: string; status: RegistrationStatus; places: number; amountCents: number } | null;
 }
 
@@ -58,6 +63,9 @@ export function RegistrationForm({ event, member }: Props) {
   const [formError, setFormError] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<{ status: RegistrationStatus; message?: string } | null>(null);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{ code: string; discountCents: number; label: string; places: number } | null>(null);
+  const [promoError, setPromoError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -72,7 +80,11 @@ export function RegistrationForm({ event, member }: Props) {
 
   const set = <K extends keyof typeof v>(k: K, value: (typeof v)[K]) => setV((s) => ({ ...s, [k]: value }));
   const places = cfg.singlePlace ? 1 : v.places;
-  const total = cfg.priceCents * places;
+  const unit = status?.unitCents ?? cfg.priceCents;
+  const mode = status?.paymentMode ?? cfg.paymentMode ?? "online";
+  const base = mode === "none" ? 0 : unit * places;
+  const discount = promo && promo.places === places ? promo.discountCents : 0;
+  const total = base - discount;
 
   const toInput = (): RegistrationInput => ({
     firstName: v.firstName,
@@ -88,13 +100,25 @@ export function RegistrationForm({ event, member }: Props) {
     consents: { rules: v.rules, privacy: v.privacy, image: v.image },
   });
 
+  async function applyPromo() {
+    setPromoError("");
+    const code = promoInput.trim();
+    if (!code) return;
+    const res = await fetch(`/api/events/${event.id}/promo`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, places }) });
+    const out = (await res.json()) as { error?: string; discountCents?: number; label?: string };
+    if (!res.ok) {
+      setPromo(null);
+      setPromoError(out.error ?? "Code invalide.");
+    } else setPromo({ code, discountCents: out.discountCents ?? 0, label: out.label ?? code, places });
+  }
+
   const map = (e: Record<string, string>) => ({ ...e });
 
   async function submit(ev: FormEvent) {
     ev.preventDefault();
     setFormError("");
     const remaining = status?.remaining ?? cfg.capacity;
-    const local = validateRegistration(toInput(), event, remaining);
+    const local = validateRegistration(toInput(), event, status?.waitlist && remaining <= 0 ? 99 : remaining);
     setErrors(map(local));
     if (Object.keys(local).length) {
       setFormError("Certains champs sont à corriger.");
@@ -103,7 +127,7 @@ export function RegistrationForm({ event, member }: Props) {
     }
     setBusy(true);
     try {
-      const res = await fetch(`/api/events/${event.id}/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(toInput()) });
+      const res = await fetch(`/api/events/${event.id}/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...toInput(), promoCode: promo?.code }) });
       const out = (await res.json()) as { error?: string; errors?: Record<string, string>; checkoutUrl?: string; message?: string; registration?: { status: RegistrationStatus } };
       if (!res.ok) {
         setErrors(out.errors ?? {});
@@ -146,17 +170,20 @@ export function RegistrationForm({ event, member }: Props) {
         <p className="mt-4 text-mist t-small">
           {done?.message ?? `Votre inscription à « ${event.title} » est enregistrée sous le numéro de carte ${member.memberNumber}. Un rappel vous sera envoyé avant l'événement.`}
         </p>
-        {mine?.status === "awaiting_payment" && status?.paymentEnabled && (
+        {mine && (mine.status === "awaiting_payment" || (mine.status === "confirmed" && mine.amountCents > 0)) && status?.paymentEnabled && (status.paymentMode === "online" || status.paymentMode === "optional") && (
           <button type="button" onClick={resumePayment} disabled={busy} className="mt-6 inline-flex h-12 items-center rounded-[10px] border border-[#ff6b80]/45 bg-[linear-gradient(180deg,#e51b36,#b30d27)] px-6 font-body text-[14.5px] font-medium text-white disabled:opacity-60">
-            Payer {formatEuros(mine.amountCents)}
+            Payer {formatEuros(mine.amountCents)} en ligne
           </button>
         )}
+        {mine && mine.status === "awaiting_payment" && status?.paymentMode === "manual" && status.paymentInstructions && <p className="mt-4 rounded-[10px] border border-white/10 bg-black/20 p-4 text-white/85 t-small">{status.paymentInstructions}</p>}
+        {mine && mine.status === "confirmed" && mine.amountCents > 0 && status?.paymentMode === "onsite" && <p className="mt-4 text-white/85 t-small">À régler sur place : {formatEuros(mine.amountCents)}.</p>}
         {formError && <p role="alert" className="mt-4 text-[13px] text-[#ff8b9b]">{formError}</p>}
       </div>
     );
   }
 
-  const full = status ? status.remaining <= 0 : false;
+  const full = status ? status.remaining <= 0 && !status.waitlist : false;
+  const waiting = status ? status.remaining <= 0 && Boolean(status.waitlist) : false;
   const err = (k: string) => errors[k];
   const ia = (k: string) => ({ "aria-invalid": Boolean(errors[k]), "aria-describedby": errors[k] ? `f-${k}-err` : undefined });
 
@@ -168,7 +195,7 @@ export function RegistrationForm({ event, member }: Props) {
         </p>
         {status && (
           <p className="rounded-full border border-white/15 px-3.5 py-1.5 font-body text-[12px] text-white/80">
-            {full ? "Complet" : `${status.remaining} place${status.remaining > 1 ? "s" : ""} restante${status.remaining > 1 ? "s" : ""}`}
+            {full ? "Complet" : waiting ? "Complet, liste d'attente" : `${status.remaining} place${status.remaining > 1 ? "s" : ""} restante${status.remaining > 1 ? "s" : ""}`}
           </p>
         )}
       </div>
@@ -253,26 +280,43 @@ export function RegistrationForm({ event, member }: Props) {
 
       <fieldset className="border-t border-white/10 pt-8">
         <legend className="pr-4 font-body text-[16px] font-medium text-white">Paiement</legend>
-        {total === 0 ? (
+        {base === 0 ? (
           <p className="mt-5 font-body text-[14.5px] text-mist">Cet événement est gratuit pour les membres : aucun paiement n&rsquo;est demandé.</p>
         ) : (
           <div className="mt-5 rounded-[12px] border border-white/10 bg-black/20 p-5">
             <dl className="space-y-2 font-body text-[14.5px]">
               <div className="flex justify-between text-mist">
                 <dt>
-                  {places} place{places > 1 ? "s" : ""} × {formatEuros(cfg.priceCents)}
+                  {places} place{places > 1 ? "s" : ""} × {formatEuros(unit)}
+                  {status?.tier && <span className="ml-2 rounded-full border border-white/15 px-2 py-0.5 text-[11.5px] text-white/80">Tarif {status.tier}</span>}
                 </dt>
-                <dd className="tabular-nums text-white/90">{formatEuros(total)}</dd>
+                <dd className="tabular-nums text-white/90">{formatEuros(base)}</dd>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-mist">
+                  <dt>Code {promo?.label}</dt>
+                  <dd className="tabular-nums text-emerald-300">−{formatEuros(discount)}</dd>
+                </div>
+              )}
               <div className="flex justify-between border-t border-white/10 pt-3 text-[16px] font-medium text-white">
                 <dt>Total</dt>
                 <dd className="tabular-nums">{formatEuros(total)}</dd>
               </div>
             </dl>
+            <div className="mt-4">
+              <label htmlFor="f-promo" className="font-body text-[12.5px] font-medium text-white/80">Code promotionnel</label>
+              <div className="mt-2 flex gap-2">
+                <input id="f-promo" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} className="h-11 min-w-0 flex-1 rounded-[10px] border border-white/[0.12] bg-[#0d1220] px-3 font-body text-[14px] uppercase text-white placeholder:normal-case placeholder:text-white/35 focus:border-white/40 focus:outline-none" placeholder="Saisir un code" />
+                <button type="button" onClick={applyPromo} className="h-11 rounded-[10px] border border-white/20 px-4 font-body text-[13.5px] font-medium text-white hover:border-white/50">Appliquer</button>
+              </div>
+              {promoError && <p role="alert" className="mt-2 font-body text-[12.5px] text-[#ff8b9b]">{promoError}</p>}
+            </div>
             <p className="mt-4 flex items-start gap-2.5 text-mist t-caption">
               <Lock aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-              Paiement sécurisé par Stripe (carte bancaire, Apple Pay, Google Pay). Vous serez redirigée vers la page de paiement : aucun numéro de carte n&rsquo;est saisi ni conservé sur ce site.
-              {status && !status.paymentEnabled && " Le paiement en ligne n'est pas encore activé : votre inscription sera enregistrée en attente de règlement."}
+              {mode === "online" && <span>Paiement sécurisé par Stripe (carte bancaire, Apple Pay, Google Pay) : vous serez redirigée vers la page de paiement, aucun numéro de carte n&rsquo;est saisi ni conservé sur ce site.{status && !status.paymentEnabled && " Le paiement en ligne n'est pas encore activé : votre inscription sera enregistrée en attente de règlement."}</span>}
+              {mode === "optional" && <span>Le paiement en ligne est facultatif : votre inscription est confirmée tout de suite, vous pourrez régler maintenant ou plus tard.</span>}
+              {mode === "onsite" && <span>Le règlement se fait sur place, le jour de l&rsquo;événement. Votre inscription est confirmée tout de suite.</span>}
+              {mode === "manual" && <span>{status?.paymentInstructions || "Le règlement se fait par virement ou chèque : l'équipe vous indiquera comment procéder."}</span>}
             </p>
           </div>
         )}
@@ -289,7 +333,7 @@ export function RegistrationForm({ event, member }: Props) {
         disabled={busy || full}
         className="inline-flex h-[54px] w-full items-center justify-center rounded-[10px] border border-[#ff6b80]/45 bg-[linear-gradient(180deg,#e51b36_0%,#b30d27_100%)] font-body text-[15.5px] font-medium text-white transition-[filter] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {full ? "Événement complet" : busy ? "Envoi en cours…" : total > 0 ? `Confirmer et payer ${formatEuros(total)}` : "Confirmer mon inscription"}
+        {full ? "Événement complet" : busy ? "Envoi en cours…" : waiting ? "Rejoindre la liste d'attente" : total > 0 && mode === "online" ? `Confirmer et payer ${formatEuros(total)}` : "Confirmer mon inscription"}
       </button>
     </form>
   );

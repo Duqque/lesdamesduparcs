@@ -7,8 +7,8 @@ import { campaigns, emailLog, templates, type Campaign } from "./content";
 import { collection, type Row } from "./db";
 import { emailConfigured, fill, sendTemplate } from "./email";
 import { getAllEventsAdmin } from "./events";
-import { listAllRegistrations } from "./store";
-import { plans } from "./business";
+import { listAllRegistrations, listOrders } from "./store";
+import { plans, setTxStatus } from "./business";
 
 export const SEGMENTS = [
   { key: "all", label: "Toutes les adhérentes actives" },
@@ -91,7 +91,14 @@ const once = async (key: string) => {
 /** Traite ce qui est dû : campagnes programmées, rappels de renouvellement (J-30, J-7), rappels d'événements (J-7, J-1). */
 export async function runScheduled() {
   const now = new Date();
-  const result = { campaigns: 0, renewals: 0, reminders: 0 };
+  const result = { campaigns: 0, renewals: 0, reminders: 0, releasedOrders: 0 };
+  // Commandes jamais réglées : au bout de 72 h, le stock réservé est remis en vente.
+  for (const o of await listOrders()) {
+    if (o.status === "awaiting_payment" && o.stripeSessionId && now.getTime() - new Date(o.createdAt).getTime() > 72 * 3600_000) {
+      await setTxStatus(`order:${o.id}`, "cancelled");
+      result.releasedOrders++;
+    }
+  }
   for (const c of await campaigns.find((x) => x.status === "scheduled" && !!x.scheduledAt && new Date(x.scheduledAt) <= now)) {
     await dispatchCampaign(c);
     result.campaigns++;

@@ -8,7 +8,7 @@ import { Lock, MapPin, Truck } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/Button";
 import { Check, Field, inputCls } from "@/components/ui/form";
-import { getProduct, shipping } from "@/data/shop";
+import { useShop } from "@/components/shop/ShopProvider";
 import { clearCart, computeTotals, useCartLines } from "@/lib/cart";
 import { formatPrice } from "@/lib/money";
 import { validateCheckout, type CheckoutInput } from "@/lib/orders";
@@ -33,8 +33,10 @@ export function CheckoutClient() {
   const router = useRouter();
   const params = useSearchParams();
   const { session } = useAuth();
+  const shop = useShop();
+  const shipping = shop.rules;
   const lines = useCartLines();
-  const totals = computeTotals(lines);
+  const totals = computeTotals(lines, shop);
   const member = session.status === "member" ? session : null;
 
   const [v, setV] = useState({ firstName: "", lastName: "", email: "", phone: "", line1: "", line2: "", postalCode: "", city: "", country: "France" });
@@ -44,6 +46,9 @@ export function CheckoutClient() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{ code: string; discountCents: number; label: string } | null>(null);
+  const [promoError, setPromoError] = useState("");
 
   // Préremplissage à partir de la carte de membre (une seule fois, sans écraser la saisie)
   if (member && !touchedPrefill && !v.email) {
@@ -52,8 +57,9 @@ export function CheckoutClient() {
   }
 
   const set = (k: keyof typeof v, value: string) => setV((s) => ({ ...s, [k]: value }));
-  const ship = totals.shippingCents(mode);
-  const total = totals.subtotalCents + ship;
+  const discount = promo?.discountCents ?? 0;
+  const ship = mode === "event" || totals.subtotalCents - discount >= shipping.freeFromCents ? 0 : shipping.standardCents;
+  const total = totals.subtotalCents - discount + ship;
   const ia = (k: string) => ({ "aria-invalid": Boolean(errors[k]), "aria-describedby": errors[k] ? `c-${k}-err` : undefined });
 
   const build = (): Partial<CheckoutInput> => ({
@@ -61,7 +67,24 @@ export function CheckoutClient() {
     contact: { email: v.email, firstName: v.firstName, lastName: v.lastName, phone: v.phone || undefined },
     delivery: { mode, address: mode === "home" ? { line1: v.line1, line2: v.line2 || undefined, postalCode: v.postalCode, city: v.city, country: v.country } : undefined },
     acceptTerms: terms,
+    promoCode: promo?.code,
   });
+
+  async function applyPromo() {
+    setPromoError("");
+    const code = promoInput.trim();
+    if (!code) return;
+    try {
+      const res = await fetch("/api/shop/promo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, items: lines.map((l) => ({ productId: l.productId, qty: l.qty })) }) });
+      const out = (await res.json()) as { error?: string; discountCents?: number; label?: string };
+      if (!res.ok) {
+        setPromo(null);
+        setPromoError(out.error ?? "Code invalide.");
+      } else setPromo({ code, discountCents: out.discountCents ?? 0, label: out.label ?? code });
+    } catch {
+      setPromoError("Vérification impossible. Réessayez.");
+    }
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -199,7 +222,8 @@ export function CheckoutClient() {
           <h2 className="t-h3">Récapitulatif</h2>
           <ul className="mt-5 divide-y divide-white/10">
             {lines.map((l) => {
-              const p = getProduct(l.productId)!;
+              const p = shop.products.find((x) => x.id === l.productId);
+              if (!p) return null;
               return (
                 <li key={`${l.productId}-${l.size ?? ""}`} className="flex items-center gap-4 py-4">
                   <span className="relative block aspect-[3/4] w-14 shrink-0 overflow-hidden rounded-[8px] bg-[#e9ebee]">
@@ -216,9 +240,18 @@ export function CheckoutClient() {
           </ul>
           <dl className="mt-4 space-y-3 border-t border-white/10 pt-5 font-body text-[14px]">
             <div className="flex justify-between text-mist"><dt>Sous-total</dt><dd className="tabular-nums text-white">{formatPrice(totals.subtotalCents)}</dd></div>
+            {discount > 0 && <div className="flex justify-between text-mist"><dt>Code {promo?.label}</dt><dd className="tabular-nums text-emerald-300">−{formatPrice(discount)}</dd></div>}
             <div className="flex justify-between text-mist"><dt>Livraison</dt><dd className="tabular-nums text-white">{ship === 0 ? "Offerte" : formatPrice(ship)}</dd></div>
             <div className="flex justify-between border-t border-white/10 pt-4 text-[17px] font-medium text-white"><dt>Total TTC</dt><dd className="tabular-nums">{formatPrice(total)}</dd></div>
           </dl>
+          <div className="mt-6 border-t border-white/10 pt-5">
+            <label htmlFor="promo" className="font-body text-[12.5px] font-medium text-white/80">Code promotionnel</label>
+            <div className="mt-2 flex gap-2">
+              <input id="promo" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} className="h-11 min-w-0 flex-1 rounded-[10px] border border-white/[0.12] bg-[#0d1220] px-3 font-body text-[14px] uppercase text-white placeholder:normal-case placeholder:text-white/35 focus:border-white/40 focus:outline-none" placeholder="Saisir un code" />
+              <button type="button" onClick={applyPromo} className="h-11 rounded-[10px] border border-white/20 px-4 font-body text-[13.5px] font-medium text-white hover:border-white/50">Appliquer</button>
+            </div>
+            {promoError && <p role="alert" className="mt-2 font-body text-[12.5px] text-[#ff8b9b]">{promoError}</p>}
+          </div>
           <Link href="/panier" className="mt-6 block text-center font-body text-[13px] text-white/75 underline decoration-white/25 underline-offset-4 hover:decoration-white">Modifier mon panier</Link>
         </aside>
       </div>

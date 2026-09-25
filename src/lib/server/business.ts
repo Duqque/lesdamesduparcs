@@ -7,6 +7,8 @@ import type { RegistrationStatus } from "@/lib/registration";
 import type { Order } from "@/lib/orders";
 import { collection, type Row } from "./db";
 import { listAllRegistrations, listOrders, listStoredMembers, updateOrder, updateRegistration } from "./store";
+import { releaseStock } from "./shop";
+import { refundCheckoutSession, stripeConfigured } from "./stripe";
 import { getAllEventsAdmin } from "./events";
 
 /* ---------- Formules d'adhésion ---------- */
@@ -196,21 +198,43 @@ export const methodLabel = (m: PayMethod) => ({ stripe: "Carte (Stripe)", cash: 
 
 export const TX_STATUS_LABEL: Record<TxStatus, string> = { paid: "Payé", pending: "En attente", failed: "Échoué", refunded: "Remboursé", cancelled: "Annulé" };
 
-/** Change le statut d'une transaction, quel que soit son système d'origine. */
-export async function setTxStatus(txId: string, status: TxStatus, opts?: { method?: PayMethod; note?: string }) {
+/** Change le statut d'une transaction, quel que soit son système d'origine. Un remboursement passe par Stripe quand le paiement vient de Stripe. */
+export async function setTxStatus(txId: string, status: TxStatus, opts?: { method?: PayMethod; note?: string }): Promise<{ ok: true } | { ok: false; error: string }> {
   const [source, rowId] = txId.split(":");
+  const refund = async (sessionId?: string) => {
+    if (status !== "refunded" || !sessionId || !stripeConfigured()) return null;
+    try {
+      await refundCheckoutSession(sessionId);
+      return null;
+    } catch (e) {
+      return e instanceof Error ? e.message : "Remboursement Stripe impossible.";
+    }
+  };
   if (source === "payment") {
-    return payments.update(rowId, { status, method: opts?.method, note: opts?.note, paidAt: status === "paid" ? new Date().toISOString() : undefined });
+    await payments.update(rowId, { status, method: opts?.method, note: opts?.note, paidAt: status === "paid" ? new Date().toISOString() : undefined });
+    return { ok: true };
   }
   if (source === "registration") {
+    const reg = (await listAllRegistrations()).find((r) => r.id === rowId);
+    const err = reg?.status === "paid" ? await refund(reg.stripeSessionId) : null;
+    if (err) return { ok: false, error: `Remboursement refusé par Stripe : ${err}` };
     const map: Record<TxStatus, RegistrationStatus> = { paid: "paid", pending: "awaiting_payment", failed: "awaiting_payment", refunded: "refunded", cancelled: "cancelled" };
-    return updateRegistration(rowId, { status: map[status] });
+    await updateRegistration(rowId, { status: map[status] });
+    return { ok: true };
   }
   if (source === "order") {
+    const order = (await listOrders()).find((o) => o.id === rowId);
+    const err = order?.status === "paid" ? await refund(order.stripeSessionId) : null;
+    if (err) return { ok: false, error: `Remboursement refusé par Stripe : ${err}` };
     const map: Record<TxStatus, Order["status"]> = { paid: "paid", pending: "awaiting_payment", failed: "awaiting_payment", refunded: "refunded", cancelled: "cancelled" };
-    return updateOrder(rowId, { status: map[status] });
+    const next = map[status];
+    const wasOut = order?.status === "cancelled" || order?.status === "refunded";
+    const goingOut = next === "cancelled" || next === "refunded";
+    if (order && goingOut && !wasOut) await releaseStock(order.lines);
+    await updateOrder(rowId, { status: next, ...(next === "paid" && !order?.fulfilment ? { fulfilment: order?.delivery.mode === "event" ? ("ready_for_pickup" as const) : ("to_prepare" as const) } : {}) });
+    return { ok: true };
   }
-  return null;
+  return { ok: false, error: "Transaction introuvable." };
 }
 
 export async function addManualPayment(data: { memberNumber?: string; name: string; email?: string; label: string; amountCents: number; method: PayMethod; status: TxStatus; note?: string }) {

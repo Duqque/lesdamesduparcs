@@ -1,5 +1,5 @@
 import "server-only";
-import { emailLog, templates } from "./content";
+import { emailLog, ensureTemplates, templates } from "./content";
 import { settings } from "./admin-store";
 
 export const emailConfigured = () => Boolean(process.env.RESEND_API_KEY);
@@ -37,6 +37,7 @@ export async function sendEmail(opts: { to: string; subject: string; body: strin
 export async function sendTemplate(key: string, to: string, vars: Record<string, string | number | undefined>, automation?: keyof Awaited<ReturnType<typeof settings.get>>["automations"]) {
   const conf = await settings.get();
   if (automation && !conf.automations[automation]) return;
+  await ensureTemplates();
   const t = await templates.findOne((x) => x.key === key);
   if (!t) return;
   await sendEmail({ to, subject: fill(t.subject, vars), body: fill(t.body, vars), kind: key });

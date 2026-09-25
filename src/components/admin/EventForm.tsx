@@ -8,7 +8,7 @@ const CATS: Record<string, string> = { Matchday: "Match", Déplacement: "Déplac
 const toLocal = (iso?: string) => (iso ? new Date(iso).toISOString().slice(0, 16) : "");
 
 /** Formulaire de création / modification d'un événement, en sept étapes. */
-export function EventForm({ event }: { event?: EventRow }) {
+export function EventForm({ event, canPricing = true }: { event?: EventRow; canPricing?: boolean }) {
   const r = event?.registration;
   const hasTiers = Boolean(r?.tiers?.length);
   return (
@@ -69,17 +69,27 @@ export function EventForm({ event }: { event?: EventRow }) {
         </div>
       </Panel>
 
-      <Panel title="5 · Tarification">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Formule tarifaire"><select name="pricing" defaultValue={r && r.priceCents === 0 && !hasTiers ? "free" : "paid"} className={inp}><option value="free">Gratuit</option><option value="paid">Prix fixe</option></select></Field>
-          <Field label="Prix par place (€)"><input name="price" inputMode="decimal" defaultValue={r ? r.priceCents / 100 : ""} className={inp} /></Field>
-          <Field label="Autres tarifs (un par ligne : Libellé | prix)" hint="Ex. Adhérente Premium | 10" className="sm:col-span-2"><textarea name="tiers" rows={2} defaultValue={r?.tiers?.map((t) => `${t.label} | ${t.priceCents / 100}`).join("\n")} className={area} /></Field>
-        </div>
-      </Panel>
-
-      <Panel title="6 · Paiement">
-        <Field label="Mode de paiement"><select name="paymentMode" defaultValue={r?.paymentMode ?? "online"} className={inp}><option value="online">Paiement en ligne obligatoire</option><option value="optional">Paiement en ligne facultatif</option><option value="onsite">Paiement sur place</option><option value="manual">Paiement manuel (virement, chèque)</option><option value="none">Aucun paiement</option></select></Field>
-      </Panel>
+      {canPricing ? (
+        <>
+          <Panel title="5 · Tarification">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Formule tarifaire"><select name="pricing" defaultValue={r && r.priceCents === 0 && !hasTiers ? "free" : "paid"} className={inp}><option value="free">Gratuit</option><option value="paid">Payant, prix fixe</option></select></Field>
+              <Field label="Prix par place (€)"><input name="price" inputMode="decimal" defaultValue={r ? r.priceCents / 100 : ""} className={inp} /></Field>
+              <Field label="Tarifs selon la formule d'adhésion (un par ligne : Formule | prix)" hint="Ex. Dame Premium | 10. La formule de l'adhérente est reconnue automatiquement : elle paie ce tarif, les autres paient le prix de base." className="sm:col-span-2"><textarea name="tiers" rows={2} defaultValue={r?.tiers?.map((t) => `${t.label} | ${t.priceCents / 100}`).join("\n")} className={area} /></Field>
+            </div>
+          </Panel>
+          <Panel title="6 · Paiement">
+            <div className="grid gap-4">
+              <Field label="Mode de paiement"><select name="paymentMode" defaultValue={r?.paymentMode ?? "online"} className={inp}><option value="online">Paiement en ligne obligatoire (inscription confirmée une fois payée)</option><option value="optional">Paiement en ligne facultatif (inscription confirmée tout de suite)</option><option value="onsite">Paiement sur place</option><option value="manual">Paiement manuel (virement, chèque)</option><option value="none">Aucun paiement</option></select></Field>
+              <Field label="Consignes de règlement (virement, chèque…)" hint="Affichées à l'inscrite et envoyées par e-mail pour le paiement manuel."><textarea name="paymentInstructions" rows={3} defaultValue={r?.paymentInstructions} className={area} /></Field>
+            </div>
+          </Panel>
+        </>
+      ) : (
+        <Panel title="5 · Tarification et paiement">
+          <p className="font-body text-[13.5px] text-mist">Votre rôle ne permet pas de modifier les tarifs. {event ? <>Tarif actuel : {r && r.priceCents > 0 ? `${r.priceCents / 100} €` : "gratuit"}, paiement « {r?.paymentMode ?? "online"} ».</> : "L'événement sera créé gratuit ; une personne autorisée ajoutera le tarif."}</p>
+        </Panel>
+      )}
 
       <Panel title="Programme et informations pratiques">
         <div className="grid gap-4">

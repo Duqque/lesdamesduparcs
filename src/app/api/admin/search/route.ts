@@ -4,6 +4,8 @@ import { getTransactions } from "@/lib/server/business";
 import { articlesDb } from "@/lib/server/content";
 import { getAllEventsAdmin } from "@/lib/server/events";
 import { loadMemberRows } from "@/lib/server/admin-data";
+import { productsDb } from "@/lib/server/shop";
+import { listOrders } from "@/lib/server/store";
 import { eur, fmtDate } from "@/lib/admin/format";
 
 /** Recherche globale, limitée aux données que l'administratrice a le droit de consulter. */
@@ -24,6 +26,12 @@ export async function GET(req: Request) {
   }
   if (ctx.can("finance.view")) {
     for (const t of (await getTransactions()).filter((t) => has(t.name, t.email, t.label, t.reference)).slice(0, 5)) hits.push({ type: "Paiement", title: `${t.name} · ${eur(t.amountCents)}`, sub: `${t.type} · ${t.label}`, href: `/admin/finances/transactions?q=${encodeURIComponent(t.reference)}` });
+  }
+  if (ctx.can("shop.view")) {
+    for (const p of (await productsDb.all()).filter((p) => has(p.name, p.sku)).slice(0, 4)) hits.push({ type: "Produit", title: p.name, sub: `${p.category} · ${eur(p.priceCents)}`, href: `/admin/boutique/${p.id}` });
+  }
+  if (ctx.can("shop.orders")) {
+    for (const o of (await listOrders()).filter((o) => has(o.id, o.contact.firstName, o.contact.lastName, o.contact.email)).slice(0, 4)) hits.push({ type: "Commande", title: `${o.id.slice(0, 8).toUpperCase()} · ${o.contact.firstName} ${o.contact.lastName}`, sub: eur(o.totalCents), href: `/admin/boutique/commandes/${o.id}` });
   }
   if (ctx.can("content.edit")) {
     for (const a of (await articlesDb.all()).filter((a) => has(a.title, a.category)).slice(0, 4)) hits.push({ type: "Article", title: a.title, sub: a.category, href: `/admin/contenu/${a.id}` });

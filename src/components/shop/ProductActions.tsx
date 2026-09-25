@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Minus, Plus, ShoppingBag, Zap } from "lucide-react";
 import { addToCart } from "@/lib/cart";
 import { cn } from "@/lib/cn";
-import type { ShopProduct } from "@/data/shop";
+import { availableQty, isSoldOut, type ShopProduct } from "@/lib/shop";
 
 /** Choix de la taille et de la quantité, ajout au panier ou achat rapide (direct vers la commande). */
 export function ProductActions({ product }: { product: ShopProduct }) {
@@ -13,6 +13,11 @@ export function ProductActions({ product }: { product: ShopProduct }) {
   const [size, setSize] = useState<string | undefined>();
   const [qty, setQty] = useState(1);
   const [error, setError] = useState("");
+
+  if (isSoldOut(product)) {
+    return <p className="rounded-[10px] border border-white/15 bg-white/[0.04] px-5 py-4 font-body text-[14.5px] text-white/85">Cet article est actuellement épuisé.</p>;
+  }
+  const maxQty = Math.min(10, availableQty(product, size));
 
   const line = () => {
     if (product.sizes && !size) {
@@ -30,7 +35,7 @@ export function ProductActions({ product }: { product: ShopProduct }) {
           <legend className="font-body text-[13px] font-medium text-white/85">Taille</legend>
           <div className="mt-3 flex flex-wrap gap-2">
             {product.sizes.map((s) => (
-              <button key={s} type="button" aria-pressed={size === s} onClick={() => { setSize(s); setError(""); }} className={cn("grid h-12 min-w-14 place-items-center rounded-[10px] border px-4 font-body text-[14px] font-medium transition-colors", size === s ? "border-white bg-white text-night-950" : "border-white/15 text-white/85 hover:border-white/50")}>
+              <button key={s} type="button" disabled={availableQty(product, s) <= 0} aria-pressed={size === s} onClick={() => { setSize(s); setQty((q) => Math.min(q, Math.max(availableQty(product, s), 1))); setError(""); }} className={cn("grid h-12 min-w-14 place-items-center rounded-[10px] border px-4 font-body text-[14px] font-medium transition-colors disabled:cursor-not-allowed disabled:text-white/30 disabled:line-through", size === s ? "border-white bg-white text-night-950" : "border-white/15 text-white/85 hover:border-white/50")}>
                 {s}
               </button>
             ))}
@@ -45,7 +50,7 @@ export function ProductActions({ product }: { product: ShopProduct }) {
             <Minus aria-hidden className="size-4" />
           </button>
           <span aria-live="polite" className="w-8 text-center font-body text-[15px] tabular-nums text-white">{qty}</span>
-          <button type="button" aria-label="Augmenter la quantité" onClick={() => setQty((q) => Math.min(10, q + 1))} className="grid size-[52px] place-items-center text-white/80 hover:text-white">
+          <button type="button" aria-label="Augmenter la quantité" onClick={() => setQty((q) => Math.min(maxQty, q + 1))} className="grid size-[52px] place-items-center text-white/80 hover:text-white">
             <Plus aria-hidden className="size-4" />
           </button>
         </div>
@@ -73,6 +78,7 @@ export function ProductActions({ product }: { product: ShopProduct }) {
       >
         <Zap aria-hidden className="size-5" strokeWidth={1.7} /> Achat rapide
       </button>
+      {Number.isFinite(maxQty) && maxQty <= 5 && <p className="mt-3 text-center font-body text-[12.5px] text-[#ffb3be]">Plus que {maxQty} en stock.</p>}
       <p className="mt-3 text-center font-body text-[12.5px] text-mist">Sans compte, en moins d&rsquo;une minute.</p>
     </div>
   );

@@ -3,11 +3,12 @@
 import { useRouter } from "next/navigation";
 import { Plus, ShoppingBag } from "lucide-react";
 import { addToCart } from "@/lib/cart";
-import type { ShopProduct } from "@/data/shop";
+import { isSoldOut, type ShopProduct } from "@/lib/shop";
 
-/** Ajout rapide : direct pour un article sans taille, sinon vers la fiche pour choisir la taille. */
+/** Ajout rapide : direct pour un article sans taille, sinon vers la fiche pour choisir la taille. Désactivé si épuisé. */
 export function QuickAdd({ product }: { product: ShopProduct }) {
   const router = useRouter();
+  if (isSoldOut(product)) return <span className="font-body text-[12.5px] font-medium uppercase tracking-[0.14em] text-mist">Épuisé</span>;
   return (
     <button
       type="button"

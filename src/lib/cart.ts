@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
-import { getProduct, shipping } from "@/data/shop";
+import { useShop } from "@/components/shop/ShopProvider";
+import type { ShopCatalog } from "@/lib/shop";
 
 export interface CartLine {
   productId: string;
@@ -52,15 +53,17 @@ const subscribe = (l: () => void) => {
 const parse = (s: string): CartLine[] => {
   try {
     const v = JSON.parse(s) as CartLine[];
-    return v.filter((l) => getProduct(l.productId) && Number.isInteger(l.qty) && l.qty > 0);
+    return v.filter((l) => l && typeof l.productId === "string" && Number.isInteger(l.qty) && l.qty > 0);
   } catch {
     return [];
   }
 };
 
+/** Lignes du panier, limitées aux produits actuellement en vente (un produit retiré du catalogue disparaît du panier). */
 export function useCartLines(): CartLine[] {
   const snap = useSyncExternalStore(subscribe, load, () => EMPTY);
-  return useMemo(() => parse(snap), [snap]);
+  const { products } = useShop();
+  return useMemo(() => parse(snap).filter((l) => products.some((p) => p.id === l.productId)), [snap, products]);
 }
 
 export function useDrawerOpen() {
@@ -97,11 +100,12 @@ export interface Totals {
   shippingCents: (mode: "home" | "event") => number;
 }
 
-export function computeTotals(lines: CartLine[]): Totals {
-  const subtotalCents = lines.reduce((n, l) => n + (getProduct(l.productId)?.priceCents ?? 0) * l.qty, 0);
+export function computeTotals(lines: CartLine[], catalog: ShopCatalog): Totals {
+  const { products, rules } = catalog;
+  const subtotalCents = lines.reduce((n, l) => n + (products.find((p) => p.id === l.productId)?.priceCents ?? 0) * l.qty, 0);
   return {
     count: lines.reduce((n, l) => n + l.qty, 0),
     subtotalCents,
-    shippingCents: (mode) => (mode === "event" || subtotalCents === 0 || subtotalCents >= shipping.freeFromCents ? 0 : shipping.standardCents),
+    shippingCents: (mode) => (mode === "event" || subtotalCents === 0 || subtotalCents >= rules.freeFromCents ? 0 : rules.standardCents),
   };
 }

@@ -1,27 +1,17 @@
 /**
- * Catalogue de la boutique (données fictives, photos provisoires).
- * Les prix affichés ET facturés viennent de ce fichier : le serveur recalcule toujours le panier à partir d'ici.
+ * Catalogue de départ de la boutique (données fictives, photos provisoires).
+ * Il alimente la base au premier lancement ; les prix, stocks et produits se gèrent ensuite dans le back-office.
  */
-export type ShopCategory = "Écharpes" | "Vêtements" | "Accessoires";
+import type { ShopProduct } from "@/lib/shop";
 
-export interface ShopProduct {
-  id: string;
-  name: string;
-  category: ShopCategory;
-  tagline: string;
-  description: string;
-  details: string[];
-  priceCents: number;
-  compareAtCents?: number;
-  images: string[];
-  sizes?: string[];
-  isNew?: boolean;
-}
+export type { ShopProduct };
+export type ShopCategory = "Écharpes" | "Vêtements" | "Accessoires";
 
 const scarf = "/images/produit-echarpe.webp";
 const hoodie = "/images/produit-sweat.webp";
 const apparelSizes = ["XS", "S", "M", "L", "XL"];
 
+/** Catalogue de départ (données fictives) : sert de base au back-office, qui gère ensuite les produits. */
 export const products: ShopProduct[] = [
   {
     id: "echarpe-fiere-parisienne",
@@ -93,9 +83,8 @@ export const products: ShopProduct[] = [
 ];
 
 export const shopCategories: ShopCategory[] = ["Écharpes", "Vêtements", "Accessoires"];
-export const getProduct = (id: string) => products.find((p) => p.id === id);
 
-/** Règles de livraison (partagées client / serveur). */
+/** Règles de livraison de départ ; le back-office les ajuste ensuite. */
 export const shipping = {
   standardCents: 490,
   freeFromCents: 6000,

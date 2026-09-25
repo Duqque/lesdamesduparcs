@@ -166,6 +166,12 @@ de l'espace membre : `/admin/connexion`.
   libérée est proposée à la première personne), présences avec pointage par numéro ou QR code (caméra), calendrier global.
 - **Finances** : transactions unifiées (adhésions, événements, boutique), recettes, paiements en attente ou échoués, marquage payé,
   annulation, remboursement (suivi comptable : le remboursement effectif se fait chez le prestataire), relances.
+- **Événements payants** : tarif de base, tarifs selon la formule d'adhésion (reconnue automatiquement), codes promotionnels, quatre modes de
+  paiement (en ligne obligatoire, en ligne facultatif, sur place, manuel avec consignes), liste d'attente, paiement Stripe, remboursement réel chez
+  Stripe depuis le back-office. Les tarifs ne sont modifiables qu'avec la permission `events.pricing` (super, administratrice, trésorière).
+- **Boutique** : produits, photos, tailles, prix, stocks (réservés à la commande, remis en vente en cas d'annulation ou d'expiration), commandes avec
+  suivi de préparation et d'expédition (numéro de suivi, e-mail à la cliente), livraison et seuil de gratuité, codes promotionnels appliqués au paiement.
+  Permissions séparées : `shop.edit` (fiches, photos), `shop.pricing` (prix, livraison), `shop.stock`, `shop.orders`.
 - **Contenu et site** : articles (brouillon, programmé, publié), catégories, tags, médiathèque (contrôle du contenu réel des fichiers),
   textes et éléments mis en avant de l'accueil, partenaires, offres, codes promotionnels.
 - **Communication** : campagnes par segments, modèles, automatisations (bienvenue, confirmation, rappels J-30/J-7, rappels d'événement…).
@@ -176,8 +182,8 @@ de l'espace membre : `/admin/connexion`.
 - **Recherche globale** (⌘ K / Ctrl+K) et notifications, limitées aux données que le rôle peut voir.
 
 Stockage : fichiers JSON dans `.data/` (`src/lib/server/db.ts` isole l'accès : passer à une base SQL ne touchera que ce fichier).
-À faire avant l'ouverture au public : base de données, sauvegardes de `.data/`, service d'e-mail, application des codes promotionnels au paiement,
-remboursements automatiques via Stripe, édition complète du contenu des pages du site.
+À faire avant l'ouverture au public : base de données, sauvegardes de `.data/`, service d'e-mail, webhook Stripe (le paiement est aujourd'hui
+confirmé au retour sur le site), édition complète du contenu des pages du site.
 
 ## Accueil
 

@@ -24,6 +24,9 @@ export interface Registration extends RegistrationInput {
   status: RegistrationStatus;
   stripeSessionId?: string;
   /** Présence relevée après l'événement (null : non renseignée) */
+  unitCents?: number;
+  promoCode?: string;
+  discountCents?: number;
   attended?: boolean | null;
   attendedAt?: string;
   createdAt: string;

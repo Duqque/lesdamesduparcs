@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { safeEqual } from "@/lib/server/session";
 import { siteUrl } from "@/lib/server/http";
 import { getOrder, updateOrder } from "@/lib/server/store";
+import { sendTemplate } from "@/lib/server/email";
+import { eur } from "@/lib/admin/format";
 import { retrieveCheckoutSession, stripeConfigured } from "@/lib/server/stripe";
 
 /** Retour de Stripe Checkout : le paiement est vérifié auprès de Stripe avant de marquer la commande « payée ». */
@@ -17,7 +19,10 @@ export async function GET(req: Request) {
   try {
     const checkout = await retrieveCheckoutSession(sessionId);
     if (checkout.payment_status === "paid" && checkout.metadata?.order === order.id) {
-      await updateOrder(order.id, { status: "paid" });
+      if (order.status !== "paid") {
+        await updateOrder(order.id, { status: "paid", fulfilment: order.delivery.mode === "event" ? "ready_for_pickup" : "to_prepare" });
+        await sendTemplate("order_paid", order.contact.email, { prenom: order.contact.firstName, objet: order.id.slice(0, 8).toUpperCase(), montant: eur(order.totalCents) }, "paymentConfirmation");
+      }
       return go("paye");
     }
   } catch {
