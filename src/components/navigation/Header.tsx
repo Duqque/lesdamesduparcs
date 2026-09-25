@@ -10,6 +10,7 @@ import { useScrolled } from "@/hooks/useScrolled";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
 import { MobileMenu } from "./MobileMenu";
+import { CartButton } from "@/components/shop/CartButton";
 import { AccountMenu } from "./AccountMenu";
 import { SoundToggle } from "./SoundToggle";
 
@@ -74,9 +75,9 @@ export function Header() {
             : "border-b border-transparent bg-transparent",
         )}
       >
-        <div className="mx-auto grid h-full max-w-[1800px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-[var(--gutter)]">
+        <div className="grid h-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-[clamp(14px,1.6vw,32px)]">
           {/* Gauche */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
@@ -87,7 +88,13 @@ export function Header() {
             >
               {open ? <X aria-hidden className="size-5" /> : <Menu aria-hidden className="size-5" />}
             </button>
-            <nav aria-label="Navigation principale" className="hidden items-center justify-end gap-[clamp(28px,3.4vw,64px)] lg:flex lg:w-full lg:justify-end lg:pr-[clamp(32px,4vw,80px)]">
+            <div className="hidden md:block">
+              <Button href={joinLink.href} size="sm" icon={IdCard} arrow={false}>
+                <span className="xl:hidden">Rejoindre</span>
+                <span className="hidden xl:inline">{joinLink.label}</span>
+              </Button>
+            </div>
+            <nav aria-label="Navigation principale" className="hidden items-center gap-[clamp(28px,3.4vw,64px)] lg:ml-auto lg:flex lg:pr-[clamp(24px,3vw,64px)]">
               <NavLinks items={leftNav} pathname={pathname} />
             </nav>
           </div>
@@ -107,18 +114,13 @@ export function Header() {
 
           {/* Droite */}
           <div className="flex items-center justify-end gap-3">
-            <nav aria-label="Navigation secondaire" className="hidden items-center gap-[clamp(28px,3.4vw,64px)] lg:flex lg:pl-[clamp(32px,4vw,80px)]">
+            <nav aria-label="Navigation secondaire" className="hidden items-center gap-[clamp(28px,3.4vw,64px)] lg:flex lg:pl-[clamp(24px,3vw,64px)]">
               <NavLinks items={rightNav} pathname={pathname} />
             </nav>
             <span className="hidden lg:block lg:flex-1" />
+            <CartButton className={squareBtn} />
             <SoundToggle className={cn(squareBtn, "size-11")} />
             <AccountMenu buttonClassName={squareBtn} />
-            <div className="ml-1 hidden md:block">
-              <Button href={joinLink.href} size="sm" icon={IdCard} arrow={false}>
-                <span className="xl:hidden">Rejoindre</span>
-                <span className="hidden xl:inline">{joinLink.label}</span>
-              </Button>
-            </div>
           </div>
         </div>
       </header>

@@ -118,6 +118,15 @@ Une seule colonne de rubriques qui apparaissent au fil du scroll : hero, manifes
 petite écharpe 3D), rendez-vous, citation et playlist, chant du groupe, actualités, galerie (deux rangées). L'espace membre n'est
 plus affiché sur la page : il s'ouvre uniquement depuis l'icône de profil du header (`AccountMenu.tsx`).
 
+## Boutique et commande
+
+`/boutique` (vitrine à diaporama numéroté, nouveautés, catalogue filtrable), `/boutique/[slug]` (fiche produit, taille, quantité,
+**achat rapide** sans compte), panier persistant (`src/lib/cart.ts`, localStorage) avec tiroir latéral, `/panier`, `/commande`
+(invité ou membre connectée, préremplie) et `/commande/confirmation`. Le catalogue est dans `src/data/shop.ts` (fictif, photos
+provisoires). Le serveur (`/api/shop/checkout`) **recalcule toujours les prix** depuis le catalogue, enregistre la commande
+(`.data/orders.json`, ignoré par Git) et crée une session Stripe Checkout ; le retour est vérifié auprès de Stripe avant de marquer
+« payée ». Sans `STRIPE_SECRET_KEY`, la commande reste « en attente de paiement ».
+
 ## Musique de fond
 
 `public/audio/tous-ensemble-on-chantera.mp3` (boucle) démarre dès que le navigateur l'autorise, sinon au premier clic / touche.

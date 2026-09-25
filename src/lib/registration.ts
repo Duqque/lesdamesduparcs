@@ -37,7 +37,7 @@ export function ageAt(birthDate: string, on: string) {
   return age;
 }
 
-export const formatEuros = (cents: number) => (cents === 0 ? "Gratuit" : `${(cents / 100).toLocaleString("fr-FR", { minimumFractionDigits: cents % 100 ? 2 : 0 })} €`);
+export { formatEuros } from "./money";
 
 /** Validation partagée client / serveur. Retourne un dictionnaire d'erreurs par champ (vide si valide). */
 export function validateRegistration(input: Partial<RegistrationInput>, event: ClubEvent, remaining: number): Record<string, string> {

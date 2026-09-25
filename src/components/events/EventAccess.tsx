@@ -33,7 +33,9 @@ export function EventAccess({ event }: { event: ClubEvent }) {
         <p className="mt-5 max-w-2xl font-body text-[16px] leading-[1.8] text-white/80">
           {session.status === "admin"
             ? "Suivez les inscriptions et les paiements de cet événement."
-            : cfg.mode === "external"
+            : cfg.mode === "closed"
+              ? "Cet événement est terminé : les inscriptions sont closes."
+              : cfg.mode === "external"
               ? "Les places de cet événement se réservent via la billetterie. Les membres retrouvent ici leur espace personnel."
               : `L'inscription est réservée aux membres des Dames du Parc, sur présentation de leur carte${cfg.priceCents > 0 ? ` (${formatEuros(cfg.priceCents)} par place)` : " (gratuit)"}.`}
         </p>
@@ -82,6 +84,8 @@ export function EventAccess({ event }: { event: ClubEvent }) {
               {session.status === "member" &&
                 (cfg.mode === "form" ? (
                   <RegistrationForm event={event} member={session} />
+                ) : cfg.mode === "closed" ? (
+                  <p className="rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-8 font-body text-[15.5px] leading-[1.8] text-white/80">Cet événement est terminé. Retrouvez les prochains rendez-vous dans le calendrier.</p>
                 ) : (
                   <div className="rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-8">
                     <p className="font-body text-[15.5px] leading-[1.8] text-white/80">Votre carte est vérifiée. Réservez votre place pour cet événement depuis la billetterie.</p>

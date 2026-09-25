@@ -30,8 +30,8 @@ export interface EventProgramItem {
 }
 
 export interface EventRegistrationConfig {
-  /** « form » : inscription sur le site (membres) · « external » : via la billetterie */
-  mode: "form" | "external";
+  /** « form » : inscription sur le site (membres) · « external » : via la billetterie · « closed » : terminé */
+  mode: "form" | "external" | "closed";
   /** Prix par place, en centimes (0 = gratuit) */
   priceCents: number;
   capacity: number;

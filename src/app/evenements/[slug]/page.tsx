@@ -4,16 +4,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarPlus, Clock, MapPin, Ticket } from "lucide-react";
 import { Suspense } from "react";
-import { ScheduleTile } from "@/components/events/ScheduleTile";
+import { EventGridCard } from "@/components/events/EventGridCard";
 import { EventAccess } from "@/components/events/EventAccess";
 import { ReserveBar } from "@/components/events/ReserveBar";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
-import { events, getEvent } from "@/data/events";
+import { allEvents, getEvent, isPast } from "@/data/events";
 import { formatLongDate, formatTime } from "@/lib/format";
 
 export function generateStaticParams() {
-  return events.map((e) => ({ slug: e.id }));
+  return allEvents().map((e) => ({ slug: e.id }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -31,7 +31,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const event = getEvent(slug);
   if (!event) notFound();
 
-  const others = events.filter((e) => e.id !== event.id).sort((a, b) => a.date.localeCompare(b.date));
+  const past = isPast(event) || event.registration.mode === "closed";
+  const others = allEvents().filter((e) => e.id !== event.id && !isPast(e)).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -74,9 +75,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </li>
           </ul>
           <div className="mt-12 flex flex-col gap-4 sm:flex-row">
-            <Button size="lg" href="#inscription">
-              Réserver ma place
-            </Button>
+            {!past && (
+              <Button size="lg" href="#inscription">
+                Réserver ma place
+              </Button>
+            )}
             <Button size="lg" variant="outline" href={`/evenements/${event.id}/event.ics`} download arrow={false}>
               Ajouter à mon agenda
             </Button>
@@ -177,10 +180,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 ))}
               </dl>
               <div className="mt-6 flex flex-col gap-2.5">
-                <Button size="lg" href="#inscription" className="w-full">
-                  <Ticket aria-hidden className="mr-1 inline size-4" />
-                  Réserver ma place
-                </Button>
+                {!past && (
+                  <Button size="lg" href="#inscription" className="w-full">
+                    <Ticket aria-hidden className="mr-1 inline size-4" />
+                    Réserver ma place
+                  </Button>
+                )}
                 <Button size="lg" variant="outline" href={`/evenements/${event.id}/event.ics`} download arrow={false} className="w-full">
                   Ajouter à mon agenda
                 </Button>
@@ -194,7 +199,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       <Suspense fallback={null}>
         <EventAccess event={event} />
       </Suspense>
-      <ReserveBar event={event} />
+      {!past && <ReserveBar event={event} />}
 
       <section aria-labelledby="autres" className="pb-40 md:pb-56">
         <div className="mx-auto flex max-w-[1300px] items-end justify-between px-[var(--gutter)]">
@@ -211,7 +216,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         <ul className="mt-14 flex snap-x gap-6 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:gap-8 [&::-webkit-scrollbar]:hidden">
           {others.map((e) => (
             <li key={e.id} className="shrink-0 snap-start">
-              <ScheduleTile event={e} />
+              <EventGridCard event={e} />
             </li>
           ))}
         </ul>

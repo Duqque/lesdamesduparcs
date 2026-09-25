@@ -3,13 +3,12 @@ import type { NavItem } from "@/types";
 /** À gauche du logo */
 export const leftNav: NavItem[] = [
   { label: "Le groupe", href: "/groupe" },
-  { label: "Événements", href: "/evenements" },
   { label: "Actualités", href: "/actualites" },
 ];
 
 /** À droite du logo */
 export const rightNav: NavItem[] = [
-  { label: "Billetterie", href: "/billetterie" },
+  { label: "Événements", href: "/evenements" },
   { label: "Boutique", href: "/boutique" },
 ];
 

@@ -300,3 +300,8 @@ html[data-intro-seen] .intro-root { display: none; }
   opacity: 0.22;
   mix-blend-mode: multiply;
 }
+
+@keyframes shop-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}

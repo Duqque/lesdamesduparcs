@@ -1,10 +1,10 @@
-import { events, getEvent } from "@/data/events";
+import { allEvents, getEvent } from "@/data/events";
 import { buildIcs, icsHeaders } from "@/lib/ics";
 
 export const dynamic = "force-static";
 
 export function generateStaticParams() {
-  return events.map((e) => ({ slug: e.id }));
+  return allEvents().map((e) => ({ slug: e.id }));
 }
 
 export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }> }) {

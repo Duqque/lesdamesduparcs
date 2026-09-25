@@ -64,3 +64,42 @@ export const updateRegistration = (id: string, patch: Partial<Registration>) =>
   });
 
 export const getRegistration = (id: string) => readAll().then((all) => all.find((r) => r.id === id) ?? null);
+
+/* ---------- Commandes de la boutique ---------- */
+import type { Order } from "@/lib/orders";
+
+const ordersFile = path.join(dir, "orders.json");
+
+async function readOrders(): Promise<Order[]> {
+  try {
+    return JSON.parse(await readFile(ordersFile, "utf8")) as Order[];
+  } catch {
+    return [];
+  }
+}
+
+async function writeOrders(list: Order[]) {
+  await mkdir(dir, { recursive: true });
+  const tmp = `${ordersFile}.${randomUUID()}.tmp`;
+  await writeFile(tmp, JSON.stringify(list, null, 2), "utf8");
+  await rename(tmp, ordersFile);
+}
+
+export const addOrder = (o: Omit<Order, "id" | "token" | "createdAt">) =>
+  locked(async () => {
+    const created: Order = { ...o, id: randomUUID(), token: randomUUID().replace(/-/g, ""), createdAt: new Date().toISOString() };
+    await writeOrders([...(await readOrders()), created]);
+    return created;
+  });
+
+export const updateOrder = (id: string, patch: Partial<Order>) =>
+  locked(async () => {
+    const all = await readOrders();
+    const i = all.findIndex((o) => o.id === id);
+    if (i < 0) return null;
+    all[i] = { ...all[i], ...patch };
+    await writeOrders(all);
+    return all[i];
+  });
+
+export const getOrder = (id: string) => readOrders().then((all) => all.find((o) => o.id === id) ?? null);

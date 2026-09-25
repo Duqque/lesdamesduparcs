@@ -45,3 +45,27 @@ export async function createCheckoutSession(opts: {
 
 export const retrieveCheckoutSession = (id: string) =>
   stripe<{ id: string; payment_status: string; metadata?: Record<string, string> }>(`/checkout/sessions/${encodeURIComponent(id)}`);
+
+export async function createShopCheckoutSession(opts: {
+  orderId: string;
+  token: string;
+  lines: Array<{ name: string; unitAmountCents: number; quantity: number }>;
+  customerEmail: string;
+  siteUrl: string;
+}) {
+  const body = new URLSearchParams({
+    mode: "payment",
+    success_url: `${opts.siteUrl}/api/shop/confirm?order=${opts.orderId}&t=${opts.token}&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${opts.siteUrl}/commande?paiement=annule`,
+    customer_email: opts.customerEmail,
+    client_reference_id: opts.orderId,
+    "metadata[order]": opts.orderId,
+  });
+  opts.lines.forEach((l, i) => {
+    body.set(`line_items[${i}][quantity]`, String(l.quantity));
+    body.set(`line_items[${i}][price_data][currency]`, "eur");
+    body.set(`line_items[${i}][price_data][unit_amount]`, String(l.unitAmountCents));
+    body.set(`line_items[${i}][price_data][product_data][name]`, l.name);
+  });
+  return stripe<{ id: string; url: string }>("/checkout/sessions", { method: "POST", body });
+}
