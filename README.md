@@ -55,12 +55,21 @@ Les 61 titres du PSG (championnats, coupes, supercoupes, titres internationaux) 
 années, sur fond de photos en fondu enchaîné, puis une transition dorée mène au site. Les titres viennent de
 `src/data/palmares.ts` (source : psg.fr/palmares) : **à mettre à jour à chaque nouveau titre**. Le loader n'est joué qu'une fois par session et ignoré avec `prefers-reduced-motion`.
 
-## Carte membre 3D (`/abonnement`)
+## Expérience carte membre (`/abonnement`)
 
-`src/components/membership/MembershipCard.tsx` : carte en CSS 3D (faces recto/verso, épaisseur en calques, profondeur par `translateZ`)
-pilotée par une boucle `requestAnimationFrame` avec interpolation : inclinaison suivant le curseur (±10° / ±15°), effet magnétique
-au survol, reflet spéculaire opposé au mouvement, ombre dynamique, flottement permanent et retour progressif. Cliquer retourne la
-carte. Les logos de la carte (`public/logos/card-logo-*.webp`) sont découpés des rendus de référence (`scripts/extract-card-assets.py`).
+La carte est le fil conducteur de la page : un conteneur haut avec une scène `sticky` plein écran, dont toute la chorégraphie est
+pilotée par la progression du scroll (`useScroll` + `useSpring` de framer-motion, sans GSAP). `src/components/membership/pose.ts`
+définit les points de passage (rotations X/Y/Z, profondeur, échelle, décalage X/Y, bureau et mobile) ; `Scenes.tsx` contient les
+8 scènes : carte, identité imprimée, avantages en orbite, agenda qui glisse de derrière la carte, newsletter au verso, carte
+virtuelle avec QR code et bouton Apple Wallet, foule de cartes, puis prix (12 € / saison) et adhésion. La souris ajoute une
+inclinaison discrète (±4° / ±3°) ; `prefers-reduced-motion` coupe le flottement, la souris et l'entrée.
+
+`CardObject.tsx` est la carte en CSS 3D (recto/verso, épaisseur en calques, `translateZ` par élément, reflets, grain, ombre).
+Les logos (`public/logos/card-logo-*.webp`) sont découpés des rendus de référence (`scripts/extract-card-assets.py`).
+Le contenu (avantages, agenda, newsletters, prix) est dans `src/data/membership.ts` — **exemples illustratifs à remplacer**.
+
+**Apple Wallet :** le bouton simule la génération ; le vrai fichier `.pkpass` demande un certificat Apple Developer et une
+route serveur de signature, non implémentés.
 
 ## Musique de fond
 

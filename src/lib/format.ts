@@ -32,3 +32,8 @@ export function formatClock(seconds: number) {
 
 const dayMonthFormatter = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 export const formatDayMonth = (iso: string) => capitalize(dayMonthFormatter.format(new Date(`${iso}T12:00:00Z`)));
+
+const dayFormatter = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", timeZone: "UTC" });
+const monthShortFormatter = new Intl.DateTimeFormat("fr-FR", { month: "short", timeZone: "UTC" });
+export const formatDay = (iso: string) => dayFormatter.format(new Date(`${iso}T12:00:00Z`));
+export const formatMonthShort = (iso: string) => monthShortFormatter.format(new Date(`${iso}T12:00:00Z`)).replace(".", "").toUpperCase();
