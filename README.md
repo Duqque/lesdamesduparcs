@@ -51,9 +51,9 @@ prépare l'espace membre.
 ## Loader d'entrée
 
 `src/components/intro/IntroLoader.tsx` : compteur **1970 → année en cours** (calculée à l'exécution) avec barre de progression.
-Un palier apparaît à chaque championnat de France remporté, et un effet doré (confettis, flash) pour chacune des Ligues des
-champions, puis une transition dorée vers le site. Les années viennent de `src/data/palmares.ts` (source : psg.fr/palmares) :
-**à mettre à jour à chaque nouveau titre**. Le loader n'est joué qu'une fois par session et ignoré avec `prefers-reduced-motion`.
+Les 61 titres du PSG (championnats, coupes, supercoupes, titres internationaux) s'ajoutent à une liste minimaliste au fil des
+années, sur fond de photos en fondu enchaîné, puis une transition dorée mène au site. Les titres viennent de
+`src/data/palmares.ts` (source : psg.fr/palmares) : **à mettre à jour à chaque nouveau titre**. Le loader n'est joué qu'une fois par session et ignoré avec `prefers-reduced-motion`.
 
 ## Musique de fond
 
