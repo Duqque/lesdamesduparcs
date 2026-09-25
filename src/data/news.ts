@@ -6,7 +6,7 @@ export const news: NewsItem[] = [
     title: "Victoire du PSG : un Parc en fusion !",
     category: "Match",
     date: "2026-09-20",
-    image: "/images/actu-1.webp",
+    image: "/images/ligue-des-champions-2025.webp",
     href: "/actualites",
   },
   {
@@ -14,7 +14,7 @@ export const news: NewsItem[] = [
     title: "Les Dames du Parc au cœur du déplacement à Marseille",
     category: "Déplacement",
     date: "2026-09-13",
-    image: "/images/actu-2.webp",
+    image: "/images/parc-des-princes-facade.webp",
     href: "/actualites",
   },
   {
@@ -22,7 +22,7 @@ export const news: NewsItem[] = [
     title: "Retour sur notre soirée membre",
     category: "Événement",
     date: "2026-09-06",
-    image: "/images/actu-3.webp",
+    image: "/images/vestiaire-fauteuils.webp",
     href: "/actualites",
   },
   {
@@ -30,7 +30,7 @@ export const news: NewsItem[] = [
     title: "Interview : une membre, une histoire",
     category: "Portrait",
     date: "2026-08-30",
-    image: "/images/actu-4.webp",
+    image: "/images/sieges-rouges-bleus.webp",
     href: "/actualites",
   },
 ];

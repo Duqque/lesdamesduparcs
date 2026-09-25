@@ -11,7 +11,7 @@ export const featuredShop: {
   title: "Boutique",
   description: "Écharpes, maillots, goodies…",
   tagline: "Affiche ton soutien !",
-  image: "/images/boutique-echarpes-maillots.webp",
+  image: "/images/drapeau-paris-gros-plan.webp",
   href: "/boutique",
   products: [],
 };

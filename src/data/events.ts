@@ -6,6 +6,6 @@ export const featuredEvent: ClubEvent = {
   date: "2026-10-24",
   time: "20:00",
   venue: "Bar du Parc – Paris 16e",
-  image: "/images/evenement-soiree-des-dames.webp",
+  image: "/images/tribune-fumigene-orange.webp",
   href: "/evenements",
 };

@@ -10,6 +10,6 @@ export const nextMatch: Match = {
   time: "21:00",
   stadium: "Parc des Princes",
   competition: "Le Classique",
-  image: "/images/match-parc-des-princes.webp",
+  image: "/images/parc-pelouse-tribunes.webp",
   ticketHref: "/billetterie",
 };
