@@ -13,22 +13,22 @@ export const metadata: Metadata = {
 
 const label = "font-body text-[12px] font-semibold uppercase tracking-[0.3em] text-psg-red-bright";
 const h2 = "mt-4 font-display text-[clamp(30px,4.4vw,60px)] font-semibold uppercase leading-[1.02] tracking-[0.05em] text-white";
-const body = "font-body text-[16px] leading-[1.8] text-white/80 md:text-[17px]";
+const body = "font-body text-[16px] leading-[1.9] text-white/80 md:text-[17px]";
 
 export default function GroupPage() {
   return (
     <main>
       <GroupHero />
 
-      <section aria-labelledby="qui" className="mx-auto max-w-[1200px] px-[var(--gutter)] py-16 md:py-24">
-        <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
+      <section aria-labelledby="qui" className="mx-auto max-w-[1200px] px-[var(--gutter)] py-24 md:py-36">
+        <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-24">
           <Reveal>
             <p className={label}>Qui sommes-nous</p>
             <h2 id="qui" className={h2}>
               Une voix de femmes dans les tribunes parisiennes
             </h2>
           </Reveal>
-          <Reveal delay={0.1} className="space-y-5">
+          <Reveal delay={0.1} className="space-y-7">
             <p className={body}>
               Les Dames du Parc forment une association de supportrices unies par l&rsquo;amour du Paris Saint-Germain. Leur ambition est simple : faire entendre la voix
               des femmes dans les tribunes et offrir à chacune un lieu où vibrer sans retenue.
@@ -41,8 +41,8 @@ export default function GroupPage() {
         </div>
       </section>
 
-      <section aria-labelledby="psg" className="mx-auto max-w-[1300px] px-[var(--gutter)] pb-16 md:pb-24">
-        <div className="grid items-center gap-10 md:grid-cols-[1.1fr_0.9fr] md:gap-16">
+      <section aria-labelledby="psg" className="mx-auto max-w-[1300px] px-[var(--gutter)] pb-24 md:pb-36">
+        <div className="grid items-center gap-14 md:grid-cols-[1.1fr_0.9fr] md:gap-24">
           <Reveal>
             <div className="relative aspect-[3/2] overflow-hidden rounded-[8px] border border-line shadow-[0_40px_80px_-40px_rgba(0,0,0,0.9)]" data-cursor="view">
               <Image
@@ -55,7 +55,7 @@ export default function GroupPage() {
               <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,transparent_60%,rgba(3,9,25,0.55))]" />
             </div>
           </Reveal>
-          <Reveal delay={0.1} className="space-y-5">
+          <Reveal delay={0.1} className="space-y-7">
             <p className={label}>Le Paris Saint-Germain</p>
             <h2 id="psg" className={h2}>
               Le PSG, notre boussole
@@ -73,18 +73,18 @@ export default function GroupPage() {
         </div>
       </section>
 
-      <section aria-labelledby="valeurs" className="mx-auto max-w-[1300px] px-[var(--gutter)] pb-16 md:pb-24">
+      <section aria-labelledby="valeurs" className="mx-auto max-w-[1300px] px-[var(--gutter)] pb-24 md:pb-36">
         <Reveal>
           <p className={label}>Nos valeurs</p>
           <h2 id="valeurs" className={h2}>
             Ce qui nous anime
           </h2>
         </Reveal>
-        <ul className="mt-10 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {groupValues.map((v, i) => (
             <li key={v.id}>
               <Reveal delay={i * 0.06} className="h-full">
-                <div className="h-full rounded-[8px] border border-line bg-night-900/85 p-6">
+                <div className="h-full rounded-[10px] border border-line bg-night-900/85 p-8">
                   <span aria-hidden className="block h-[2px] w-8 bg-psg-red" />
                   <h3 className="mt-5 font-display text-[26px] font-semibold uppercase tracking-[0.08em] text-white">{v.title}</h3>
                   <p className="mt-3 font-body text-[14.5px] leading-[1.7] text-mist">{v.text}</p>
@@ -95,8 +95,8 @@ export default function GroupPage() {
         </ul>
       </section>
 
-      <section aria-labelledby="saison" className="mx-auto max-w-[1200px] px-[var(--gutter)] pb-16 md:pb-24">
-        <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
+      <section aria-labelledby="saison" className="mx-auto max-w-[1200px] px-[var(--gutter)] pb-24 md:pb-36">
+        <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-24">
           <Reveal>
             <p className={label}>Au fil de la saison</p>
             <h2 id="saison" className={h2}>
@@ -106,7 +106,7 @@ export default function GroupPage() {
           <ol className="divide-y divide-white/10 border-y border-white/10">
             {groupSeason.map((s, i) => (
               <li key={s.id}>
-                <Reveal delay={i * 0.05} className="grid grid-cols-[auto_1fr] gap-5 py-6 md:gap-8">
+                <Reveal delay={i * 0.05} className="grid grid-cols-[auto_1fr] gap-6 py-10 md:gap-10">
                   <span className="font-display text-[34px] font-semibold leading-none tabular-nums text-psg-red-bright">{String(i + 1).padStart(2, "0")}</span>
                   <span>
                     <h3 className="font-body text-[17px] font-semibold text-white">{s.title}</h3>
@@ -119,7 +119,7 @@ export default function GroupPage() {
         </div>
       </section>
 
-      <section aria-labelledby="rejoindre" className="relative isolate overflow-hidden px-[var(--gutter)] py-20 text-center md:py-28">
+      <section aria-labelledby="rejoindre" className="relative isolate overflow-hidden px-[var(--gutter)] py-32 text-center md:py-44">
         <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_80%_at_50%_100%,rgba(217,15,44,0.18),transparent_70%)]" />
         <Reveal className="mx-auto max-w-2xl">
           <p className="font-script text-[clamp(30px,4.6vw,56px)] italic leading-tight text-white">On ne choisit pas le PSG, le PSG nous choisit.</p>

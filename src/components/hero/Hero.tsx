@@ -5,7 +5,7 @@ export function Hero() {
   return (
     <section
       aria-labelledby="hero-title"
-      className="grain vignette relative flex min-h-[clamp(580px,82svh,760px)] items-end overflow-hidden bg-night-950 md:min-h-[560px] xl:min-h-[clamp(500px,50vh,660px)] xl:items-start"
+      className="grain vignette relative flex min-h-[clamp(580px,82svh,760px)] items-end overflow-hidden bg-night-950 md:min-h-[640px] xl:min-h-[clamp(640px,70vh,840px)] xl:items-start"
     >
       <HeroBackdrop />
       <div

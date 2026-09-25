@@ -39,8 +39,8 @@ export function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
   const active = open === null ? null : photos[open];
 
   return (
-    <section aria-labelledby="gallery-title" className="mx-auto max-w-[1800px] px-[var(--gutter)] pb-10 pt-6 xl:pr-[1.5vw] xl:pt-8">
-      <div className="mb-4 flex items-end justify-between gap-4">
+    <section aria-labelledby="gallery-title" className="mx-auto max-w-[1800px] px-[var(--gutter)] pb-28 pt-28 md:pt-40 xl:pr-[clamp(32px,3.4vw,72px)]">
+      <div className="mb-12 flex items-end justify-between gap-4">
         <div>
           <CardLabel icon={Camera}>Galerie</CardLabel>
           <h2 id="gallery-title" className="mt-3 font-display text-[clamp(30px,4vw,52px)] font-semibold uppercase leading-none tracking-[0.06em] text-white">
@@ -50,7 +50,7 @@ export function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
         <p className="hidden max-w-xs text-right font-body text-[13px] leading-relaxed text-mist md:block">Tribunes, fumigènes, drapeaux : la passion parisienne, du Parc à l&rsquo;Europe.</p>
       </div>
 
-      <ul className="grid auto-rows-[150px] grid-flow-dense grid-cols-2 gap-2.5 md:auto-rows-[170px] md:grid-cols-12 md:gap-3 xl:auto-rows-[200px]">
+      <ul className="grid auto-rows-[170px] grid-flow-dense grid-cols-2 gap-4 md:auto-rows-[200px] md:grid-cols-12 md:gap-6 xl:auto-rows-[240px]">
         {photos.map((photo, i) => (
           <li key={photo.id} className={cn("min-h-0", photo.span)}>
             <Reveal className="h-full" delay={(i % 4) * 0.05}>

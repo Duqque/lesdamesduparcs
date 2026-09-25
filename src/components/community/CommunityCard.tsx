@@ -9,7 +9,7 @@ export function CommunityCard({ community }: { community: Community }) {
       <p className="font-body text-[15px] font-medium leading-[1.45] text-white transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1">
         {community.text}
       </p>
-      <div className="mt-4">
+      <div className="mt-7">
         <Button variant="outline" size="xs" href={community.href}>
           Rejoindre la communauté
         </Button>

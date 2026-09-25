@@ -13,7 +13,7 @@ export function ChantPlayer() {
   return (
     <section
       aria-label="Le chant du groupe"
-      className="rounded-[6px] border border-line bg-night-900/85 px-4 pb-[14px] pt-[14px] shadow-[0_18px_50px_-30px_rgba(0,0,0,0.9)] backdrop-blur-sm"
+      className="rounded-[6px] border border-line bg-night-900/85 px-6 pb-6 pt-6 shadow-[0_18px_50px_-30px_rgba(0,0,0,0.9)] backdrop-blur-sm"
     >
       <div className="flex items-center justify-between">
         <CardLabel icon={Music2}>Le chant du groupe</CardLabel>
@@ -23,7 +23,7 @@ export function ChantPlayer() {
       </div>
 
       <Waveform
-        className="mt-2.5"
+        className="mt-6"
         peaks={chant.waveform}
         progress={progress}
         playing={playing}
@@ -32,7 +32,7 @@ export function ChantPlayer() {
         onSeek={seek}
       />
 
-      <div className="mt-2 flex items-center gap-3">
+      <div className="mt-6 flex items-center gap-4">
         <button
           type="button"
           onClick={toggle}

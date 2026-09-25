@@ -6,7 +6,7 @@ export function QuoteSection({ text, image }: { text: string; image: string }) {
   return (
     <figure
       data-cursor="view"
-      className="group relative isolate flex w-full min-h-[250px] items-center overflow-hidden rounded-[6px] border border-line bg-night-900 px-6 py-8 md:min-h-[190px] xl:min-h-[122px] xl:px-9 xl:py-5"
+      className="group relative isolate flex w-full min-h-[250px] items-center overflow-hidden rounded-[6px] border border-line bg-night-900 px-6 py-8 md:min-h-[220px] xl:min-h-[220px] xl:px-12 xl:py-8"
     >
       <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
         <Image src={image} alt="" fill sizes="(min-width: 1280px) 40vw, 100vw" className="object-cover object-[70%_40%] transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]" />

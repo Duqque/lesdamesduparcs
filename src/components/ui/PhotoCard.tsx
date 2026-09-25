@@ -21,7 +21,7 @@ export function PhotoCard({ label, icon, image, imageClassName, overlayClassName
     <article
       data-cursor="view"
       className={cn(
-        "group relative isolate flex w-full min-h-[290px] flex-col overflow-hidden rounded-[6px] border border-line bg-night-900 p-4 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.95)] xl:min-h-[274px]",
+        "group relative isolate flex w-full min-h-[360px] flex-col overflow-hidden rounded-[8px] border border-line bg-night-900 p-6 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.95)] xl:min-h-[380px]",
         className,
       )}
     >

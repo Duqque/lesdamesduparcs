@@ -17,7 +17,7 @@ export function ChantsBanner() {
     <section
       aria-labelledby="chants-title"
       data-cursor="view"
-      className="relative flex w-full min-h-[190px] flex-col justify-center gap-5 overflow-hidden rounded-[6px] border border-line bg-[linear-gradient(100deg,#08172f_0%,#0b2149_55%,#10285a_100%)] p-5 md:min-h-[122px] md:flex-row md:items-center md:gap-8 md:py-4 md:pl-6 md:pr-5"
+      className="relative flex w-full min-h-[240px] flex-col justify-center gap-7 overflow-hidden rounded-[8px] border border-line bg-[linear-gradient(100deg,#08172f_0%,#0b2149_55%,#10285a_100%)] p-7 md:min-h-[220px] md:flex-row md:items-center md:gap-10 md:py-8 md:pl-10 md:pr-8"
     >
       <Image
         src="/logos/dames-du-parc-logo.webp"
@@ -29,12 +29,12 @@ export function ChantsBanner() {
       />
       <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-1/3 bg-[radial-gradient(ellipse_at_100%_50%,rgba(217,15,44,0.2),transparent_70%)]" />
 
-      <div className="relative z-10 shrink-0">
+      <div className="relative z-10 min-w-0 md:shrink-0">
         <h2 id="chants-title" className="font-body text-[14px] font-bold uppercase tracking-[0.07em] text-white md:text-[15px]">
           {playlist.title}
         </h2>
-        <p className="mt-1.5 font-body text-[12px] text-mist">{playlist.tagline}</p>
-        <div className="mt-3.5">
+        <p className="mt-3 font-body text-[13px] text-mist">{playlist.tagline}</p>
+        <div className="mt-6">
           <Button variant="outline" href={playlist.href} external className="w-full sm:w-auto">
             Écouter la playlist
           </Button>
@@ -43,7 +43,7 @@ export function ChantsBanner() {
 
       <div
         aria-hidden
-        className={cn("relative z-10 flex h-[54px] flex-1 items-center justify-center gap-[3px] md:max-w-[240px]", playing && "wave-playing")}
+        className={cn("relative z-10 flex h-[54px] flex-1 items-center justify-center gap-[3px] md:max-w-[240px] xl:max-[1499px]:hidden", playing && "wave-playing")}
       >
         {bars.map((p, i) => {
           const played = i / BARS < progress;

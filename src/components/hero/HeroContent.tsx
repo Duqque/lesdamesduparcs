@@ -33,7 +33,7 @@ export function HeroContent() {
         </motion.span>
         <motion.span
           variants={item}
-          className="relative mt-3 block origin-left -rotate-[6deg] font-script text-[clamp(44px,3.85vw,66px)] font-medium leading-[0.9] text-white xl:mt-4"
+          className="relative mt-3 block origin-left -rotate-[6deg] font-script text-[clamp(44px,3.85vw,66px)] font-medium leading-[0.9] text-white xl:mt-7"
         >
           Plus qu&rsquo;un groupe,
           <span className="relative ml-[0.55em] block w-fit">
@@ -42,12 +42,12 @@ export function HeroContent() {
           </span>
         </motion.span>
       </h1>
-      <motion.p variants={item} className="mt-8 max-w-[28rem] font-body text-[15px] leading-[1.45] text-white/90 md:text-[16px] xl:mt-5 xl:text-[15.5px]">
+      <motion.p variants={item} className="mt-8 max-w-[28rem] font-body text-[15px] leading-[1.65] text-white/90 md:text-[16px] xl:mt-9 xl:text-[16px]">
         Supporter, vibrer, partager, s&rsquo;engager.
         <br className="hidden sm:block" /> Les Dames du Parc, c&rsquo;est la passion du&nbsp;PSG
         <br className="hidden sm:block" /> au&nbsp;féminin, toute l&rsquo;année, au Parc et partout.
       </motion.p>
-      <motion.div variants={item} className="mt-7 xl:mt-5">
+      <motion.div variants={item} className="mt-9 xl:mt-12">
         <Button size="lg" href="/communaute" className="w-full sm:w-auto sm:min-w-[232px]">
           Rejoindre le groupe
         </Button>

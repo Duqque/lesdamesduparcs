@@ -9,8 +9,8 @@ export function ShopCard({ shop = featuredShop }: { shop?: typeof featuredShop }
       <h3 className="font-body text-[15px] font-semibold leading-tight text-white transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1">
         {shop.description}
       </h3>
-      <p className="mt-2 font-body text-[12px] text-white/85">{shop.tagline}</p>
-      <div className="mt-4">
+      <p className="mt-3 font-body text-[12px] text-white/85">{shop.tagline}</p>
+      <div className="mt-7">
         <Button variant="outline" size="xs" href={shop.href}>
           Découvrir
         </Button>

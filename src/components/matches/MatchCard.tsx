@@ -10,7 +10,7 @@ export function MatchCard({ match }: { match: Match }) {
     <article
       data-cursor="view"
       aria-label="Prochain match"
-      className="group relative isolate flex min-h-[300px] flex-col overflow-hidden rounded-[6px] border border-line bg-night-900 p-4 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.95)] w-full xl:min-h-[274px]"
+      className="group relative isolate flex min-h-[380px] flex-col overflow-hidden rounded-[8px] border border-line bg-night-900 p-6 shadow-[0_24px_60px_-34px_rgba(0,0,0,0.95)] w-full xl:min-h-[320px]"
     >
       <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
         <Image
@@ -29,7 +29,7 @@ export function MatchCard({ match }: { match: Match }) {
         <span className="hidden font-body text-[10.5px] font-semibold uppercase tracking-[0.14em] text-mist sm:block">{match.competition}</span>
       </div>
 
-      <div className="mt-3 flex items-center gap-4">
+      <div className="mt-6 flex items-center gap-5">
         <Image src={match.homeLogo} alt={match.homeTeam} width={66} height={66} className="size-[62px] object-contain md:size-[66px]" />
         <span aria-hidden className="font-display text-[19px] font-bold uppercase tracking-[0.08em] text-white">
           vs
@@ -37,7 +37,7 @@ export function MatchCard({ match }: { match: Match }) {
         <Image src={match.awayLogo} alt={match.awayTeam} width={66} height={66} className="size-[58px] object-contain md:size-[62px]" />
       </div>
 
-      <ul className="mt-4 space-y-1.5 font-body text-[13px] text-white/90">
+      <ul className="mt-7 space-y-3 font-body text-[13px] text-white/90">
         <li className="flex items-center gap-2.5">
           <Calendar aria-hidden className="size-[15px] shrink-0 text-white/80" strokeWidth={1.8} />
           <time dateTime={match.date}>{formatLongDate(match.date)}</time>
@@ -52,7 +52,7 @@ export function MatchCard({ match }: { match: Match }) {
         </li>
       </ul>
 
-      <div className="mt-auto pt-4">
+      <div className="mt-auto pt-7">
         <Button variant="outline" size="sm" href={match.ticketHref}>
           Je réserve ma place
         </Button>

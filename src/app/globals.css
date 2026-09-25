@@ -28,20 +28,20 @@
 
 :root {
   --header-h: 76px;
-  --gutter: 16px;
+  --gutter: 20px;
   color-scheme: dark;
 }
 
 @media (min-width: 768px) {
   :root {
-    --gutter: 28px;
+    --gutter: 44px;
   }
 }
 
 @media (min-width: 1280px) {
   :root {
     --header-h: 76px;
-    --gutter: clamp(24px, 2.3vw, 40px);
+    --gutter: clamp(40px, 3.4vw, 72px);
   }
 }
 

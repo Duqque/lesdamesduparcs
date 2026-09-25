@@ -45,7 +45,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     <main>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <section className="relative isolate flex min-h-[78svh] items-end overflow-hidden px-[var(--gutter)] pb-12 pt-[120px] md:pb-16">
+      <section className="relative isolate flex min-h-[78svh] items-end overflow-hidden px-[var(--gutter)] pb-16 pt-[130px] md:pb-24">
         <Image src={event.image} alt={event.imageAlt} fill priority sizes="100vw" className="-z-10 object-cover" />
         <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(3,9,25,0.55)_0%,rgba(3,9,25,0.25)_35%,rgba(3,9,25,0.92)_100%),linear-gradient(90deg,rgba(3,9,25,0.7)_0%,transparent_65%)]" />
         <div className="mx-auto w-full max-w-[1300px]">
@@ -70,7 +70,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {event.venue}
             </li>
           </ul>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-12 flex flex-col gap-4 sm:flex-row">
             <Button size="lg" href={event.href}>
               Réserver ma place
             </Button>
@@ -81,12 +81,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-[1300px] gap-12 px-[var(--gutter)] py-16 md:py-24 lg:grid-cols-[1fr_360px] lg:gap-16">
-        <div className="space-y-16">
+      <div className="mx-auto grid max-w-[1300px] gap-16 px-[var(--gutter)] py-28 md:py-40 lg:grid-cols-[1fr_360px] lg:gap-24">
+        <div className="space-y-28">
           <Reveal>
             <p className={label}>L&rsquo;événement</p>
             <h2 className={h2}>{event.summary}</h2>
-            <div className="mt-6 space-y-5 font-body text-[16px] leading-[1.8] text-white/80 md:text-[17px]">
+            <div className="mt-8 space-y-7 font-body text-[16px] leading-[1.9] text-white/80 md:text-[17px]">
               {event.description.map((p) => (
                 <p key={p}>{p}</p>
               ))}
@@ -100,10 +100,10 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 Au programme
               </h2>
             </Reveal>
-            <ol className="mt-8 border-l border-white/15">
+            <ol className="mt-12 border-l border-white/15">
               {event.program.map((item, i) => (
                 <li key={item.time + item.title}>
-                  <Reveal delay={Math.min(i, 4) * 0.04} className="relative grid gap-1 pb-9 pl-8 last:pb-0 sm:grid-cols-[92px_1fr] sm:gap-6">
+                  <Reveal delay={Math.min(i, 4) * 0.04} className="relative grid gap-1 pb-14 pl-8 last:pb-0 sm:grid-cols-[92px_1fr] sm:gap-6">
                     <span aria-hidden className="absolute -left-[5px] top-[9px] size-[9px] rounded-full bg-psg-red-bright ring-4 ring-night-950" />
                     <span className="font-display text-[26px] font-semibold tabular-nums leading-none tracking-[0.04em] text-white">{formatTime(item.time)}</span>
                     <span>
@@ -124,7 +124,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                   Les intervenants
                 </h2>
               </Reveal>
-              <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+              <ul className="mt-12 grid gap-6 sm:grid-cols-2">
                 {event.speakers.map((s, i) => (
                   <li key={s.name} className={i === 0 ? "sm:col-span-2" : ""}>
                     <Reveal delay={i * 0.06} className="h-full">
@@ -188,7 +188,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </aside>
       </div>
 
-      <section aria-labelledby="autres" className="pb-20 md:pb-28">
+      <section aria-labelledby="autres" className="pb-32 md:pb-48">
         <div className="mx-auto flex max-w-[1300px] items-end justify-between px-[var(--gutter)]">
           <div>
             <p className={label}>À suivre</p>
@@ -200,7 +200,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             Voir le calendrier
           </Link>
         </div>
-        <ul className="mt-8 flex snap-x gap-4 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:gap-5 [&::-webkit-scrollbar]:hidden">
+        <ul className="mt-14 flex snap-x gap-6 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:gap-8 [&::-webkit-scrollbar]:hidden">
           {others.map((e) => (
             <li key={e.id} className="shrink-0 snap-start">
               <CalendarCard event={e} />

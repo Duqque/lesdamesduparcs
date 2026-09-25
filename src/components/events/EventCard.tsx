@@ -10,7 +10,7 @@ export function EventCard({ event }: { event: ClubEvent }) {
       <h3 className="font-body text-[20px] font-semibold leading-tight text-white transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1">
         {event.title}
       </h3>
-      <ul className="mt-2.5 space-y-1.5 font-body text-[12px] text-white/85">
+      <ul className="mt-4 space-y-2.5 font-body text-[12px] text-white/85">
         <li className="flex items-center gap-2">
           <Calendar aria-hidden className="size-[13px] shrink-0" strokeWidth={1.8} />
           <time dateTime={event.date}>
@@ -22,7 +22,7 @@ export function EventCard({ event }: { event: ClubEvent }) {
           {event.venue}
         </li>
       </ul>
-      <div className="mt-4">
+      <div className="mt-7">
         <Button variant="outline" size="xs" href={`/evenements/${event.id}`}>
           En savoir plus
         </Button>

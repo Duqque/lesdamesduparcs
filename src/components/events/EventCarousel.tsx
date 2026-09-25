@@ -19,7 +19,7 @@ export function EventCarousel({ events, startId }: Props) {
   const list = useMemo(() => (filter === "Tous" ? events : events.filter((e) => e.tag === filter)), [events, filter]);
   const tags = eventTags.filter((t) => t === "Tous" || events.some((e) => e.tag === t));
   return (
-    <section aria-labelledby="events-title" className="pb-20 pt-[104px] md:pt-[120px]">
+    <section aria-labelledby="events-title" className="pb-36 pt-[130px] md:pt-[170px]">
       <Scroller key={filter} list={list} startId={startId} filter={filter} tags={tags} onFilter={setFilter} />
     </section>
   );
@@ -150,7 +150,7 @@ function Scroller({ list, startId, filter, tags, onFilter }: { list: ClubEvent[]
       </div>
 
       {list.length > 1 && (
-        <div aria-hidden className="mx-auto mt-8 max-w-[1500px] px-[var(--gutter)]">
+        <div aria-hidden className="mx-auto mt-16 max-w-[1500px] px-[var(--gutter)]">
           <div className="relative h-px bg-white/15">
             {list.map((e, i) => (
               <button
@@ -194,7 +194,7 @@ function Scroller({ list, startId, filter, tags, onFilter }: { list: ClubEvent[]
           }
         }}
         onDragStart={(e) => e.preventDefault()}
-        className="relative mt-6 flex snap-x snap-mandatory items-center gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-[calc(50%-min(39vw,155px))] py-6 [scrollbar-width:none] md:gap-5 md:px-[calc(50%-155px)] [&::-webkit-scrollbar]:hidden"
+        className="relative mt-14 flex snap-x snap-mandatory items-center gap-6 overflow-x-auto overscroll-x-contain scroll-smooth px-[calc(50%-min(39vw,155px))] py-10 [scrollbar-width:none] md:gap-9 md:px-[calc(50%-155px)] [&::-webkit-scrollbar]:hidden"
       >
         {list.map((e, i) => (
           <li key={e.id} className="shrink-0 snap-center transition-[transform,opacity] duration-150 will-change-transform">
@@ -203,7 +203,7 @@ function Scroller({ list, startId, filter, tags, onFilter }: { list: ClubEvent[]
         ))}
       </ul>
 
-      <div className="mx-auto mt-2 flex max-w-[1500px] items-center justify-between gap-4 px-[var(--gutter)]">
+      <div className="mx-auto mt-10 flex max-w-[1500px] items-center justify-between gap-4 px-[var(--gutter)]">
         <Link
           href="/evenements/calendrier.ics"
           prefetch={false}

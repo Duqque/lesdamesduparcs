@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, Menu, Search, User as UserIcon, X } from "lucide-react";
+import { Bell, Menu, User as UserIcon, X } from "lucide-react";
 import { mainNav, signature } from "@/data/navigation";
 import { currentMember } from "@/data/members";
 import { useScrolled } from "@/hooks/useScrolled";
@@ -103,9 +103,6 @@ export function Header() {
               {signature.join(" · ")}
             </p>
             <SoundToggle />
-            <button type="button" aria-label="Rechercher" className={cn(iconBtn, "hidden sm:grid")}>
-              <Search aria-hidden className="size-[19px]" strokeWidth={1.8} />
-            </button>
             <button type="button" aria-label={`Notifications${unread ? `, ${unread} non lue${unread > 1 ? "s" : ""}` : ""}`} className={cn(iconBtn, "hidden sm:grid")}>
               <Bell aria-hidden className="size-[19px]" strokeWidth={1.8} />
               {unread > 0 && <span aria-hidden className="absolute right-[10px] top-[9px] size-[7px] rounded-full bg-psg-red ring-2 ring-night-950" />}
