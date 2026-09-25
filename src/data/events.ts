@@ -1,11 +1,239 @@
 import type { ClubEvent } from "@/types";
 
-export const featuredEvent: ClubEvent = {
-  id: "soiree-des-dames-2026-10",
-  title: "Soirée des Dames",
-  date: "2026-10-24",
-  time: "20:00",
-  venue: "Bar du Parc, Paris 16e",
-  image: "/images/tribune-fumigene-orange.webp",
-  href: "/evenements",
-};
+/**
+ * Événements fictifs pour la maquette (dates, lieux, tarifs et intervenants à confirmer).
+ * Seuls la présence de Priscilla Gneto (judo, PSG Judo) et le cadre du programme « Allez les filles »
+ * (filles de 11 à 16 ans, PSG For Communities) s'appuient sur l'article officiel du PSG.
+ */
+export const events: ClubEvent[] = [
+  {
+    id: "psg-om-classique",
+    title: "Le Classique au Parc",
+    subtitle: "Paris Saint-Germain contre l'Olympique de Marseille, en tribune avec les Dames du Parc.",
+    tag: "Matchday",
+    date: "2026-10-17",
+    time: "18:30",
+    endTime: "23:30",
+    venue: "Parc des Princes",
+    address: "24 rue du Commandant Guilbaud, 75016 Paris",
+    image: "/images/parc-pelouse-tribunes.webp",
+    imageAlt: "La pelouse et les tribunes du Parc des Princes avant le coup d'envoi",
+    variant: "photo",
+    access: "Billetterie membres",
+    summary: "Rendez-vous avant le coup d'envoi pour un Classique qui se vit debout, écharpe au vent.",
+    description: [
+      "Il est des affiches qui dépassent le simple cadre d'un match. Le Classique en fait partie. Les Dames du Parc se retrouvent ensemble pour l'occasion, en tribune, avec l'ambition de faire du Parc des Princes une chaudière.",
+      "Rendez-vous est donné en amont de la rencontre pour récupérer sa place, découvrir les nouveaux chants et avancer groupées jusqu'aux portiques.",
+    ],
+    program: [
+      { time: "18:30", title: "Point de rendez-vous", text: "Retrouvailles aux abords du Parc, remise des places et des écharpes." },
+      { time: "19:30", title: "Répétition des chants", text: "Un dernier échauffement collectif avant l'entrée en tribune." },
+      { time: "21:00", title: "Coup d'envoi", text: "Paris reçoit Marseille. Toutes les voix comptent." },
+    ],
+    speakers: [],
+    practical: [
+      { label: "Public", value: "Membres des Dames du Parc et invitées" },
+      { label: "Tarif", value: "Selon la catégorie de place" },
+      { label: "Accès", value: "Métro Porte de Saint-Cloud ou Michel-Ange Auteuil" },
+      { label: "À prévoir", value: "Écharpe, pièce d'identité, billet" },
+    ],
+    href: "/billetterie",
+  },
+  {
+    id: "soiree-des-dames",
+    title: "Soirée des Dames",
+    subtitle: "La grande soirée de rentrée des supportrices, dans l'esprit du Parc.",
+    tag: "Soirée",
+    date: "2026-10-24",
+    time: "20:00",
+    endTime: "01:00",
+    venue: "Bar du Parc",
+    address: "Paris 16e, adresse communiquée aux inscrites",
+    image: "/images/tribune-fumigene-orange.webp",
+    imageAlt: "Supporters dans la lumière orange d'un fumigène",
+    variant: "photo",
+    access: "Membres",
+    summary: "Une soirée pour se retrouver, chanter et refaire le match entre supportrices.",
+    description: [
+      "La Soirée des Dames est le rendez-vous convivial de la saison. On y retrouve des visages familiers, on fait de nouvelles rencontres et l'on chante bien plus fort que la musique.",
+      "Au programme : ambiance de tribune, jeux autour du PSG, tombola aux couleurs du club et surprises réservées aux membres.",
+    ],
+    program: [
+      { time: "20:00", title: "Ouverture des portes", text: "Accueil des membres et remise des bracelets." },
+      { time: "21:00", title: "Quiz et jeux PSG", text: "Par équipes, autour de l'histoire du club et de ses joueuses et joueurs." },
+      { time: "22:30", title: "Chants et tombola", text: "Le répertoire des Dames du Parc, puis le tirage au sort." },
+    ],
+    speakers: [],
+    practical: [
+      { label: "Public", value: "Membres et une invitée par membre" },
+      { label: "Tarif", value: "Entrée réservée aux membres" },
+      { label: "À prévoir", value: "Carte membre, tenue aux couleurs de Paris" },
+    ],
+    href: "/billetterie",
+  },
+  {
+    id: "atelier-chants",
+    title: "Atelier chants",
+    subtitle: "Apprendre le répertoire et faire vibrer les tribunes.",
+    tag: "Atelier",
+    date: "2026-10-31",
+    time: "15:00",
+    endTime: "17:30",
+    venue: "Salle des Dames",
+    address: "Paris, lieu à confirmer",
+    image: "/images/foule-drapeau-paris.webp",
+    imageAlt: "Foule de supporters derrière un drapeau Paris",
+    variant: "text",
+    access: "Sur inscription",
+    summary: "Deux heures pour maîtriser les chants du groupe, débutantes bienvenues.",
+    description: [
+      "Chanter en tribune s'apprend. Cet atelier propose de découvrir les chants des Dames du Parc, les paroles comme les rythmes, dans une ambiance détendue.",
+      "Aucune expérience n'est requise : il suffit d'avoir envie de mettre de la voix au service de Paris.",
+    ],
+    program: [
+      { time: "15:00", title: "Échauffement vocal", text: "Respiration, souffle et mise en voix." },
+      { time: "15:45", title: "Le répertoire", text: "Apprentissage des chants, un par un." },
+      { time: "17:00", title: "Grand final", text: "Tous les chants d'affilée, comme un soir de match." },
+    ],
+    speakers: [],
+    practical: [
+      { label: "Public", value: "Toutes les supportrices, débutantes comprises" },
+      { label: "Tarif", value: "Gratuit pour les membres" },
+      { label: "Places", value: "30 places" },
+    ],
+    href: "/billetterie",
+  },
+  {
+    id: "allez-les-filles-dojo",
+    title: "Allez les filles au dojo du PSG",
+    subtitle: "Une journée sportive avec Priscilla Gneto, puis cap sur le Parc des Princes.",
+    tag: "Programme",
+    date: "2026-11-08",
+    time: "10:30",
+    endTime: "19:30",
+    venue: "Dojo du PSG Judo",
+    address: "Le Plessis-Robinson, adresse précise communiquée aux inscrites",
+    image: "/images/tunnel-ici-cest-paris.webp",
+    imageAlt: "Le couloir lumineux du Parc des Princes, Ici c'est Paris",
+    variant: "photo",
+    access: "Sur inscription",
+    summary: "Initiation au judo, rencontres d'athlètes et match au Parc des Princes pour des jeunes filles de 11 à 16 ans.",
+    description: [
+      "Cette journée s'inscrit dans l'esprit du programme « Allez les filles » du PSG, mené par PSG For Communities pour permettre à des jeunes filles de découvrir les bienfaits du sport, de gagner en confiance et de s'ouvrir à la culture.",
+      "Le matin, le dojo du PSG Judo devient le terrain de jeu du groupe. Priscilla Gneto, judoka médaillée olympique et marraine du programme, guide une initiation puis échange avec les participantes. L'après-midi, des athlètes du club prennent le relais pour partager leur parcours.",
+      "La journée se poursuit en navette jusqu'au Parc des Princes, accompagnées par des joueuses des féminines du PSG et par les Dames du Parc. Visite des coulisses, puis match en tribune : de quoi transformer une journée de sport en souvenir durable.",
+    ],
+    program: [
+      { time: "10:30", title: "Accueil au dojo", text: "Petit déjeuner, remise des tenues et présentation de la journée." },
+      { time: "11:00", title: "Initiation au judo", text: "Un cours d'initiation animé par Priscilla Gneto, sur le tatami du PSG Judo." },
+      { time: "12:30", title: "Déjeuner partagé", text: "Un temps d'échange informel avec les intervenantes et les bénévoles." },
+      { time: "13:30", title: "Rencontres d'athlètes", text: "Témoignages, questions et conseils de sportives et sportifs du club." },
+      { time: "14:45", title: "Départ en navette", text: "Direction le Parc des Princes, en compagnie des joueuses des féminines et des Dames du Parc." },
+      { time: "15:45", title: "Visite des coulisses", text: "Vestiaires, tunnel et pelouse : le stade comme on ne le voit jamais." },
+      { time: "17:00", title: "Match au Parc des Princes", text: "Coup d'envoi en tribune, écharpe au cou et voix prête à porter Paris." },
+      { time: "19:30", title: "Retour et fin de journée", text: "Retour organisé vers le point de départ." },
+    ],
+    speakers: [
+      {
+        name: "Priscilla Gneto",
+        role: "Judoka, médaillée olympique, marraine du programme",
+        bio: "Sportive du PSG Judo, elle accompagne le programme « Allez les filles » par sa simplicité et sa disponibilité. Elle incarne les valeurs de dépassement de soi et de confiance portées par la journée.",
+        initials: "PG",
+      },
+      {
+        name: "Athlètes du club",
+        role: "Interventions et témoignages",
+        bio: "Des sportives et sportifs du Paris Saint-Germain viendront partager leur parcours. La liste complète sera dévoilée avant l'événement.",
+        initials: "AT",
+      },
+      {
+        name: "Joueuses des féminines",
+        role: "Accompagnement jusqu'au Parc des Princes",
+        bio: "Des joueuses du PSG Féminines escorteront le groupe pour la visite du stade et le match. Présence à confirmer.",
+        initials: "PF",
+      },
+    ],
+    practical: [
+      { label: "Public", value: "Filles de 11 à 16 ans, avec autorisation parentale" },
+      { label: "Tarif", value: "Gratuit, sur inscription" },
+      { label: "Places", value: "40 places" },
+      { label: "Transport", value: "Navette collective aller-retour vers le Parc des Princes" },
+      { label: "À prévoir", value: "Tenue de sport, chaussettes propres, pièce d'identité" },
+      { label: "Organisation", value: "En lien avec PSG For Communities et les Dames du Parc" },
+    ],
+    href: "/billetterie",
+  },
+  {
+    id: "rencontre-des-membres",
+    title: "Rencontre des membres",
+    subtitle: "Un après-midi pour faire connaissance et façonner la saison à venir.",
+    tag: "Membres",
+    date: "2026-11-22",
+    time: "16:00",
+    endTime: "19:00",
+    venue: "Maison des Dames",
+    address: "Paris, lieu à confirmer",
+    image: "/images/vestiaire-fauteuils.webp",
+    imageAlt: "Rangée de fauteuils bleus dans un vestiaire du PSG",
+    variant: "text",
+    access: "Membres",
+    summary: "Échanges, idées et projets : les membres construisent la suite de la saison.",
+    description: [
+      "Chaque saison, les membres se retrouvent pour dresser un premier bilan et proposer des idées : déplacements, soirées, actions solidaires.",
+      "L'occasion aussi d'accueillir les nouvelles arrivées et de mettre des visages sur les pseudonymes des réseaux.",
+    ],
+    program: [
+      { time: "16:00", title: "Accueil", text: "Café, gâteaux et retrouvailles." },
+      { time: "16:30", title: "Bilan et idées", text: "Prise de parole libre et vote des projets." },
+      { time: "18:00", title: "Moment convivial", text: "Photo de groupe et verre de l'amitié." },
+    ],
+    speakers: [],
+    practical: [
+      { label: "Public", value: "Membres des Dames du Parc" },
+      { label: "Tarif", value: "Gratuit" },
+      { label: "Places", value: "60 places" },
+    ],
+    href: "/abonnement",
+  },
+  {
+    id: "deplacement-en-car",
+    title: "Déplacement en car",
+    subtitle: "Suivre Paris loin de la capitale, en bande et en chansons.",
+    tag: "Déplacement",
+    date: "2026-12-06",
+    time: "09:00",
+    endTime: "23:00",
+    venue: "Départ de Paris",
+    address: "Point de départ communiqué aux inscrites",
+    image: "/images/drapeau-fumee-verte.webp",
+    imageAlt: "Drapeau du PSG flottant dans une fumée turquoise",
+    variant: "photo",
+    access: "Sur inscription",
+    summary: "Une journée de match à l'extérieur, du car au retour, entre supportrices.",
+    description: [
+      "Suivre Paris à l'extérieur change la façon de vivre une rencontre. Le car devient un salon roulant, les chants font le trajet avec nous.",
+      "La destination et le match seront annoncés dès la programmation officielle. Les places sont limitées et réservées en priorité aux membres.",
+    ],
+    program: [
+      { time: "09:00", title: "Départ", text: "Embarquement à Paris, remise des consignes et du programme." },
+      { time: "14:00", title: "Arrivée et ambiance", text: "Déjeuner, puis marche groupée jusqu'au stade." },
+      { time: "23:00", title: "Retour à Paris", text: "Arrivée prévue en fin de soirée." },
+    ],
+    speakers: [],
+    practical: [
+      { label: "Public", value: "Membres, à partir de 16 ans" },
+      { label: "Tarif", value: "Participation aux frais de transport" },
+      { label: "Places", value: "50 places" },
+    ],
+    href: "/billetterie",
+  },
+];
+
+export const eventTags = ["Tous", "Programme", "Matchday", "Soirée", "Atelier", "Membres", "Déplacement"] as const;
+
+export const highlightedEventId = "allez-les-filles-dojo";
+
+export const getEvent = (id: string) => events.find((e) => e.id === id);
+
+/** Événement mis en avant sur la page d'accueil. */
+export const featuredEvent: ClubEvent = events.find((e) => e.id === "soiree-des-dames")!;

@@ -23,7 +23,7 @@ export function EventCard({ event }: { event: ClubEvent }) {
         </li>
       </ul>
       <div className="mt-4">
-        <Button variant="outline" size="xs" href={event.href}>
+        <Button variant="outline" size="xs" href={`/evenements/${event.id}`}>
           En savoir plus
         </Button>
       </div>

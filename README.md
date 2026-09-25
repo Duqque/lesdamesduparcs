@@ -84,6 +84,17 @@ médaillon 3D du logo officiel (`src/components/group/Logo3D.tsx`) : épaisseur 
 dérive lente, rotation liée au scroll, reflet spéculaire, clic pour le faire tourner. Le logo officiel est dans
 `public/logos/dames-du-parc-logo.webp` (aussi utilisé sur la carte membre).
 
+## Calendrier et événements (`/evenements`)
+
+Calendrier horizontal façon fil d'actualité (`EventCarousel.tsx`, `CalendarCard.tsx`) : `scroll-snap`, carte centrale mise en valeur,
+glisser à la souris, flèches, clavier, filtres par type, frise des mois. Chaque carte mène à `/evenements/[slug]` (description,
+déroulé, intervenants, infos pratiques, autres rendez-vous). Export vers l'agenda : `/evenements/calendrier.ics` (tout) et
+`/evenements/[slug]/event.ics` (un événement), générés dans `src/lib/ics.ts`.
+
+Les événements sont dans `src/data/events.ts` et sont **fictifs** (dates, tarifs, places). Seuls Priscilla Gneto (judo, PSG Judo)
+et le cadre du programme « Allez les filles » (filles de 11 à 16 ans, PSG For Communities) viennent de l'article du PSG ; l'adresse
+exacte du dojo, la liste des athlètes et la présence des joueuses des féminines sont à confirmer.
+
 ## Musique de fond
 
 `public/audio/tous-ensemble-on-chantera.mp3` (boucle) démarre dès que le navigateur l'autorise, sinon au premier clic / touche.

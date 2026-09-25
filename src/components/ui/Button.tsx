@@ -11,6 +11,7 @@ interface Props {
   size?: Size;
   href?: string;
   external?: boolean;
+  download?: boolean;
   arrow?: boolean;
   className?: string;
   children: ReactNode;
@@ -32,7 +33,7 @@ const sizes: Record<Size, string> = {
   sm: "px-4 text-[11px] tracking-[0.05em] rounded-[3px] h-[34px] min-h-11 md:min-h-0",
 };
 
-export function Button({ variant = "primary", size = "sm", href, external, arrow = true, className, children }: Props) {
+export function Button({ variant = "primary", size = "sm", href, external, download, arrow = true, className, children }: Props) {
   const classes = cn(base, variants[variant], sizes[size], className);
   const content = (
     <>
@@ -55,6 +56,13 @@ export function Button({ variant = "primary", size = "sm", href, external, arrow
       <button type="button" className={classes}>
         {content}
       </button>
+    );
+  }
+  if (download) {
+    return (
+      <a href={href} download className={classes}>
+        {content}
+      </a>
     );
   }
   if (external) {

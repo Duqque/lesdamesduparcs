@@ -14,14 +14,44 @@ export interface Match {
   ticketHref: string;
 }
 
+export type EventTag = "Programme" | "Matchday" | "Soirée" | "Atelier" | "Membres" | "Déplacement";
+
+export interface EventSpeaker {
+  name: string;
+  role: string;
+  bio: string;
+  initials: string;
+}
+
+export interface EventProgramItem {
+  time: string;
+  title: string;
+  text: string;
+}
+
 export interface ClubEvent {
+  /** Identifiant et slug de l'URL : /evenements/[id] */
   id: string;
   title: string;
+  subtitle: string;
+  tag: EventTag;
   /** ISO date (YYYY-MM-DD) */
   date: string;
   time: string;
+  endTime: string;
   venue: string;
+  address: string;
   image: string;
+  imageAlt: string;
+  /** Style de carte dans le calendrier */
+  variant: "photo" | "text";
+  /** Mention courte affichée sur la carte (ex. « Sur inscription ») */
+  access: string;
+  summary: string;
+  description: string[];
+  program: EventProgramItem[];
+  speakers: EventSpeaker[];
+  practical: Array<{ label: string; value: string }>;
   href: string;
 }
 
