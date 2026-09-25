@@ -55,7 +55,7 @@ Les 61 titres du PSG (championnats, coupes, supercoupes, titres internationaux) 
 années, sur fond de photos en fondu enchaîné, puis une transition dorée mène au site. Les titres viennent de
 `src/data/palmares.ts` (source : psg.fr/palmares) : **à mettre à jour à chaque nouveau titre**. Le loader n'est joué qu'une fois par session et ignoré avec `prefers-reduced-motion`.
 
-## Expérience carte membre (`/abonnement`)
+## Expérience carte membre (`/rejoindre-le-groupe`)
 
 La carte est le fil conducteur de la page : un conteneur haut avec une scène `sticky` plein écran, dont toute la chorégraphie est
 pilotée par la progression du scroll (`useScroll` + `useSpring` de framer-motion, sans GSAP).

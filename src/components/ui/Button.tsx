@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
@@ -13,37 +13,40 @@ interface Props {
   external?: boolean;
   download?: boolean;
   arrow?: boolean;
+  icon?: LucideIcon;
   className?: string;
   children: ReactNode;
 }
 
 const base =
-  "group/btn inline-flex items-center justify-center gap-2.5 whitespace-nowrap font-body font-semibold uppercase select-none " +
+  "group/btn inline-flex items-center justify-center gap-3 whitespace-nowrap font-body font-medium select-none rounded-[10px] " +
   "transition-[transform,background-color,border-color,filter] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] " +
-  "hover:-translate-y-[3px] active:translate-y-0 min-h-11";
+  "hover:-translate-y-[2px] active:translate-y-0 min-h-11";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-psg-red text-white hover:bg-psg-red-bright hover:brightness-110 shadow-[0_10px_30px_-12px_rgba(217,15,44,0.8)]",
-  outline: "border border-white/55 text-white bg-night-950/25 backdrop-blur-[2px] hover:border-white hover:bg-white/10",
+  primary:
+    "border border-[#ff6b80]/45 bg-[linear-gradient(180deg,#e51b36_0%,#b30d27_100%)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_12px_30px_-14px_rgba(217,15,44,0.85)] hover:brightness-110",
+  outline: "border border-white/[0.12] bg-[#121417]/90 text-white hover:border-white/30 hover:bg-[#1b1e23]",
 };
 
 const sizes: Record<Size, string> = {
-  lg: "h-12 px-6 text-[13px] tracking-[0.06em] rounded-[3px] md:h-[44px] md:text-[14px]",
-  xs: "px-3 text-[10.5px] tracking-[0.03em] rounded-[3px] h-[34px] min-h-11 md:min-h-0",
-  sm: "px-4 text-[11px] tracking-[0.05em] rounded-[3px] h-[34px] min-h-11 md:min-h-0",
+  lg: "h-[54px] px-7 text-[15.5px]",
+  sm: "h-11 px-5 text-[14px]",
+  xs: "h-10 px-4 text-[12.5px] gap-2.5",
 };
 
-export function Button({ variant = "primary", size = "sm", href, external, download, arrow = true, className, children }: Props) {
+export function Button({ variant = "primary", size = "sm", href, external, download, arrow = true, icon: Icon, className, children }: Props) {
   const classes = cn(base, variants[variant], sizes[size], className);
   const content = (
     <>
+      {Icon && <Icon aria-hidden className={size === "lg" ? "size-5" : "size-[18px]"} strokeWidth={1.7} />}
       <span>{children}</span>
       {arrow && (
         <ArrowRight
           aria-hidden
           className={cn(
             "transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/btn:translate-x-1",
-            size === "lg" ? "size-[18px]" : "size-[14px]",
+            size === "lg" ? "size-5" : "size-4",
           )}
           strokeWidth={2}
         />

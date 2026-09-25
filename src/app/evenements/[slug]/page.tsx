@@ -45,7 +45,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     <main>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <section className="relative isolate flex min-h-[78svh] items-end overflow-hidden px-[var(--gutter)] pb-16 pt-[130px] md:pb-24">
+      <section className="relative isolate flex min-h-[78svh] items-end overflow-hidden px-[var(--gutter)] pb-16 pt-[200px] md:pb-24">
         <Image src={event.image} alt={event.imageAlt} fill priority sizes="100vw" className="-z-10 object-cover" />
         <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(3,9,25,0.55)_0%,rgba(3,9,25,0.25)_35%,rgba(3,9,25,0.92)_100%),linear-gradient(90deg,rgba(3,9,25,0.7)_0%,transparent_65%)]" />
         <div className="mx-auto w-full max-w-[1300px]">

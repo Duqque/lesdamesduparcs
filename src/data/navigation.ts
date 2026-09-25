@@ -1,13 +1,21 @@
 import type { NavItem } from "@/types";
 
-export const mainNav: NavItem[] = [
-  { label: "Accueil", href: "/" },
+/** À gauche du logo */
+export const leftNav: NavItem[] = [
   { label: "Le groupe", href: "/groupe" },
   { label: "Événements", href: "/evenements" },
+  { label: "Actualités", href: "/actualites" },
+];
+
+/** À droite du logo */
+export const rightNav: NavItem[] = [
   { label: "Billetterie", href: "/billetterie" },
-  { label: "Communauté", href: "/communaute" },
   { label: "Boutique", href: "/boutique" },
 ];
+
+export const joinLink: NavItem = { label: "Rejoindre le groupe", href: "/rejoindre-le-groupe" };
+
+export const mainNav: NavItem[] = [...leftNav, ...rightNav];
 
 export const signature = ["Passion", "Partage", "Féminité", "PSG"];
 

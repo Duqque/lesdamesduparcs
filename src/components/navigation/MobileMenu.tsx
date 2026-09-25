@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { mainNav, signature, socialLinks } from "@/data/navigation";
+import { IdCard } from "lucide-react";
+import { joinLink, mainNav, socialLinks } from "@/data/navigation";
 import { socialIcons } from "@/components/icons/BrandIcons";
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 
 interface Props {
@@ -24,11 +26,11 @@ export function MobileMenu({ open, pathname, onNavigate }: Props) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-night-950/97 px-[var(--gutter)] pb-10 pt-[88px] backdrop-blur-xl lg:hidden"
+          className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-night-950/97 px-[var(--gutter)] pb-10 pt-[112px] backdrop-blur-xl lg:hidden"
         >
           <nav aria-label="Navigation mobile" className="flex flex-col">
             {mainNav.map((item, i) => {
-              const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+              const active = pathname.startsWith(item.href);
               return (
                 <motion.div
                   key={item.href}
@@ -41,8 +43,8 @@ export function MobileMenu({ open, pathname, onNavigate }: Props) {
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex min-h-14 items-center justify-between border-b border-white/10 font-display text-[34px] font-semibold uppercase tracking-[0.04em]",
-                      active ? "text-white" : "text-white/75",
+                      "flex min-h-16 items-center justify-between border-b border-white/10 font-display text-[32px] font-semibold uppercase tracking-[0.05em]",
+                      active ? "text-white" : "text-white/70",
                     )}
                   >
                     {item.label}
@@ -52,21 +54,23 @@ export function MobileMenu({ open, pathname, onNavigate }: Props) {
               );
             })}
           </nav>
-          <div className="mt-auto pt-10">
-            <p className="mb-5 font-body text-[11px] uppercase tracking-[0.28em] text-mist">{signature.join(" · ")}</p>
-            <ul className="flex gap-1">
-              {socialLinks.map((s) => {
-                const Icon = socialIcons[s.id];
-                return (
-                  <li key={s.id}>
-                    <a href={s.href} aria-label={s.label} target="_blank" rel="noopener noreferrer" className="grid size-11 place-items-center rounded-full text-white/85 hover:bg-white/10 hover:text-white">
-                      <Icon className="size-5" />
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
+          <div className="mt-10">
+            <Button href={joinLink.href} size="lg" icon={IdCard} arrow={false} className="w-full" >
+              {joinLink.label}
+            </Button>
           </div>
+          <ul className="mt-auto flex gap-2 pt-10">
+            {socialLinks.map((s) => {
+              const Icon = socialIcons[s.id];
+              return (
+                <li key={s.id}>
+                  <a href={s.href} aria-label={s.label} target="_blank" rel="noopener noreferrer" className="grid size-11 place-items-center rounded-[10px] border border-white/[0.12] text-white/85 hover:bg-white/10 hover:text-white">
+                    <Icon className="size-5" />
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
         </motion.div>
       )}
     </AnimatePresence>

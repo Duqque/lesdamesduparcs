@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 export function PagePlaceholder({ title, description }: { title: string; description: string }) {
   return (
-    <main className="mx-auto flex min-h-[70svh] max-w-[1800px] flex-col justify-center px-[var(--gutter)] pb-24 pt-[140px]">
+    <main className="mx-auto flex min-h-[70svh] max-w-[1800px] flex-col justify-center px-[var(--gutter)] pb-24 pt-[230px]">
       <p className="font-body text-[12px] font-semibold uppercase tracking-[0.28em] text-psg-red-bright">Bientôt</p>
       <h1 className="mt-4 font-display text-[clamp(44px,7vw,96px)] font-semibold uppercase leading-none tracking-[0.06em] text-white">{title}</h1>
       <p className="mt-6 max-w-xl font-body text-[16px] leading-relaxed text-mist">{description}</p>

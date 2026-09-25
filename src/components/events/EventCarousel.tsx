@@ -19,7 +19,7 @@ export function EventCarousel({ events, startId }: Props) {
   const list = useMemo(() => (filter === "Tous" ? events : events.filter((e) => e.tag === filter)), [events, filter]);
   const tags = eventTags.filter((t) => t === "Tous" || events.some((e) => e.tag === t));
   return (
-    <section aria-labelledby="events-title" className="pb-36 pt-[130px] md:pt-[170px]">
+    <section aria-labelledby="events-title" className="pb-36 pt-[190px] md:pt-[260px]">
       <Scroller key={filter} list={list} startId={startId} filter={filter} tags={tags} onFilter={setFilter} />
     </section>
   );

@@ -19,7 +19,7 @@ export function HeroContent() {
   const introDone = useIntroDone();
   return (
     <motion.div
-      className="relative z-10 flex w-full max-w-[640px] flex-col px-[var(--gutter)] pb-9 pt-[120px] xl:pb-0 xl:pt-[clamp(140px,10.4vw,164px)]"
+      className="relative z-10 flex w-full max-w-[640px] flex-col px-[var(--gutter)] pb-9 pt-[80px] xl:pb-0 xl:pt-[clamp(72px,7vw,120px)]"
       variants={container}
       initial="hidden"
       animate={introDone ? "show" : "hidden"}

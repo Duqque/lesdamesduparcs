@@ -193,7 +193,7 @@ export const events: ClubEvent[] = [
       { label: "Tarif", value: "Gratuit" },
       { label: "Places", value: "60 places" },
     ],
-    href: "/abonnement",
+    href: "/rejoindre-le-groupe",
   },
   {
     id: "deplacement-en-car",

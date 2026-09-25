@@ -5,11 +5,11 @@ import { membership } from "@/data/membership";
 import { formatYear } from "@/lib/format";
 
 export const metadata: Metadata = {
-  title: "Abonnement",
+  title: "Rejoindre le groupe",
   description: "La carte membre des Dames du Parc : réductions, événements, newsletter, carte virtuelle Apple Wallet. 12 € par saison.",
 };
 
-export default function AbonnementPage() {
+export default function JoinPage() {
   const { profile, membership: m } = currentMember;
   const number = m.memberNumber.replace(/^DDP-/, "").replace("-", " ");
   return (

@@ -130,7 +130,7 @@ export default function GroupPage() {
             Devenez membre et vivez la saison à nos côtés, du premier au dernier coup de sifflet.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button size="lg" href="/abonnement">
+            <Button size="lg" href="/rejoindre-le-groupe">
               Devenir membre
             </Button>
             <Button size="lg" variant="outline" href="/">

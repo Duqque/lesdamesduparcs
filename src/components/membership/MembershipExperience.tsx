@@ -38,7 +38,7 @@ const STEPS = [
   { at: 0.7, name: "Newsletter" },
   { at: 0.81, name: "Carte virtuelle" },
   { at: 0.89, name: "Communauté" },
-  { at: 0.945, name: "Adhésion" },
+  { at: 0.945, name: "Rejoindre" },
 ];
 
 interface Props {

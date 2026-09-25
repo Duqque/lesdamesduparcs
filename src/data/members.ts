@@ -25,7 +25,7 @@ export const currentMember: User = {
 };
 
 export const memberMenu = [
-  { id: "card", label: "Ma carte membre", href: "/abonnement" },
+  { id: "card", label: "Ma carte membre", href: "/rejoindre-le-groupe" },
   { id: "tickets", label: "Mes billets", href: "/profil#billets" },
   { id: "benefits", label: "Mes avantages", href: "/profil#avantages" },
   { id: "team", label: "Mon équipe", href: "/profil#equipe" },

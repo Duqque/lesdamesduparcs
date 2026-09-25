@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [{ source: "/abonnement", destination: "/rejoindre-le-groupe", permanent: true }];
+  },
 };
 
 export default nextConfig;

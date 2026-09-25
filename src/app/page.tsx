@@ -29,7 +29,7 @@ import { gallery } from "@/data/gallery";
 export default function HomePage() {
   return (
     <>
-    <main className="mx-auto grid max-w-[1800px] grid-cols-1 gap-6 px-[var(--gutter)] pb-20 md:grid-cols-2 md:gap-8 xl:grid-cols-[minmax(0,1fr)_clamp(290px,19.4vw,340px)] xl:items-start xl:gap-x-[clamp(28px,2.6vw,48px)] xl:gap-y-0 xl:px-0 xl:pb-24 xl:pr-[clamp(32px,3.4vw,72px)]">
+    <main className="mx-auto grid max-w-[1800px] grid-cols-1 gap-6 px-[var(--gutter)] pb-20 pt-[calc(72px+48px)] md:grid-cols-2 md:gap-8 md:pt-[calc(var(--header-h)+64px)] xl:grid-cols-[minmax(0,1fr)_clamp(290px,19.4vw,340px)] xl:items-start xl:gap-x-[clamp(28px,2.6vw,48px)] xl:gap-y-0 xl:px-0 xl:pb-24 xl:pt-[calc(var(--header-h)+clamp(72px,7vw,132px))] xl:pr-[clamp(32px,3.4vw,72px)]">
       <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-[clamp(28px,3vw,56px)]">
         <div className="order-1 col-span-full -mx-[var(--gutter)] xl:mx-0">
           <Hero />
@@ -60,7 +60,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="contents xl:flex xl:flex-col xl:gap-[clamp(28px,3vw,56px)] xl:pt-[calc(76px+40px)]">
+      <div className="contents xl:flex xl:flex-col xl:gap-[clamp(28px,3vw,56px)] xl:pt-0">
         <Reveal className="order-2 md:order-3 md:col-span-2 xl:col-span-1">
           <MemberPanel user={currentMember} menu={memberMenu} />
         </Reveal>

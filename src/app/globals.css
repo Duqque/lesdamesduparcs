@@ -27,7 +27,7 @@
 }
 
 :root {
-  --header-h: 76px;
+  --header-h: 88px;
   --gutter: 20px;
   color-scheme: dark;
 }
@@ -40,7 +40,7 @@
 
 @media (min-width: 1280px) {
   :root {
-    --header-h: 76px;
+    --header-h: 96px;
     --gutter: clamp(40px, 3.4vw, 72px);
   }
 }
