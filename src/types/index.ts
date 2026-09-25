@@ -62,6 +62,9 @@ export interface NewsItem {
   /** ISO date (YYYY-MM-DD) */
   date: string;
   image: string;
+  imageAlt: string;
+  excerpt: string;
+  content: string[];
   href: string;
 }
 

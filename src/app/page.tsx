@@ -68,7 +68,7 @@ export default function HomePage() {
           <ChantPlayer />
         </Reveal>
         <Reveal delay={0.2} className="order-5 md:col-span-2 xl:col-span-1">
-          <NewsList items={news} />
+          <NewsList items={news.slice(0, 4)} />
         </Reveal>
       </div>
     </main>
