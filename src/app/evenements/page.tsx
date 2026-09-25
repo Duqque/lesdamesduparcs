@@ -25,8 +25,8 @@ export default function EventsPage() {
           <nav aria-label="Fil d'Ariane" className="font-body text-[13px] text-mist">
             <Link href="/" className="hover:text-white">Accueil</Link> / <span className="text-white/80">Événements</span>
           </nav>
-          <h1 className="mt-10 font-display text-[clamp(44px,6vw,80px)] font-semibold uppercase leading-none tracking-[0.05em] text-white md:mt-16">Événements</h1>
-          <p className="mt-8 max-w-md font-body text-[15px] leading-[1.8] text-white/75">
+          <h1 className="mt-10 md:mt-16 t-display">Événements</h1>
+          <p className="mt-8 max-w-md text-white/75 t-lead">
             Matchs au Parc, soirées, ateliers et déplacements : les rendez-vous des Dames du Parc se succèdent tout au long de la saison.
           </p>
           <Link href="/evenements/calendrier.ics" prefetch={false} className="mt-6 inline-flex min-h-11 items-center gap-2 font-body text-[13px] font-medium text-white/80 hover:text-white">

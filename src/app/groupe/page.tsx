@@ -11,9 +11,9 @@ export const metadata: Metadata = {
     "Les Dames du Parc, association de supportrices du Paris Saint-Germain : une voix de femmes dans les tribunes parisiennes, au Parc des Princes et partout ailleurs.",
 };
 
-const label = "font-body text-[12px] font-semibold uppercase tracking-[0.3em] text-psg-red-bright";
-const h2 = "mt-4 font-display text-[clamp(30px,4.4vw,60px)] font-semibold uppercase leading-[1.02] tracking-[0.05em] text-white";
-const body = "font-body text-[16px] leading-[1.9] text-white/80 md:text-[17px]";
+const label = "t-eyebrow";
+const h2 = "mt-4 t-h2";
+const body = "t-lead text-white/80";
 
 export default function GroupPage() {
   return (
@@ -86,8 +86,8 @@ export default function GroupPage() {
               <Reveal delay={i * 0.06} className="h-full">
                 <div className="h-full rounded-[10px] border border-line bg-night-900/85 p-8">
                   <span aria-hidden className="block h-[2px] w-8 bg-psg-red" />
-                  <h3 className="mt-5 font-display text-[26px] font-semibold uppercase tracking-[0.08em] text-white">{v.title}</h3>
-                  <p className="mt-3 font-body text-[14.5px] leading-[1.7] text-mist">{v.text}</p>
+                  <h3 className="mt-5 t-h3">{v.title}</h3>
+                  <p className="mt-3 text-mist t-small">{v.text}</p>
                 </div>
               </Reveal>
             </li>
@@ -110,7 +110,7 @@ export default function GroupPage() {
                   <span className="font-display text-[34px] font-semibold leading-none tabular-nums text-psg-red-bright">{String(i + 1).padStart(2, "0")}</span>
                   <span>
                     <h3 className="font-body text-[17px] font-semibold text-white">{s.title}</h3>
-                    <p className="mt-2 font-body text-[15px] leading-[1.75] text-mist">{s.text}</p>
+                    <p className="mt-2 text-mist t-lead">{s.text}</p>
                   </span>
                 </Reveal>
               </li>
@@ -122,11 +122,11 @@ export default function GroupPage() {
       <section aria-labelledby="rejoindre" className="relative isolate overflow-hidden px-[var(--gutter)] py-32 text-center md:py-44">
         <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_80%_at_50%_100%,rgba(217,15,44,0.18),transparent_70%)]" />
         <Reveal className="mx-auto max-w-2xl">
-          <p className="font-script text-[clamp(30px,4.6vw,56px)] italic leading-tight text-white">On ne choisit pas le PSG, le PSG nous choisit.</p>
-          <h2 id="rejoindre" className="mt-8 font-display text-[clamp(28px,4vw,52px)] font-semibold uppercase tracking-[0.06em] text-white">
+          <p className="font-script text-[clamp(30px,4.6vw,56px)] leading-tight text-white">On ne choisit pas le PSG, le PSG nous choisit.</p>
+          <h2 id="rejoindre" className="mt-8 t-h2">
             Prête à rejoindre la famille ?
           </h2>
-          <p className="mx-auto mt-4 max-w-md font-body text-[16px] leading-[1.7] text-white/80">
+          <p className="mx-auto mt-4 max-w-md text-white/80 t-lead">
             Devenez membre et vivez la saison à nos côtés, du premier au dernier coup de sifflet.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

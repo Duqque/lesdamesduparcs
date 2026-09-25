@@ -2,7 +2,7 @@ export const membership = {
   price: 12,
   unit: "saison",
   season: "2026 / 2027",
-  joinHref: "/communaute",
+  joinHref: "/rejoindre-le-groupe/inscription",
   loginHref: "/profil",
 } as const;
 

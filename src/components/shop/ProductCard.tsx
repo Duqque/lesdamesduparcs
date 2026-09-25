@@ -30,8 +30,8 @@ export function ProductCard({ product, priority = false }: { product: ShopProduc
           />
           {product.isNew && <span className="absolute left-4 top-4 rounded-full bg-night-950 px-3.5 py-1.5 font-display text-[12px] font-semibold uppercase tracking-[0.12em] text-white">Nouveau</span>}
         </div>
-        <h3 className="mt-5 font-display text-[clamp(22px,2.2vw,28px)] font-semibold uppercase leading-none tracking-[0.04em] text-white">{product.name}</h3>
-        <p className="mt-2.5 line-clamp-2 font-body text-[13.5px] leading-[1.7] text-mist">{product.tagline}. {product.description}</p>
+        <h3 className="mt-5 t-h3">{product.name}</h3>
+        <p className="mt-2.5 line-clamp-2 text-mist t-small">{product.tagline}. {product.description}</p>
       </Link>
       <div className="mt-4 flex items-center justify-between gap-4">
         <Price product={product} />

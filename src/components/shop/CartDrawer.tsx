@@ -46,7 +46,7 @@ export function CartDrawer() {
             className="fixed inset-y-0 right-0 z-[71] flex w-[min(440px,100vw)] flex-col border-l border-white/10 bg-night-900"
           >
             <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
-              <h2 className="font-display text-[22px] font-semibold uppercase tracking-[0.08em] text-white">Panier ({totals.count})</h2>
+              <h2 className="t-h3">Panier ({totals.count})</h2>
               <button type="button" onClick={close} aria-label="Fermer le panier" className="grid size-11 place-items-center rounded-full text-white hover:bg-white/10">
                 <X aria-hidden className="size-5" />
               </button>

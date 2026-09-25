@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CreditCard, Gift, LogIn, LogOut, Ticket, User as UserIcon, Users, type LucideIcon } from "lucide-react";
+import { ArrowRight, CreditCard, FileText, Gift, LogIn, LogOut, Receipt, User as UserIcon, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/Button";
 
-const icons: Record<string, LucideIcon> = { card: CreditCard, tickets: Ticket, benefits: Gift, team: Users };
+const icons: Record<string, LucideIcon> = { card: CreditCard, attestation: FileText, transactions: Receipt, benefits: Gift };
 
 interface Props {
   menu: ReadonlyArray<{ id: string; label: string; href: string }>;
@@ -69,7 +69,7 @@ export function MemberPanel({ menu, onNavigate }: Props) {
         <UserIcon aria-hidden className="size-6" strokeWidth={1.4} />
       </span>
       <p className="mt-5 font-body text-[17px] font-semibold text-white">Espace membre</p>
-      <p className="mt-2 font-body text-[13.5px] leading-[1.7] text-mist">Connectez-vous avec votre carte pour retrouver vos billets, vos avantages et vos inscriptions.</p>
+      <p className="mt-2 text-mist t-small">Connectez-vous pour retrouver votre carte, votre attestation, vos transactions et vos avantages.</p>
       <div className="mt-6 flex flex-col gap-3">
         <div onClick={onNavigate}>
           <Button href="/connexion" size="sm" icon={LogIn} arrow={false} className="w-full">
@@ -77,8 +77,8 @@ export function MemberPanel({ menu, onNavigate }: Props) {
           </Button>
         </div>
         <div onClick={onNavigate}>
-          <Button href="/rejoindre-le-groupe" size="sm" variant="outline" arrow={false} className="w-full">
-            Rejoindre le groupe
+          <Button href="/rejoindre-le-groupe/inscription" size="sm" variant="outline" arrow={false} className="w-full">
+            Devenir membre
           </Button>
         </div>
       </div>

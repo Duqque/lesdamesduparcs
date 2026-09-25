@@ -12,7 +12,7 @@ const field =
   "mt-2 block h-12 w-full rounded-[10px] border border-white/[0.12] bg-[#0d1220] px-4 font-body text-[15px] text-white placeholder:text-white/35 transition-colors focus:border-white/40 focus:outline-none";
 const labelCls = "font-body text-[12.5px] font-medium text-white/80";
 
-/** Connexion Membre (numéro de carte + e-mail) ou Administrateur (e-mail + mot de passe). */
+/** Connexion Membre (e-mail ou numéro de carte + mot de passe) ou Administrateur (e-mail + mot de passe). */
 export function LoginPanel({ onSuccess, defaultRole = "member", className }: { onSuccess?: () => void; defaultRole?: Role; className?: string }) {
   const { refresh } = useAuth();
   const [role, setRole] = useState<Role>(defaultRole);
@@ -74,19 +74,19 @@ export function LoginPanel({ onSuccess, defaultRole = "member", className }: { o
       <form id={`${uid}-panel`} role="tabpanel" aria-labelledby={`${uid}-tab-${role}`} onSubmit={submit} className="mt-7 space-y-5" key={role}>
         {role === "member" ? (
           <>
-            <p className="font-body text-[14px] leading-[1.7] text-mist">Connectez-vous avec le numéro figurant au verso de votre carte membre.</p>
+            <p className="text-mist t-small">Connectez-vous avec l&rsquo;adresse e-mail (ou le numéro de carte) de votre adhésion.</p>
             <div>
-              <label htmlFor={`${uid}-num`} className={labelCls}>Numéro de carte</label>
-              <input id={`${uid}-num`} name="memberNumber" required autoComplete="off" placeholder="DDP-0000-0000" className={field} />
+              <label htmlFor={`${uid}-mail`} className={labelCls}>E-mail ou numéro de carte</label>
+              <input id={`${uid}-mail`} name="memberNumber" required autoComplete="username" placeholder="prenom@exemple.fr" className={field} />
             </div>
             <div>
-              <label htmlFor={`${uid}-mail`} className={labelCls}>Adresse e-mail</label>
-              <input id={`${uid}-mail`} name="email" type="email" required autoComplete="email" placeholder="prenom@exemple.fr" className={field} />
+              <label htmlFor={`${uid}-mpwd`} className={labelCls}>Mot de passe</label>
+              <input id={`${uid}-mpwd`} name="password" type="password" required autoComplete="current-password" className={field} />
             </div>
           </>
         ) : (
           <>
-            <p className="font-body text-[14px] leading-[1.7] text-mist">Espace réservé à l&rsquo;équipe organisatrice : suivi des inscriptions et des paiements.</p>
+            <p className="text-mist t-small">Espace réservé à l&rsquo;équipe organisatrice : suivi des inscriptions et des paiements.</p>
             <div>
               <label htmlFor={`${uid}-amail`} className={labelCls}>Adresse e-mail</label>
               <input id={`${uid}-amail`} name="email" type="email" required autoComplete="username" className={field} />
@@ -115,9 +115,9 @@ export function LoginPanel({ onSuccess, defaultRole = "member", className }: { o
 
         {role === "member" && (
           <p className="text-center font-body text-[13.5px] text-mist">
-            Pas encore de carte ?{" "}
-            <Link href="/rejoindre-le-groupe" className="font-medium text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">
-              Rejoindre le groupe
+            Pas encore membre ?{" "}
+            <Link href="/rejoindre-le-groupe/inscription" className="font-medium text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">
+              Créer mon compte
             </Link>
           </p>
         )}

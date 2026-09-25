@@ -38,8 +38,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           <span aria-hidden className="size-1 rounded-full bg-white/30" />
           <time dateTime={item.date}>{formatShortDate(item.date)}</time>
         </p>
-        <h1 className="mt-5 font-body text-[clamp(32px,5vw,58px)] font-semibold leading-[1.08] tracking-[-0.02em] text-white">{item.title}</h1>
-        <p className="mt-7 font-body text-[18px] leading-[1.75] text-white/80">{item.excerpt}</p>
+        <h1 className="mt-5 t-h1">{item.title}</h1>
+        <p className="mt-7 text-white/80 t-lead">{item.excerpt}</p>
         <div className="relative mt-14 aspect-[16/9] overflow-hidden rounded-[16px] border border-white/[0.08]">
           <Image src={item.image} alt={item.imageAlt} fill priority sizes="(min-width: 900px) 860px, 100vw" className="object-cover saturate-[0.85]" />
           <Tone />

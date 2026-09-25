@@ -19,10 +19,10 @@
   --color-mist: #a9b4c8;
   --color-line: rgba(255, 255, 255, 0.13);
 
-  --font-display: var(--font-barlow), "Arial Narrow", sans-serif;
-  --font-body: var(--font-inter), system-ui, sans-serif;
-  --font-script: var(--font-caveat), "Segoe Script", cursive;
-  --font-serif: var(--font-marcellus), Georgia, serif;
+  --font-body: var(--font-barlow), system-ui, sans-serif;
+  --font-display: var(--font-body);
+  --font-script: var(--font-body);
+  --font-serif: var(--font-body);
 
   --breakpoint-3xl: 1800px;
 }
@@ -304,4 +304,61 @@ html[data-intro-seen] .intro-root { display: none; }
 @keyframes shop-progress {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
+}
+
+/* Échelle typographique commune : une seule famille, seules la taille et la graisse varient. */
+@utility t-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--color-psg-red-bright);
+}
+@utility t-display {
+  font-family: var(--font-display);
+  font-size: clamp(44px, 7vw, 96px);
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 0.98;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+@utility t-h1 {
+  font-family: var(--font-display);
+  font-size: clamp(38px, 5vw, 64px);
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+@utility t-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 4vw, 52px);
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 1.04;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+@utility t-h3 {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  color: #fff;
+}
+@utility t-lead {
+  font-size: 16px;
+  line-height: 1.8;
+}
+@utility t-small {
+  font-size: 14px;
+  line-height: 1.75;
+}
+@utility t-caption {
+  font-size: 12.5px;
+  line-height: 1.7;
 }

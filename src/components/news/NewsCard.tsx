@@ -41,7 +41,7 @@ export function NewsCard({ item, className }: { item: NewsItem; className?: stri
           <time dateTime={item.date}>{formatShortDate(item.date)}</time>
         </p>
         <h3 className="mt-4 font-body text-[21px] font-medium leading-[1.25] tracking-[-0.01em] text-white">{item.title}</h3>
-        <p className="mt-3 line-clamp-3 font-body text-[14.5px] leading-[1.75] text-mist">{item.excerpt}</p>
+        <p className="mt-3 line-clamp-3 text-mist t-small">{item.excerpt}</p>
       </div>
     </Link>
   );

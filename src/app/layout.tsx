@@ -1,15 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow_Condensed, Caveat, Inter, Marcellus } from "next/font/google";
+import { Barlow } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/layout/Providers";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/footer/Footer";
 import { INTRO_STORAGE_KEY } from "@/lib/intro-key";
 
-const barlow = Barlow_Condensed({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-barlow", display: "swap" });
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const marcellus = Marcellus({ subsets: ["latin"], weight: "400", variable: "--font-marcellus", display: "swap" });
-const caveat = Caveat({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-caveat", display: "swap" });
+/** Une seule famille typographique sur tout le site : seules la graisse et la casse varient. */
+const barlow = Barlow({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: "--font-barlow", display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -34,7 +32,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${barlow.variable} ${inter.variable} ${caveat.variable} ${marcellus.variable}`} suppressHydrationWarning>
+    <html lang="fr" className={barlow.variable} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

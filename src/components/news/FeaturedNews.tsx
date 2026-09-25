@@ -16,7 +16,7 @@ export function FeaturedNews({ item }: { item: NewsItem }) {
         <div>
           <p className="font-body text-[13px] font-medium text-[#ff7a8c]">{item.category}</p>
           <h2 className="mt-5 font-body text-[clamp(26px,3vw,38px)] font-medium leading-[1.15] tracking-[-0.015em] text-white">{item.title}</h2>
-          <p className="mt-5 max-w-md font-body text-[15.5px] leading-[1.75] text-mist">{item.excerpt}</p>
+          <p className="mt-5 max-w-md text-mist t-lead">{item.excerpt}</p>
         </div>
         <div className="flex items-center justify-between font-body text-[13px] text-mist">
           <time dateTime={item.date}>{formatShortDate(item.date)}</time>

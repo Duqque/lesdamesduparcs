@@ -1,7 +1,8 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import type { MemberPublic } from "@/lib/members";
 import type { Registration } from "@/lib/registration";
 
 /**
@@ -103,3 +104,66 @@ export const updateOrder = (id: string, patch: Partial<Order>) =>
   });
 
 export const getOrder = (id: string) => readOrders().then((all) => all.find((o) => o.id === id) ?? null);
+
+/* ---------- Membres (comptes, cartes, autorisations parentales) ---------- */
+
+export type StoredMember = MemberPublic & { passwordHash: string };
+
+const membersFile = path.join(dir, "members.json");
+export const uploadsDir = (memberId: string) => path.join(dir, "uploads", memberId);
+export const authorizationPath = (memberId: string, fileId: string) => path.join(uploadsDir(memberId), `${fileId}.pdf`);
+
+async function readMembers(): Promise<StoredMember[]> {
+  try {
+    return JSON.parse(await readFile(membersFile, "utf8")) as StoredMember[];
+  } catch {
+    return [];
+  }
+}
+
+async function writeMembers(list: StoredMember[]) {
+  await mkdir(dir, { recursive: true });
+  const tmp = `${membersFile}.${randomUUID()}.tmp`;
+  await writeFile(tmp, JSON.stringify(list, null, 2), "utf8");
+  await rename(tmp, membersFile);
+}
+
+export const toPublic = ({ passwordHash: _p, ...m }: StoredMember): MemberPublic => {
+  void _p;
+  return m;
+};
+
+export const normalizeEmail = (e: string) => e.trim().toLowerCase();
+
+export type AddMemberResult = { ok: true; member: StoredMember } | { ok: false; reason: "duplicate" };
+
+/** Écrit les PDF d'autorisation parentale puis crée la fiche, de façon atomique (numéro de membre unique, e-mail unique). */
+export const addMember = (build: (taken: ReadonlySet<string>) => StoredMember, files: Array<{ id: string; bytes: Buffer }>, email: string, memberId: string) =>
+  locked<AddMemberResult>(async () => {
+    const all = await readMembers();
+    if (all.some((m) => normalizeEmail(m.email) === normalizeEmail(email))) return { ok: false, reason: "duplicate" };
+    const member = build(new Set(all.map((m) => m.memberNumber)));
+    if (files.length) {
+      await mkdir(uploadsDir(memberId), { recursive: true });
+      try {
+        for (const f of files) await writeFile(authorizationPath(memberId, f.id), f.bytes, { flag: "wx" });
+      } catch (err) {
+        await rm(uploadsDir(memberId), { recursive: true, force: true });
+        throw err;
+      }
+    }
+    await writeMembers([...all, member]);
+    return { ok: true, member };
+  });
+
+export const listMembers = () => readMembers().then((all) => all.map(toPublic));
+export const findMemberByLogin = (id: string) =>
+  readMembers().then((all) => {
+    const k = id.trim().toLowerCase();
+    return all.find((m) => normalizeEmail(m.email) === k || m.memberNumber.toLowerCase() === k) ?? null;
+  });
+export const getMemberByNumber = (n: string) => readMembers().then((all) => all.find((m) => m.memberNumber === n) ?? null);
+export const getMemberByToken = (t: string) => readMembers().then((all) => all.find((m) => m.token === t) ?? null);
+
+export const listRegistrationsByMember = (memberNumber: string) => readAll().then((all) => all.filter((r) => r.memberNumber === memberNumber));
+export const listOrdersByMember = (memberNumber: string) => readOrders().then((all) => all.filter((o) => o.memberNumber === memberNumber));

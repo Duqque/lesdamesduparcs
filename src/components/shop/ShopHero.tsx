@@ -35,8 +35,8 @@ export function ShopHero() {
         <div className="absolute inset-x-0 bottom-0 px-[clamp(20px,4vw,64px)] pb-8 md:pb-10">
           <AnimatePresence mode="wait">
             <motion.div key={slide.id} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} aria-live="polite">
-              <h2 className="max-w-[16ch] font-display text-[clamp(38px,6vw,84px)] font-semibold uppercase leading-[0.95] tracking-[0.03em] text-white">{slide.title}</h2>
-              <p className="mt-5 max-w-md font-body text-[15px] leading-[1.75] text-white/80">{slide.text}</p>
+              <h2 className="max-w-[16ch] t-display">{slide.title}</h2>
+              <p className="mt-5 max-w-md text-white/80 t-lead">{slide.text}</p>
               <Link href={slide.href} className="group mt-7 inline-flex h-12 items-center gap-4 rounded-full bg-white pl-6 pr-1.5 font-body text-[14.5px] font-medium text-night-950">
                 Découvrir
                 <span className="grid size-9 place-items-center rounded-full bg-night-950 text-white transition-transform duration-300 group-hover:translate-x-0.5">

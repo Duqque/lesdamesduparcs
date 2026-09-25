@@ -36,7 +36,7 @@ export function Footer() {
             })}
           </ul>
           <span aria-hidden className="hidden h-8 w-px bg-white/15 sm:block" />
-          <p className="relative font-script text-[26px] font-medium xl:text-[28px] italic leading-none text-white">
+          <p className="relative font-script text-[26px] font-medium xl:text-[28px] leading-none text-white">
             Paris toujours, ensemble&nbsp;!
             <Scribble className="absolute -bottom-2 left-[14%] h-2 w-[62%]" />
           </p>

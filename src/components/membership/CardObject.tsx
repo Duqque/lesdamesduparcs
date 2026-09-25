@@ -85,7 +85,7 @@ export function CardObject({ motion: m, name, season, number, qrValue }: Props) 
           <motion.div style={{ opacity: m.identity, z: 10 }} className="absolute bottom-[7%] left-[6%]">
             <p className="font-body text-[1.9cqw] font-light uppercase tracking-[0.34em] text-white/70">Membre {season}</p>
             <p className="mt-[1.2cqw] font-display text-[5.6cqw] font-semibold uppercase leading-none tracking-[0.1em] text-white">{name}</p>
-            <p className="mt-[1.2cqw] font-body text-[2.1cqw] font-light tabular-nums tracking-[0.3em] text-white/80">N° {number}</p>
+            <p className="mt-[1.2cqw] font-body text-[2.1cqw] font-light tabular-nums tracking-[0.3em] text-white/80">{number}</p>
           </motion.div>
           <motion.div style={{ opacity: m.qr, z: 14 }} className="absolute bottom-[7%] right-[5.5%] w-[15cqw] rounded-[1cqw] shadow-[0_1.4cqw_2.4cqw_rgba(0,0,0,0.5)]">
             <QrCode value={qrValue} className="block w-full" />
@@ -111,10 +111,10 @@ export function CardObject({ motion: m, name, season, number, qrValue }: Props) 
             draggable={false}
           />
           <p
-            className="absolute right-[4.2%] top-[54%] -translate-y-1/2 whitespace-nowrap font-body text-[2.4cqw] font-light uppercase tracking-[0.38em] text-white/85 [writing-mode:vertical-rl]"
+            className="absolute inset-x-0 top-[41%] -translate-y-1/2 text-center font-body text-[3cqw] font-medium tabular-nums tracking-[0.22em] text-white/90"
             style={{ transform: "translateZ(8px)" }}
           >
-            N° Membre {number}
+            {number}
           </p>
           <p
             className="absolute inset-x-0 top-[91%] -translate-y-1/2 text-center font-body text-[2.1cqw] font-light lowercase tracking-[0.3em] text-white/85"

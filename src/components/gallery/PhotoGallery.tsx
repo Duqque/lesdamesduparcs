@@ -47,7 +47,7 @@ export function PhotoGallery({ photos, compact = false }: { photos: GalleryPhoto
       <div className="mb-12 flex items-end justify-between gap-4">
         <div>
           <CardLabel icon={Camera}>Galerie</CardLabel>
-          <h2 id="gallery-title" className="mt-3 font-display text-[clamp(30px,4vw,52px)] font-semibold uppercase leading-none tracking-[0.06em] text-white">
+          <h2 id="gallery-title" className="mt-3 t-h2">
             Le Parc en images
           </h2>
         </div>

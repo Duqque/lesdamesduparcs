@@ -23,8 +23,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: event.title, description: event.summary, openGraph: { title: event.title, description: event.summary, images: [event.image] } };
 }
 
-const label = "font-body text-[12px] font-semibold uppercase tracking-[0.3em] text-psg-red-bright";
-const h2 = "mt-3 font-display text-[clamp(26px,3.4vw,44px)] font-semibold uppercase leading-[1.04] tracking-[0.05em] text-white";
+const label = "t-eyebrow";
+const h2 = "mt-4 t-h2";
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -58,7 +58,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             Tous les événements
           </Link>
           <p className="w-fit rounded-full border border-white/25 bg-white/10 px-4 py-1.5 font-body text-[11px] font-medium uppercase tracking-[0.14em] text-white backdrop-blur-md">{event.tag}</p>
-          <h1 className="mt-5 max-w-3xl font-display text-[clamp(38px,6.4vw,92px)] font-semibold uppercase leading-[0.96] tracking-[0.05em] text-white">{event.title}</h1>
+          <h1 className="mt-5 max-w-3xl t-display">{event.title}</h1>
           <p className="mt-5 max-w-2xl font-body text-[16px] leading-relaxed text-white/85 md:text-[19px]">{event.subtitle}</p>
           <ul className="mt-8 flex flex-wrap gap-x-8 gap-y-3 font-body text-[14px] text-white/90">
             <li className="flex items-center gap-2.5">
@@ -114,7 +114,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                     <span className="font-display text-[26px] font-semibold tabular-nums leading-none tracking-[0.04em] text-white">{formatTime(item.time)}</span>
                     <span>
                       <h3 className="font-body text-[16px] font-semibold text-white">{item.title}</h3>
-                      <p className="mt-1.5 font-body text-[15px] leading-[1.7] text-mist">{item.text}</p>
+                      <p className="mt-1.5 text-mist t-lead">{item.text}</p>
                     </span>
                   </Reveal>
                 </li>
@@ -140,8 +140,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                         </span>
                         <div>
                           <h3 className="font-body text-[17px] font-semibold text-white">{s.name}</h3>
-                          <p className="mt-1 font-body text-[12px] font-semibold uppercase tracking-[0.14em] text-psg-red-bright">{s.role}</p>
-                          <p className="mt-3 font-body text-[14.5px] leading-[1.7] text-mist">{s.bio}</p>
+                          <p className="mt-1 t-eyebrow">{s.role}</p>
+                          <p className="mt-3 text-mist t-small">{s.bio}</p>
                         </div>
                       </div>
                     </Reveal>

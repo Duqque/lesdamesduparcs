@@ -19,8 +19,8 @@ import { news } from "@/data/news";
 import { quote } from "@/data/chants";
 import { gallery } from "@/data/gallery";
 
-const label = "font-body text-[12px] font-semibold uppercase tracking-[0.3em] text-psg-red-bright";
-const h2 = "mt-4 font-display text-[clamp(30px,4.2vw,56px)] font-semibold uppercase leading-[1.04] tracking-[0.05em] text-white";
+const label = "t-eyebrow";
+const h2 = "mt-4 t-h2";
 const wrap = "mx-auto w-full max-w-[1300px] px-[var(--gutter)]";
 
 /*
@@ -66,7 +66,7 @@ export default function HomePage() {
               <h2 id="chant-title" className={h2}>
                 Le chant du groupe
               </h2>
-              <p className="mt-6 max-w-md font-body text-[16px] leading-[1.85] text-white/75">Un refrain qui se transmet de tribune en tribune. Lancez la musique, apprenez les paroles, chantez avant de rejoindre le Parc.</p>
+              <p className="mt-6 max-w-md text-white/75 t-lead">Un refrain qui se transmet de tribune en tribune. Lancez la musique, apprenez les paroles, chantez avant de rejoindre le Parc.</p>
             </Reveal>
             <Reveal delay={0.1}>
               <ChantPlayer />

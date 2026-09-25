@@ -56,11 +56,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <div className="lg:pt-6">
-          <p className="font-body text-[12px] font-semibold uppercase tracking-[0.3em] text-psg-red-bright">{product.category}</p>
-          <h1 className="mt-4 font-display text-[clamp(34px,4.4vw,60px)] font-semibold uppercase leading-[0.98] tracking-[0.04em] text-white">{product.name}</h1>
+          <p className="t-eyebrow">{product.category}</p>
+          <h1 className="mt-4 t-h1">{product.name}</h1>
           <Price product={product} className="mt-5 text-[30px]" />
           <p className="mt-2 font-body text-[12.5px] text-mist">TTC, hors frais de livraison</p>
-          <p className="mt-8 font-body text-[15.5px] leading-[1.85] text-white/80">{product.description}</p>
+          <p className="mt-8 text-white/80 t-lead">{product.description}</p>
 
           <div className="mt-10">
             <ProductActions product={product} />
@@ -88,7 +88,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       <section aria-labelledby="related" className="pt-32 md:pt-44">
-        <h2 id="related" className="font-display text-[clamp(28px,3.6vw,48px)] font-semibold uppercase tracking-[0.05em] text-white">Vous aimerez aussi</h2>
+        <h2 id="related" className="t-h2">Vous aimerez aussi</h2>
         <ul className="mt-12 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
           {related.map((p) => (
             <li key={p.id}>

@@ -143,7 +143,7 @@ export function RegistrationForm({ event, member }: Props) {
           <CheckCircle2 aria-hidden className="size-6 text-psg-red-bright" strokeWidth={1.7} />
           {statusLabel[st]}
         </p>
-        <p className="mt-4 font-body text-[14.5px] leading-[1.75] text-mist">
+        <p className="mt-4 text-mist t-small">
           {done?.message ?? `Votre inscription à « ${event.title} » est enregistrée sous le numéro de carte ${member.memberNumber}. Un rappel vous sera envoyé avant l'événement.`}
         </p>
         {mine?.status === "awaiting_payment" && status?.paymentEnabled && (
@@ -269,7 +269,7 @@ export function RegistrationForm({ event, member }: Props) {
                 <dd className="tabular-nums">{formatEuros(total)}</dd>
               </div>
             </dl>
-            <p className="mt-4 flex items-start gap-2.5 font-body text-[12.5px] leading-[1.7] text-mist">
+            <p className="mt-4 flex items-start gap-2.5 text-mist t-caption">
               <Lock aria-hidden className="mt-0.5 size-3.5 shrink-0" />
               Paiement sécurisé par Stripe (carte bancaire, Apple Pay, Google Pay). Vous serez redirigée vers la page de paiement : aucun numéro de carte n&rsquo;est saisi ni conservé sur ce site.
               {status && !status.paymentEnabled && " Le paiement en ligne n'est pas encore activé : votre inscription sera enregistrée en attente de règlement."}

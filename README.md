@@ -48,6 +48,11 @@ Les composants reçoivent des données structurées (`<MatchCard match={nextMatc
 le contenu de `src/data/`. Le type `User` (profil, adhésion, billets, événements, avantages, équipe, notifications, achats)
 prépare l'espace membre.
 
+## Typographie
+
+Une seule famille (Barlow) sur tout le site : seules la taille, la graisse et la casse varient. L'échelle est définie dans
+`globals.css` (`t-display`, `t-h1`, `t-h2`, `t-h3`, `t-eyebrow`, `t-lead`, `t-small`, `t-caption`) : à utiliser plutôt que des tailles ad hoc.
+
 ## Loader d'entrée
 
 `src/components/intro/IntroLoader.tsx` : compteur **1970 → année en cours** (calculée à l'exécution) avec barre de progression.
@@ -98,9 +103,32 @@ programme « Allez les filles » (filles de 11 à 16 ans, PSG For Communities) v
 ## Connexion, inscriptions et paiement
 
 Le visiteur n'est **jamais connecté d'office** : la session est un cookie signé (HMAC) lu côté serveur (`src/lib/server/session.ts`).
-Deux espaces, sur `/connexion` et sur chaque page d'événement : **Membre** (numéro de carte + e-mail) et **Administrateur**
-(e-mail + mot de passe). Les comptes viennent de variables d'environnement (`DEMO_*`, voir `.env.example`) : c'est un socle de
-démonstration à remplacer par une vraie base de membres et un hachage de mots de passe.
+Deux espaces, sur `/connexion` et sur chaque page d'événement : **Membre** (e-mail ou numéro de membre + mot de passe) et
+**Administrateur** (e-mail + mot de passe, variables `DEMO_ADMIN_*` : socle de démonstration à remplacer par de vrais comptes).
+
+## Devenir membre (`/rejoindre-le-groupe/inscription`)
+
+Parcours entièrement automatique :
+
+1. **Formulaire** en 2 ou 3 étapes (`InscriptionClient.tsx`, validation partagée dans `src/lib/members.ts`) : identité, coordonnées,
+   mot de passe (haché avec scrypt). Si la date de naissance indique une personne **mineure** (< 18 ans), une étape supplémentaire
+   exige les coordonnées du responsable légal et **1 à 3 PDF d'autorisation parentale** (5 Mo max, type vérifié sur le contenu).
+   Un modèle à signer est généré sur `/api/autorisation-parentale`.
+2. **Création du compte** (`POST /api/members`) : numéro de membre, jeton de vérification secret, session ouverte.
+   Le **numéro de membre** suit le format `3 lettres du nom + 3 lettres du prénom + JJMMAA + -LDDP + année`
+   (ex. `DUQQUE120399-LDDP2026` ; lettre de départage B, C… en cas d'homonymie).
+3. **Carte membre** (`/profil`, `MemberCard.tsx`) : générée avec les informations de la membre et un **QR code** qui pointe vers
+   `/verification/[jeton]`.
+4. **Preuve d'adhésion** (`/verification/[jeton]`) : page publique minimale (nom, numéro, saison, validité) ; les administrateurs
+   connectés voient le dossier complet (contact, responsable légal, PDF d'autorisation).
+5. **Attestation PDF** (`/api/attestation/[jeton]`, `src/lib/server/pdf.ts`, pdf-lib) sur le modèle d'une attestation de licence :
+   logo, couleurs du PSG, mini-carte, QR code, bandeau carte. Accessible à la titulaire connectée et aux administrateurs.
+6. **Espace membre** (`/profil`) : carte, attestation, transactions (commandes boutique et inscriptions aux événements
+   rattachées au numéro de membre), avantages, informations. L'administrateur y trouve la liste des adhérentes.
+
+Les informations de l'association (SIRET, RNA, adresse, présidente) sont **fictives** : `src/data/association.ts`.
+Les membres et les PDF déposés sont stockés dans `.data/` (ignoré par Git). Définir `NEXT_PUBLIC_SITE_URL` pour que les QR codes
+pointent vers le domaine public. Le paiement de la cotisation n'est pas encore branché sur ce parcours.
 
 - **Inscription** (`RegistrationForm.tsx`) : réservée aux membres connectées ; contrôlée côté serveur (`/api/events/[slug]/register`,
   validation partagée dans `src/lib/registration.ts`, âge et responsable légal pour les mineures, capacité, doublons).

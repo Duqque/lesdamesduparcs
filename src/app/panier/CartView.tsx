@@ -14,7 +14,7 @@ export function CartView() {
   const ship = totals.shippingCents("home");
   return (
     <main className="mx-auto max-w-[1100px] px-[var(--gutter)] pb-40 pt-[190px] md:pt-[240px]">
-      <h1 className="font-display text-[clamp(40px,5.4vw,72px)] font-semibold uppercase leading-none tracking-[0.05em] text-white">Panier</h1>
+      <h1 className="t-h1">Panier</h1>
 
       {lines.length === 0 ? (
         <div className="mt-16 flex flex-col items-start gap-6">

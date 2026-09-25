@@ -1,9 +1,13 @@
 import { authConfigured, safeEqual, setSession } from "@/lib/server/session";
 import { json, throttled } from "@/lib/server/http";
+import { hashPassword, verifyPassword } from "@/lib/server/password";
+import { findMemberByLogin } from "@/lib/server/store";
+
+const DUMMY_HASH = hashPassword("dummy-password-1");
 
 /**
- * Comptes de démonstration définis par variables d'environnement (voir .env.example).
- * À remplacer par une vraie base de membres et un hachage de mots de passe pour la production.
+ * Membres : comptes créés via le formulaire d'adhésion (mot de passe haché avec scrypt).
+ * Administrateur : compte défini par variables d'environnement (voir .env.example), à remplacer par de vrais comptes en production.
  */
 const eq = (a: string | undefined, b: string | undefined) => Boolean(a && b) && safeEqual(a!.trim().toLowerCase(), b!.trim().toLowerCase());
 
@@ -16,10 +20,12 @@ export async function POST(req: Request) {
   const invalid = () => json({ error: "Identifiants invalides." }, 401);
 
   if (body.role === "member") {
-    const ok = eq(body.memberNumber, process.env.DEMO_MEMBER_NUMBER) && eq(body.email, process.env.DEMO_MEMBER_EMAIL);
-    if (!ok) return invalid();
-    const [firstName, ...rest] = (process.env.DEMO_MEMBER_NAME || "Membre").split(" ");
-    await setSession({ role: "member", firstName, lastName: rest.join(" "), email: process.env.DEMO_MEMBER_EMAIL!, memberNumber: process.env.DEMO_MEMBER_NUMBER! });
+    const login = (body.memberNumber || body.email || "").trim();
+    const member = login && body.password ? await findMemberByLogin(login) : null;
+    // Vérification exécutée même si le compte n'existe pas, pour ne pas révéler quelles adresses sont inscrites.
+    const ok = verifyPassword(body.password || "", member?.passwordHash ?? DUMMY_HASH);
+    if (!member || !ok) return invalid();
+    await setSession({ role: "member", firstName: member.firstName, lastName: member.lastName, email: member.email, memberNumber: member.memberNumber });
     return json({ ok: true, role: "member" });
   }
 

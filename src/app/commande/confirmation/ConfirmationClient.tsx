@@ -33,19 +33,19 @@ export function ConfirmationClient() {
       {order === undefined && <p className="font-body text-mist">Chargement de votre commande…</p>}
       {order === null && (
         <>
-          <h1 className="font-display text-[clamp(36px,4.6vw,60px)] font-semibold uppercase leading-none tracking-[0.05em] text-white">Commande introuvable</h1>
+          <h1 className="t-h1">Commande introuvable</h1>
           <p className="mt-6 font-body text-[15.5px] text-mist">Le lien est invalide ou a expiré.</p>
           <div className="mt-8"><Button href="/boutique" size="lg">Retour à la boutique</Button></div>
         </>
       )}
       {order && (
         <>
-          <p className="flex items-center gap-3 font-body text-[13px] font-semibold uppercase tracking-[0.25em] text-psg-red-bright">
+          <p className="flex items-center gap-3 t-eyebrow">
             {paid ? <CheckCircle2 aria-hidden className="size-5" /> : <Clock aria-hidden className="size-5" />}
             {paid ? "Paiement reçu" : "Commande enregistrée"}
           </p>
-          <h1 className="mt-5 font-display text-[clamp(38px,5vw,66px)] font-semibold uppercase leading-none tracking-[0.05em] text-white">{paid ? "Merci pour votre commande" : "Presque terminé"}</h1>
-          <p className="mt-6 font-body text-[15.5px] leading-[1.8] text-mist">
+          <h1 className="mt-5 t-h1">{paid ? "Merci pour votre commande" : "Presque terminé"}</h1>
+          <p className="mt-6 text-mist t-lead">
             {paid
               ? `Un récapitulatif sera envoyé à ${order.contact.email}. ${order.delivery.mode === "event" ? "Vous retirerez votre commande lors d'un prochain événement." : "Votre colis part sous 3 à 5 jours ouvrés."}`
               : "Votre commande est enregistrée mais le paiement n'est pas encore confirmé. Le paiement en ligne sera activé prochainement : nous vous contacterons pour le règlement."}
@@ -66,7 +66,7 @@ export function ConfirmationClient() {
               <div className="flex justify-between text-[16px] font-medium text-white"><dt>Total TTC</dt><dd className="tabular-nums">{formatPrice(order.totalCents)}</dd></div>
             </dl>
             {order.delivery.address && (
-              <p className="mt-5 border-t border-white/10 pt-5 font-body text-[13.5px] leading-[1.7] text-mist">
+              <p className="mt-5 border-t border-white/10 pt-5 text-mist t-small">
                 Livraison : {order.contact.firstName} {order.contact.lastName}, {order.delivery.address.line1}, {order.delivery.address.postalCode} {order.delivery.address.city}
               </p>
             )}

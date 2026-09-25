@@ -97,7 +97,7 @@ export function CheckoutClient() {
   if (lines.length === 0) {
     return (
       <main className="mx-auto max-w-[900px] px-[var(--gutter)] pb-40 pt-[200px] md:pt-[250px]">
-        <h1 className="font-display text-[clamp(40px,5.4vw,72px)] font-semibold uppercase leading-none tracking-[0.05em] text-white">Commande</h1>
+        <h1 className="t-h1">Commande</h1>
         <p className="mt-8 font-body text-[16px] text-mist">Votre panier est vide.</p>
         <div className="mt-8"><Button href="/boutique" size="lg">Découvrir la boutique</Button></div>
       </main>
@@ -106,7 +106,7 @@ export function CheckoutClient() {
 
   return (
     <main className="mx-auto max-w-[1200px] px-[var(--gutter)] pb-40 pt-[180px] md:pt-[230px]">
-      <h1 className="font-display text-[clamp(40px,5.4vw,72px)] font-semibold uppercase leading-none tracking-[0.05em] text-white">Commande</h1>
+      <h1 className="t-h1">Commande</h1>
       <p className="mt-5 font-body text-[14.5px] text-mist">
         {member ? (
           <>Connectée avec la carte <span className="tabular-nums text-white">{member.memberNumber}</span> : vos informations sont préremplies.</>
@@ -173,12 +173,12 @@ export function CheckoutClient() {
                 </Field>
               </div>
             ) : (
-              <p className="mt-6 rounded-[12px] border border-white/10 bg-black/20 p-5 font-body text-[14px] leading-[1.75] text-mist">Vous retirerez votre commande lors du prochain événement des Dames du Parc. Nous vous écrirons pour convenir de la date et du lieu.</p>
+              <p className="mt-6 rounded-[12px] border border-white/10 bg-black/20 p-5 text-mist t-small">Vous retirerez votre commande lors du prochain événement des Dames du Parc. Nous vous écrirons pour convenir de la date et du lieu.</p>
             )}
           </Section>
 
           <Section n={3} title="Paiement">
-            <p className="flex items-start gap-3 font-body text-[13.5px] leading-[1.75] text-mist">
+            <p className="flex items-start gap-3 text-mist t-small">
               <Lock aria-hidden className="mt-1 size-4 shrink-0" />
               Paiement sécurisé par Stripe (carte bancaire, Apple Pay, Google Pay) sur une page hébergée par Stripe. Aucun numéro de carte n&rsquo;est saisi ni conservé sur ce site.
             </p>
@@ -196,7 +196,7 @@ export function CheckoutClient() {
         </form>
 
         <aside aria-label="Récapitulatif de commande" className="h-fit rounded-[16px] border border-white/10 bg-[#0b1327]/90 p-7 lg:sticky lg:top-[120px]">
-          <h2 className="font-display text-[22px] font-semibold uppercase tracking-[0.08em] text-white">Récapitulatif</h2>
+          <h2 className="t-h3">Récapitulatif</h2>
           <ul className="mt-5 divide-y divide-white/10">
             {lines.map((l) => {
               const p = getProduct(l.productId)!;

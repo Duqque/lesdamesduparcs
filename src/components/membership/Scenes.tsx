@@ -21,7 +21,7 @@ interface SceneProps {
   desk: MotionValue<number>;
 }
 
-const label = "font-body text-[11px] font-semibold uppercase tracking-[0.3em] text-psg-red-bright md:text-[12px]";
+const label = "t-eyebrow md:text-[12px]";
 const panel =
   "rounded-[8px] border border-white/12 bg-[linear-gradient(135deg,rgba(14,28,54,0.96),rgba(4,9,20,0.96))] shadow-[0_20px_40px_-22px_rgba(0,0,0,0.9)]";
 
@@ -94,7 +94,7 @@ export function IdentityScene({ p, name, since, number, season }: SceneProps & {
       <Scene p={p} range={[0.215, 0.245, 0.305, 0.33]} className="zone-right hidden md:block">
         <p className={label}>Saison</p>
         {seasonEl}
-        <p className="mt-3 font-body text-[15px] tabular-nums text-mist">N° {number}</p>
+        <p className="mt-3 font-body text-[15px] tabular-nums text-mist">{number}</p>
       </Scene>
       <Scene p={p} range={[0.205, 0.235, 0.305, 0.33]} className="zone-top md:hidden">
         <p className={label}>Votre carte</p>
@@ -104,7 +104,7 @@ export function IdentityScene({ p, name, since, number, season }: SceneProps & {
       <Scene p={p} range={[0.215, 0.245, 0.305, 0.33]} className="zone-bottom md:hidden">
         <p className={label}>Saison</p>
         {seasonEl}
-        <p className="mt-2 font-body text-[13px] tabular-nums text-mist">N° {number}</p>
+        <p className="mt-2 font-body text-[13px] tabular-nums text-mist">{number}</p>
       </Scene>
     </>
   );

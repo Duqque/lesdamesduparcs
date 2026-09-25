@@ -26,11 +26,11 @@ export function EventAccess({ event }: { event: ClubEvent }) {
   return (
     <section id="inscription" aria-labelledby="inscription-title" className="scroll-mt-32 border-t border-white/10 px-[var(--gutter)] py-28 md:py-40">
       <div className="mx-auto max-w-[1100px]">
-        <p className="font-body text-[12px] font-semibold uppercase tracking-[0.3em] text-psg-red-bright">Inscription</p>
-        <h2 id="inscription-title" className="mt-3 font-display text-[clamp(28px,3.6vw,48px)] font-semibold uppercase leading-[1.04] tracking-[0.05em] text-white">
+        <p className="t-eyebrow">Inscription</p>
+        <h2 id="inscription-title" className="mt-3 t-h2">
           {session.status === "admin" ? "Espace administrateur" : "Participer à l'événement"}
         </h2>
-        <p className="mt-5 max-w-2xl font-body text-[16px] leading-[1.8] text-white/80">
+        <p className="mt-5 max-w-2xl text-white/80 t-lead">
           {session.status === "admin"
             ? "Suivez les inscriptions et les paiements de cet événement."
             : cfg.mode === "closed"
@@ -85,10 +85,10 @@ export function EventAccess({ event }: { event: ClubEvent }) {
                 (cfg.mode === "form" ? (
                   <RegistrationForm event={event} member={session} />
                 ) : cfg.mode === "closed" ? (
-                  <p className="rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-8 font-body text-[15.5px] leading-[1.8] text-white/80">Cet événement est terminé. Retrouvez les prochains rendez-vous dans le calendrier.</p>
+                  <p className="rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-8 text-white/80 t-lead">Cet événement est terminé. Retrouvez les prochains rendez-vous dans le calendrier.</p>
                 ) : (
                   <div className="rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-8">
-                    <p className="font-body text-[15.5px] leading-[1.8] text-white/80">Votre carte est vérifiée. Réservez votre place pour cet événement depuis la billetterie.</p>
+                    <p className="text-white/80 t-lead">Votre carte est vérifiée. Réservez votre place pour cet événement depuis la billetterie.</p>
                     <Link href={event.href} className="mt-6 inline-flex h-12 items-center rounded-[10px] border border-[#ff6b80]/45 bg-[linear-gradient(180deg,#e51b36,#b30d27)] px-6 font-body text-[14.5px] font-medium text-white">
                       Accéder à la billetterie
                     </Link>
