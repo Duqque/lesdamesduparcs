@@ -9,7 +9,11 @@ import { Reveal } from "@/components/ui/Reveal";
 import { cn } from "@/lib/cn";
 import type { GalleryPhoto } from "@/data/gallery";
 
-export function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
+const compactSpan = (i: number) =>
+  i === 0 ? "col-span-2 md:col-span-6 md:row-span-2" : i >= 3 ? "max-md:hidden md:col-span-3" : "md:col-span-3";
+
+/** `compact` : deux rangées seulement (accueil). Les photos au-delà des cinq premières sont ignorées par l'appelant. */
+export function PhotoGallery({ photos, compact = false }: { photos: GalleryPhoto[]; compact?: boolean }) {
   const [open, setOpen] = useState<number | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const opener = useRef<HTMLElement | null>(null);
@@ -52,7 +56,7 @@ export function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
 
       <ul className="grid auto-rows-[170px] grid-flow-dense grid-cols-2 gap-4 md:auto-rows-[200px] md:grid-cols-12 md:gap-6 xl:auto-rows-[240px]">
         {photos.map((photo, i) => (
-          <li key={photo.id} className={cn("min-h-0", photo.span)}>
+          <li key={photo.id} className={cn("min-h-0", compact ? compactSpan(i) : photo.span)}>
             <Reveal className="h-full" delay={(i % 4) * 0.05}>
               <button
                 type="button"
