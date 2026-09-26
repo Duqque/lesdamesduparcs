@@ -3,9 +3,8 @@
 import { useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import { manifesto } from "@/data/manifesto";
-import { Scarf3D } from "./Scarf3D";
 
-/** Manifeste : grand texte centré écrit lettre par lettre au fil du scroll, sous une petite écharpe 3D. */
+/** Manifeste : grand texte centré écrit lettre par lettre au fil du scroll, précédé d'un grand espace vide. */
 export function Manifesto() {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
@@ -26,11 +25,9 @@ export function Manifesto() {
 
   return (
     <section ref={ref} aria-labelledby="manifeste-title" className="mx-auto max-w-[1200px] px-[var(--gutter)] py-28 text-center md:py-44">
-      <div className="mx-auto w-[min(300px,56vw)]">
-        <Scarf3D progress={scrollYProgress} />
-      </div>
+      <div aria-hidden className="h-24 md:h-44" />
 
-      <p className="mt-20 font-body text-[12px] font-medium uppercase tracking-[0.55em] text-white/70 md:mt-28">Manifeste</p>
+      <p className="font-body text-[12px] font-medium uppercase tracking-[0.55em] text-white/70">Manifeste</p>
       <h2 id="manifeste-title" className="sr-only">
         Le manifeste des Dames du Parc
       </h2>
