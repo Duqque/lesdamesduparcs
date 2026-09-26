@@ -65,6 +65,13 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Un fieldset ne doit jamais dépasser son conteneur (min-width: min-content par défaut). */
+fieldset { min-width: 0; }
+
+/* Retours à la ligne équilibrés : pas de mot seul en fin de ligne, titres répartis sur des lignes de longueur proche. */
+p, li, dd, blockquote { text-wrap: pretty; }
+h1, h2, h3 { text-wrap: balance; }
+
 ::selection {
   background: var(--color-psg-red);
   color: #fff;

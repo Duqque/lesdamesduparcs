@@ -115,7 +115,7 @@ export default async function MatchesAdminPage({ searchParams }: { searchParams:
           </div>
           <div>
             <p className="mb-2 font-body text-[13px] text-white/80">Logos : trois logos <strong className="text-white">carrés</strong> (domicile, extérieur, compétition). Chaque image est ajustée automatiquement dans un carré, sans déformation. Un logo enregistré sert ensuite pour tous les matchs du même club ou de la même compétition.</p>
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <LogoField prefix="homeLogo" label="Équipe à domicile" current={editView?.homeLogo} name="Domicile" />
               <LogoField prefix="awayLogo" label="Équipe à l'extérieur" current={editView?.awayLogo} name="Extérieur" />
               <LogoField prefix="competitionLogo" label="Compétition" current={editView?.competitionLogo} name="Compétition" />

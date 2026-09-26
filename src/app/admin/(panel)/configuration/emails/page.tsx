@@ -21,7 +21,7 @@ export default async function EmailSettingsPage({ searchParams }: { searchParams
         <p className="mt-2 font-body text-[12.5px] text-mist">Renseignez <code>RESEND_API_KEY</code> dans les variables d&rsquo;environnement de l&rsquo;hébergement, et faites valider le domaine de l&rsquo;adresse d&rsquo;expédition chez le prestataire. Sans cela, aucun e-mail ne part.</p>
       </Panel>
       <Panel>
-        <form action={saveSettingsAction.bind(null, "emails")} className="grid gap-4 sm:grid-cols-2">
+        <form action={saveSettingsAction.bind(null, "emails")} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Nom d'expéditeur"><input name="fromName" defaultValue={e.fromName} className={inp} /></Field>
           <Field label="Adresse d'expédition"><input name="fromEmail" type="email" defaultValue={e.fromEmail} className={inp} /></Field>
           <Field label="Signature" className="sm:col-span-2"><textarea name="signature" rows={3} defaultValue={e.signature} className={area} /></Field>

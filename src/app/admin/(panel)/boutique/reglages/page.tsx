@@ -16,7 +16,7 @@ export default async function ShopSettingsPage({ searchParams }: { searchParams:
       <PageHeader title="Réglages de la boutique" subtitle="Livraison, seuil de stock bas et ordre des catégories. Les codes de réduction se gèrent dans Boutique > Codes de réduction." />
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
       <Panel>
-        <form action={saveShopSettingsAction} className="grid gap-4 sm:grid-cols-3">
+        <form action={saveShopSettingsAction} className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Livraison standard (€)"><input name="standard" inputMode="decimal" defaultValue={c.shipping.standardCents / 100} className={inp} /></Field>
           <Field label="Livraison offerte dès (€)"><input name="freeFrom" inputMode="decimal" defaultValue={c.shipping.freeFromCents / 100} className={inp} /></Field>
           <Field label="Seuil de stock bas"><input name="lowStock" type="number" min={0} defaultValue={c.lowStock} className={inp} /></Field>

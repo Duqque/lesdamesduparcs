@@ -150,7 +150,7 @@ const buildIcons: LucideIcon[] = [Users, Handshake, Globe, Sparkles];
 export function BuildBody() {
   return (
     <div className={wrap}>
-      <ul className="grid gap-4 md:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {h.build.items.map((b, i) => {
           const Icon = buildIcons[i] ?? Sparkles;
           return (
@@ -361,7 +361,7 @@ export function AdhesionBody() {
           {a.why.paragraphs.map((t) => (
             <p key={t} className="break-words text-white/80 t-lead">{t}</p>
           ))}
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {[a.why.today, a.why.later].map((q, k) => (
               <figure key={q.label} className={`${card} p-6 ${k === 1 ? "border-psg-red-bright/40" : ""}`}>
                 <figcaption className="t-eyebrow">{q.label}</figcaption>
@@ -377,7 +377,7 @@ export function AdhesionBody() {
         <Reveal className="min-w-0">
           <h2 id="ad-difference" className={h2c}>Communauté ouverte, adhésion : deux choses distinctes</h2>
         </Reveal>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {a.compare.map((c, k) => (
             <Reveal key={c.title} delay={k * 0.08} className="h-full min-w-0">
               <div className={`${card} h-full p-7`}>
@@ -452,7 +452,7 @@ export function AdhesionBody() {
           <h2 id="ad-espace" className={h2c}>L’espace privé des membres</h2>
           <p className="mt-5 break-words text-white/75 t-small">{a.privateSpace.lead}</p>
         </Reveal>
-        <ul className="grid gap-4 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {a.privateSpace.items.map((it, i) => {
             const Icon = benefitIcons[it.icon] ?? Sparkles;
             return (

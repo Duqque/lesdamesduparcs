@@ -17,7 +17,7 @@ export function ProductForm({ product: p, categories, can }: Props) {
     <form action={saveProductAction} className="grid gap-4">
       {p && <input type="hidden" name="id" value={p.id} />}
       <Panel title="Fiche produit">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Nom" className="sm:col-span-2"><input name="name" defaultValue={p?.name} required disabled={!can.edit} className={inp} /></Field>
           {!p && <Field label="Adresse (slug)" hint="Générée depuis le nom si vide"><input name="slug" className={inp} /></Field>}
           <Field label="Catégorie"><input name="category" list="shop-cats" defaultValue={p?.category} disabled={!can.edit} className={inp} /><datalist id="shop-cats">{categories.map((c) => <option key={c} value={c} />)}</datalist></Field>
@@ -36,14 +36,14 @@ export function ProductForm({ product: p, categories, can }: Props) {
         </div>
       </Panel>
       <Panel title="Prix" action={!can.pricing && <span className="font-body text-[12px] text-mist">Lecture seule pour votre rôle</span>}>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Prix TTC (€)"><input name="price" inputMode="decimal" defaultValue={p ? p.priceCents / 100 : ""} disabled={!can.pricing} className={inp} /></Field>
           <Field label="Ancien prix barré (€), facultatif"><input name="compareAt" inputMode="decimal" defaultValue={p?.compareAtCents ? p.compareAtCents / 100 : ""} disabled={!can.pricing} className={inp} /></Field>
         </div>
       </Panel>
       <Panel title="Stock" action={!can.stock && <span className="font-body text-[12px] text-mist">Lecture seule pour votre rôle</span>}>
         <label className="mb-4 flex items-center gap-2 font-body text-[13.5px] text-white/85"><input type="checkbox" name="trackStock" defaultChecked={p?.trackStock ?? true} disabled={!can.stock} className="size-4 accent-[#d90f2c]" /> Suivre le stock (le produit devient « épuisé » à zéro)</label>
-        <div className="grid gap-4 sm:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
           {(sizes.length ? sizes : [NO_SIZE]).map((z) => (
             <Field key={z} label={z === NO_SIZE ? "Quantité" : `Taille ${z}`}><input name={`stock:${z}`} type="number" min={0} defaultValue={p?.stock[z] ?? 0} disabled={!can.stock} className={inp} /></Field>
           ))}
@@ -51,7 +51,7 @@ export function ProductForm({ product: p, categories, can }: Props) {
         {!p && <p className="mt-3 font-body text-[12px] text-mist">Pour un produit avec tailles, enregistrez d&rsquo;abord la fiche, puis saisissez les quantités par taille.</p>}
       </Panel>
       <Panel title="Mise en vente">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Statut"><select name="status" defaultValue={p?.status ?? "draft"} disabled={!can.edit} className={inp}><option value="draft">Brouillon (invisible)</option><option value="active">En vente</option><option value="archived">Archivé</option></select></Field>
           <label className="flex items-end gap-2 pb-2.5 font-body text-[13.5px] text-white/85"><input type="checkbox" name="isNew" defaultChecked={p?.isNew} disabled={!can.edit} className="size-4 accent-[#d90f2c]" /> Afficher la pastille « Nouveau »</label>
         </div>

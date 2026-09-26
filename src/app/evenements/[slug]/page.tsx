@@ -62,7 +62,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             <ArrowLeft aria-hidden className="size-4 transition-transform duration-300 group-hover:-translate-x-1" />
             Tous les événements
           </Link>
-          <p className="w-fit rounded-full border border-white/25 bg-white/10 px-4 py-1.5 font-body text-[11px] font-medium uppercase tracking-[0.14em] text-white backdrop-blur-md">{event.tag}</p>
+          <p className="w-fit rounded-full border border-white/25 bg-white/10 px-4 py-1.5 font-body text-[12px] font-medium uppercase tracking-[0.14em] text-white backdrop-blur-md">{event.tag}</p>
           <h1 className="mt-5 max-w-3xl t-display">{event.title}</h1>
           <p className="mt-5 max-w-2xl font-body text-[16px] leading-relaxed text-white/85 md:text-[19px]">{event.subtitle}</p>
           <ul className="mt-8 flex flex-wrap gap-x-8 gap-y-3 font-body text-[14px] text-white/90">
@@ -175,23 +175,23 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               <p className={label}>Infos pratiques</p>
               <dl className="mt-5 divide-y divide-white/10">
                 <div className="pb-4">
-                  <dt className="font-body text-[11px] uppercase tracking-[0.2em] text-mist">Date</dt>
+                  <dt className="font-body text-[12px] uppercase tracking-[0.2em] text-mist">Date</dt>
                   <dd className="mt-1.5 font-body text-[15px] font-medium text-white">{formatLongDate(event.date)}</dd>
                 </div>
                 <div className="py-4">
-                  <dt className="font-body text-[11px] uppercase tracking-[0.2em] text-mist">Horaires</dt>
+                  <dt className="font-body text-[12px] uppercase tracking-[0.2em] text-mist">Horaires</dt>
                   <dd className="mt-1.5 font-body text-[15px] font-medium text-white">
                     {formatTime(event.time)} à {formatTime(event.endTime)}
                   </dd>
                 </div>
                 <div className="py-4">
-                  <dt className="font-body text-[11px] uppercase tracking-[0.2em] text-mist">Lieu</dt>
+                  <dt className="font-body text-[12px] uppercase tracking-[0.2em] text-mist">Lieu</dt>
                   <dd className="mt-1.5 font-body text-[15px] font-medium text-white">{event.venue}</dd>
                   <dd className="mt-0.5 font-body text-[13.5px] text-mist">{event.address}</dd>
                 </div>
                 {event.practical.map((row) => (
                   <div key={row.label} className="py-4 last:pb-0">
-                    <dt className="font-body text-[11px] uppercase tracking-[0.2em] text-mist">{row.label}</dt>
+                    <dt className="font-body text-[12px] uppercase tracking-[0.2em] text-mist">{row.label}</dt>
                     <dd className="mt-1.5 font-body text-[14.5px] leading-snug text-white/90">{row.value}</dd>
                   </div>
                 ))}
@@ -230,7 +230,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             Voir le calendrier
           </Link>
         </div>
-        <ul className="mt-14 flex snap-x gap-6 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:gap-8 [&::-webkit-scrollbar]:hidden">
+        <ul className="mt-14 flex snap-x gap-6 overflow-x-auto px-[var(--gutter)] pb-4 [contain:paint] [scrollbar-width:none] md:gap-8 [&::-webkit-scrollbar]:hidden">
           {others.map((e) => (
             <li key={e.id} className="shrink-0 snap-start">
               <EventGridCard event={e} />

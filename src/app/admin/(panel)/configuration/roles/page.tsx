@@ -35,7 +35,7 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
         </TableWrap>
       </Panel>
       <Panel title="Sécurité des connexions">
-        <form action={saveSecurityAction} className="grid gap-4 sm:grid-cols-4">
+        <form action={saveSecurityAction} className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <Field label="Expiration par inactivité (min)"><input name="timeout" type="number" min={5} max={480} defaultValue={security.sessionTimeoutMin} className={inp} /></Field>
           <Field label="Tentatives avant blocage"><input name="attempts" type="number" min={3} max={20} defaultValue={security.maxAttempts} className={inp} /></Field>
           <Field label="Durée du blocage (min)"><input name="lockout" type="number" min={1} max={240} defaultValue={security.lockoutMin} className={inp} /></Field>

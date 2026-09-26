@@ -60,7 +60,7 @@ export function IntroScene({ p }: SceneProps) {
 export function ScrollHint({ p }: SceneProps) {
   const opacity = useTransform(p, [0, 0.03, 0.06], [1, 1, 0]);
   return (
-    <motion.div style={{ opacity }} className="zone-bottom pointer-events-none z-[4] flex flex-col items-center gap-3 font-body text-[11px] uppercase tracking-[0.3em] text-white/70">
+    <motion.div style={{ opacity }} className="zone-bottom pointer-events-none z-[4] flex flex-col items-center gap-3 font-body text-[12px] uppercase tracking-[0.3em] text-white/70">
       Faites défiler
       <span aria-hidden className="block h-9 w-px animate-pulse bg-gradient-to-b from-white/70 to-transparent" />
     </motion.div>
@@ -145,7 +145,7 @@ function Satellite({ p, desk, i }: SceneProps & { i: number }) {
     >
       <p className="font-body text-[8.5px] font-semibold uppercase tracking-[0.2em] text-psg-red-bright md:text-[9.5px]">{item.kicker}</p>
       <p className="mt-1.5 font-display text-[clamp(16px,1.9vw,28px)] font-semibold uppercase leading-none tracking-[0.05em] text-white">{item.big}</p>
-      <p className="mt-1.5 font-body text-[10.5px] text-mist md:text-[12px]">{item.sub}</p>
+      <p className="mt-1.5 font-body text-[12px] text-mist md:text-[12px]">{item.sub}</p>
     </motion.div>
   );
 }
@@ -173,10 +173,10 @@ function AgendaItem({ p, i }: { p: MotionValue<number>; i: number }) {
     <motion.li style={{ opacity, x }} className={cn(panel, "flex items-center gap-3 p-2.5 md:gap-5 md:p-4", i === 3 && "max-md:hidden")}>
       <span className="grid w-[46px] shrink-0 place-items-center border-r border-white/15 pr-3 text-center leading-none md:w-[54px] md:pr-4">
         <span className="font-display text-[22px] font-semibold tabular-nums text-white md:text-[30px]">{formatDay(item.date)}</span>
-        <span className="mt-1 font-body text-[9px] font-semibold tracking-[0.2em] text-psg-red-bright md:text-[10px]">{formatMonthShort(item.date)}</span>
+        <span className="mt-1 font-body text-[12px] font-semibold tracking-[0.2em] text-psg-red-bright md:text-[12px]">{formatMonthShort(item.date)}</span>
       </span>
       <span className="min-w-0 text-left">
-        <span className="block font-body text-[9px] font-semibold uppercase tracking-[0.22em] text-mist">{item.tag}</span>
+        <span className="block font-body text-[12px] font-semibold uppercase tracking-[0.22em] text-mist">{item.tag}</span>
         <span className="mt-0.5 block font-body text-[12px] font-semibold leading-snug text-white md:text-[14px]">{item.title}</span>
       </span>
     </motion.li>
@@ -217,7 +217,7 @@ function Fragment({ p, i }: { p: MotionValue<number>; i: number }) {
   const s = useScene(p, 0.72 + i * 0.008, 0.75 + i * 0.008, 0.785, 0.815);
   return (
     <motion.div style={{ opacity: s.opacity, y: s.y, filter: s.filter }} className={cn(panel, "pointer-events-none w-full max-w-[290px] p-3 text-left md:p-4")}>
-      <p className="font-body text-[9px] font-semibold uppercase tracking-[0.22em] text-psg-red-bright">{privateSpace[i].kicker}</p>
+      <p className="font-body text-[12px] font-semibold uppercase tracking-[0.22em] text-psg-red-bright">{privateSpace[i].kicker}</p>
       <p className="mt-1.5 font-body text-[12px] font-semibold leading-snug text-white md:text-[13.5px]">{privateSpace[i].text}</p>
     </motion.div>
   );

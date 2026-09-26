@@ -29,7 +29,7 @@ export default async function GroupPhotosPage({ searchParams }: { searchParams: 
               <div className="grid gap-5 md:grid-cols-[220px_1fr]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={current.src} alt={current.alt} loading="lazy" className="aspect-[4/3] w-full rounded-[10px] border border-line object-cover" />
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Field label="Photo de la médiathèque" className="sm:col-span-2">
                     <select name={`src_${slot.slug}`} defaultValue={isDefault ? "" : inLibrary ? current.src : ""} className={inp}>
                       <option value="">Photo par défaut</option>

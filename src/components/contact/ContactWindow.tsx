@@ -43,7 +43,7 @@ export function ContactWindow({ email }: { email: string }) {
     >
       <div className="mb-1 flex items-center justify-between gap-3">
         <h2 className="min-w-0 truncate font-display text-[12.5px] uppercase leading-none text-white">Nous contacter</h2>
-        <a href={`mailto:${email}`} className="ml-auto min-w-0 truncate font-body text-[11px] text-white/60 underline underline-offset-2 hover:text-white">{email}</a>
+        <a href={`mailto:${email}`} className="ml-auto min-w-0 truncate font-body text-[12px] text-white/60 underline underline-offset-2 hover:text-white">{email}</a>
         <button type="button" onClick={() => setContactOpen(false)} aria-label="Fermer la fenêtre de contact" className="grid size-7 shrink-0 place-items-center rounded-full border border-white/[0.16] text-white transition-colors hover:border-white/40 hover:bg-white/5">
           <X aria-hidden className="size-3.5" strokeWidth={1.8} />
         </button>

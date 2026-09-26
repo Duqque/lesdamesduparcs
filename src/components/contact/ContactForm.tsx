@@ -58,27 +58,27 @@ export function ContactForm({ compact = false, autoFocus = false, onDone }: { co
       <label className={wrapCls} htmlFor={`${uid}-fn`}>
         <span className={compact ? "sr-only" : ""}>Prénom</span>
         <input id={`${uid}-fn`} name="firstName" required autoComplete="given-name" autoFocus={autoFocus} maxLength={80} placeholder={ph("Prénom")} className={inp("firstName")} aria-invalid={Boolean(err("firstName"))} />
-        {err("firstName") && <span role="alert" className="mt-0.5 block text-[11px] text-[#ff9aa8]">{err("firstName")}</span>}
+        {err("firstName") && <span role="alert" className="mt-0.5 block text-[12px] text-[#ff9aa8]">{err("firstName")}</span>}
       </label>
       <label className={wrapCls} htmlFor={`${uid}-ln`}>
         <span className={compact ? "sr-only" : ""}>Nom</span>
         <input id={`${uid}-ln`} name="lastName" required autoComplete="family-name" maxLength={80} placeholder={ph("Nom")} className={inp("lastName")} aria-invalid={Boolean(err("lastName"))} />
-        {err("lastName") && <span role="alert" className="mt-0.5 block text-[11px] text-[#ff9aa8]">{err("lastName")}</span>}
+        {err("lastName") && <span role="alert" className="mt-0.5 block text-[12px] text-[#ff9aa8]">{err("lastName")}</span>}
       </label>
       <label className={cn(wrapCls, compact ? "col-span-2" : full)} htmlFor={`${uid}-em`}>
         <span className={compact ? "sr-only" : ""}>E-mail</span>
         <input id={`${uid}-em`} name="email" type="email" required autoComplete="email" maxLength={160} placeholder={ph("E-mail")} className={inp("email")} aria-invalid={Boolean(err("email"))} />
-        {err("email") && <span role="alert" className="mt-0.5 block text-[11px] text-[#ff9aa8]">{err("email")}</span>}
+        {err("email") && <span role="alert" className="mt-0.5 block text-[12px] text-[#ff9aa8]">{err("email")}</span>}
       </label>
       <div className={cn(compact ? "col-span-2" : full)}>
         <label className={compact ? "sr-only" : "block text-[12.5px] font-medium text-white/80"} htmlFor={`${uid}-ph`}>Téléphone</label>
         <PhoneInput id={`${uid}-ph`} name="phone" required size={compact ? "sm" : "md"} invalid={Boolean(err("phone"))} className={compact ? undefined : "mt-1.5"} />
-        {err("phone") && <span role="alert" className="mt-0.5 block text-[11px] text-[#ff9aa8]">{err("phone")}</span>}
+        {err("phone") && <span role="alert" className="mt-0.5 block text-[12px] text-[#ff9aa8]">{err("phone")}</span>}
       </div>
       <label className={cn(wrapCls, compact ? "col-span-2" : full)} htmlFor={`${uid}-msg`}>
         <span className={compact ? "sr-only" : ""}>Message</span>
         <textarea id={`${uid}-msg`} name="message" required rows={compact ? 1 : 6} maxLength={4000} placeholder={ph("Votre message")} className={cn(field, compact ? "min-h-[38px] resize-none rounded-[8px] px-2.5 py-1 text-[12.5px]" : "py-3", err("message") && "border-psg-red-bright/70")} aria-invalid={Boolean(err("message"))} />
-        {err("message") && <span role="alert" className="mt-0.5 block text-[11px] text-[#ff9aa8]">{err("message")}</span>}
+        {err("message") && <span role="alert" className="mt-0.5 block text-[12px] text-[#ff9aa8]">{err("message")}</span>}
       </label>
       {/* Champ piège pour les robots : invisible et hors du parcours au clavier. */}
       <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
@@ -90,7 +90,7 @@ export function ContactForm({ compact = false, autoFocus = false, onDone }: { co
           <Send aria-hidden className={compact ? "size-3.5" : "size-4"} strokeWidth={1.8} />
           {state.busy ? "Envoi…" : "Envoyer"}
         </button>
-        <p className={cn("min-w-0 leading-[1.4] text-white/55", compact ? "text-[10.5px]" : "text-[12px]")}>
+        <p className={cn("min-w-0 leading-[1.4] text-white/55", compact ? "text-[12px]" : "text-[12px]")}>
           Données utilisées uniquement pour vous répondre : <Link href="/politique-de-confidentialite" className="underline underline-offset-2 hover:text-white">confidentialité</Link>.
         </p>
       </div>

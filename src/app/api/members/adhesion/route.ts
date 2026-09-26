@@ -4,6 +4,7 @@ import { getMemberByNumber, toPublic } from "@/lib/server/store";
 import { type Membership, membershipState, currentMembership, paymentOfMembership, payments, renewMembership } from "@/lib/server/business";
 import { paymentConfigured } from "@/lib/server/helloasso";
 import { startMembershipPayment } from "@/lib/server/checkout";
+import { reconcile } from "@/lib/server/payments";
 
 /**
  * Renouvellement (ou finalisation) de l'adhésion de la membre connectée : crée l'adhésion de la saison en cours si besoin,
@@ -27,6 +28,15 @@ export async function POST(req: Request) {
   const pay = await paymentOfMembership(ms.id);
   if (!pay || pay.status === "paid") return json({ ok: true, state: "active" });
   if (!paymentConfigured()) return json({ ok: true, state: "pending", offline: true, message: "Le paiement en ligne n'est pas encore disponible : réglez votre adhésion auprès de l'association, elle l'enregistrera." });
+  // Un paiement déjà lancé (autre onglet, retour tardif) est d'abord relu chez HelloAsso : jamais de doublon pour une adhésion déjà réglée.
+  if (pay.checkoutId) {
+    try {
+      const done = await reconcile("membership", pay.id);
+      if (done === "paid" || done === "already") return json({ ok: true, state: "active" });
+    } catch {
+      /* HelloAsso injoignable : on propose un nouveau paiement */
+    }
+  }
   try {
     const checkout = await startMembershipPayment(req, pay, member);
     await payments.update(pay.id, { checkoutId: checkout.id, status: "pending", method: "online" });

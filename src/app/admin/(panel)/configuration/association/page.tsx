@@ -23,7 +23,7 @@ export default async function AssociationPage({ searchParams }: { searchParams: 
       <PageHeader title="Données de l'association" subtitle="Ces informations apparaissent sur l'attestation d'adhésion PDF, la page de vérification et le pied de page. Les valeurs de départ sont fictives : renseignez les vraies." />
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
       <Panel>
-        <form action={saveSettingsAction.bind(null, "association")} className="grid gap-4 sm:grid-cols-2">
+        <form action={saveSettingsAction.bind(null, "association")} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {FIELDS.map(([k, l]) => <Field key={k} label={l}><input name={k} defaultValue={(association as unknown as Record<string, string>)[k]} className={inp} /></Field>)}
           <div className="sm:col-span-2"><SubmitButton>Enregistrer</SubmitButton></div>
         </form>

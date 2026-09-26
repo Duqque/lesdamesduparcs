@@ -143,7 +143,7 @@ export function CheckoutClient() {
       <div className="mt-14 grid gap-14 lg:grid-cols-[1fr_400px] lg:gap-20">
         <form onSubmit={submit} noValidate className="space-y-10">
           <Section n={1} title="Vos coordonnées">
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <Field id="c-firstName" label="Prénom" error={errors.firstName}>
                 <input id="c-firstName" value={v.firstName} onChange={(e) => set("firstName", e.target.value)} autoComplete="given-name" className={inputCls} {...ia("firstName")} />
               </Field>
@@ -160,7 +160,7 @@ export function CheckoutClient() {
           </Section>
 
           <Section n={2} title="Livraison">
-            <div role="radiogroup" aria-label="Mode de livraison" className="grid gap-3 sm:grid-cols-2">
+            <div role="radiogroup" aria-label="Mode de livraison" className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {([
                 { id: "home", icon: Truck, title: "À domicile", text: `${formatPrice(shipping.standardCents)}, offerte dès ${formatPrice(shipping.freeFromCents)}` },
                 { id: "event", icon: MapPin, title: "Retrait lors d'un événement", text: "Gratuit, remise en main propre" },

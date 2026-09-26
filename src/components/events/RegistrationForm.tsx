@@ -291,7 +291,7 @@ export function RegistrationForm({ event, member }: Props) {
               <div className="flex justify-between text-mist">
                 <dt>
                   {places} place{places > 1 ? "s" : ""} × {formatEuros(unit)}
-                  {status?.tier && <span className="ml-2 rounded-full border border-white/15 px-2 py-0.5 text-[11.5px] text-white/80">Tarif {status.tier}</span>}
+                  {status?.tier && <span className="ml-2 rounded-full border border-white/15 px-2 py-0.5 text-[12px] text-white/80">Tarif {status.tier}</span>}
                 </dt>
                 <dd className="tabular-nums text-white/90">{formatEuros(base)}</dd>
               </div>

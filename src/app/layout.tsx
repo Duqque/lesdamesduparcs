@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "@/components/layout/Providers";
+import { TextGuard } from "@/components/layout/TextGuard";
 import { SiteFrame } from "@/components/layout/SiteFrame";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/footer/Footer";
@@ -67,6 +68,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         >
           Aller au contenu
         </a>
+        <TextGuard />
         <Providers shop={shop} initialSession={initialSession}>
           <SiteFrame header={<Header navConfig={navConfig} />} footer={<Footer />} contactEmail={contactEmail}>
             {children}

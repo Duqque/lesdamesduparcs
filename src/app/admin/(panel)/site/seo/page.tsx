@@ -19,7 +19,7 @@ export default async function SeoPage({ searchParams }: { searchParams: Promise<
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
       <form action={saveSeoAction} className="grid gap-4">
         <Panel title="Site">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Titre du site"><input name="siteTitle" defaultValue={site.title} className={inp} /></Field>
             <Field label="Favicon (adresse)"><input name="favicon" defaultValue={site.favicon} className={inp} /></Field>
             <Field label="Description par défaut" className="sm:col-span-2"><textarea name="siteDescription" rows={2} defaultValue={site.description} className={area} /></Field>

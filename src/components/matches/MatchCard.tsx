@@ -29,7 +29,7 @@ export function MatchCard({ match }: { match: MatchView }) {
 
       <div className="flex items-center justify-between gap-3">
         <CardLabel icon={Trophy}>Prochain match</CardLabel>
-        <span className="hidden font-body text-[10.5px] font-semibold uppercase tracking-[0.14em] text-mist sm:block">{match.competition}</span>
+        <span className="hidden font-body text-[12px] font-semibold uppercase tracking-[0.14em] text-mist sm:block">{match.competition}</span>
       </div>
 
       <div className="mt-6 flex items-center gap-4 md:gap-5">

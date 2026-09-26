@@ -21,7 +21,7 @@ export function CampaignForm({ campaign, segments }: { campaign?: Campaign; segm
         </div>
       </Panel>
       <Panel title="Message">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Objet" className="sm:col-span-2"><input name="subject" defaultValue={campaign?.subject} required disabled={locked} className={inp} /></Field>
           <Field label="Contenu" hint="Utilisez {{prenom}} pour personnaliser." className="sm:col-span-2"><textarea name="body" rows={10} defaultValue={campaign?.body} required disabled={locked} className={area} /></Field>
           <Field label="Texte du bouton"><input name="buttonLabel" defaultValue={campaign?.buttonLabel} disabled={locked} className={inp} /></Field>

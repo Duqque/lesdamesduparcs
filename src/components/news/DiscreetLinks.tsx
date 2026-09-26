@@ -16,7 +16,7 @@ function Item({ link }: { link: DiscreetLink }) {
   const Arrow = link.external ? ArrowUpRight : ArrowRight;
   const content = (
     <>
-      <span className="flex items-center gap-2.5 font-body text-[11.5px] uppercase tracking-[0.2em] text-mist">
+      <span className="flex items-center gap-2.5 font-body text-[12px] uppercase tracking-[0.2em] text-mist">
         <Icon aria-hidden className="size-4 text-white/70" strokeWidth={1.6} />
         {link.kicker}
       </span>

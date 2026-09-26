@@ -32,7 +32,7 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
       </nav>
       {vue === "actions" && (
         <Panel className="mb-4" title="Filtres">
-          <form method="get" className="grid gap-3 sm:grid-cols-4">
+          <form method="get" className="grid grid-cols-1 gap-3 sm:grid-cols-4">
             <label><span className={lbl}>Recherche</span><input name="q" defaultValue={f.q} className={cn(inp, "mt-1.5")} /></label>
             <label><span className={lbl}>Action</span><select name="action" defaultValue={f.action ?? ""} className={cn(inp, "mt-1.5")}><option value="">Toutes</option>{actions.map((a) => <option key={a}>{a}</option>)}</select></label>
             <label><span className={lbl}>Élément</span><select name="entite" defaultValue={f.entite ?? ""} className={cn(inp, "mt-1.5")}><option value="">Tous</option>{entities.map((a) => <option key={a}>{a}</option>)}</select></label>

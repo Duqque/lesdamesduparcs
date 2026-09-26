@@ -16,7 +16,7 @@ export function EventForm({ event, canPricing = true, matches = [], linkedMatchI
       {event && <input type="hidden" name="id" value={event.id} />}
 
       <Panel title="1 · Informations">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Titre" className="sm:col-span-2"><input name="title" defaultValue={event?.title} required className={inp} /></Field>
           <Field label="Sous-titre" className="sm:col-span-2"><input name="subtitle" defaultValue={event?.subtitle} className={inp} /></Field>
           <Field label="Match du PSG relié (co-organisation)" hint="Si cet événement accompagne un match, il apparaît sur la carte du match avec le bouton « Vivre le match avec les Dames ! »." className="sm:col-span-2">
@@ -35,7 +35,7 @@ export function EventForm({ event, canPricing = true, matches = [], linkedMatchI
       </Panel>
 
       <Panel title="2 · Date">
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <Field label="Date"><input type="date" name="date" defaultValue={event?.date} required className={inp} /></Field>
           <Field label="Début"><input type="time" name="time" defaultValue={event?.time ?? "20:00"} className={inp} /></Field>
           <Field label="Fin"><input type="time" name="endTime" defaultValue={event?.endTime ?? "23:00"} className={inp} /></Field>
@@ -50,7 +50,7 @@ export function EventForm({ event, canPricing = true, matches = [], linkedMatchI
       </Panel>
 
       <Panel title="3 · Localisation">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Lieu"><input name="venue" defaultValue={event?.venue} required className={inp} /></Field>
           <Field label="Ville"><input name="city" defaultValue={event?.city} className={inp} /></Field>
           <Field label="Adresse" className="sm:col-span-2"><input name="address" defaultValue={event?.address} className={inp} /></Field>
@@ -60,7 +60,7 @@ export function EventForm({ event, canPricing = true, matches = [], linkedMatchI
       </Panel>
 
       <Panel title="4 · Participants">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Mode d'inscription"><select name="mode" defaultValue={r?.mode ?? "form"} className={inp}><option value="form">Inscription sur le site (membres)</option><option value="external">Billetterie externe</option><option value="closed">Terminé, pas d&rsquo;inscription</option></select></Field>
           <Field label="Nombre maximum"><input name="capacity" type="number" min={0} defaultValue={r?.capacity ?? 50} className={inp} /></Field>
           <Field label="Nombre minimum"><input name="minCapacity" type="number" min={0} defaultValue={r?.minCapacity} className={inp} /></Field>
@@ -78,7 +78,7 @@ export function EventForm({ event, canPricing = true, matches = [], linkedMatchI
       {canPricing ? (
         <>
           <Panel title="5 · Tarification">
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Formule tarifaire"><select name="pricing" defaultValue={r && r.priceCents === 0 && !hasTiers ? "free" : "paid"} className={inp}><option value="free">Gratuit</option><option value="paid">Payant, prix fixe</option></select></Field>
               <Field label="Prix par place (€)"><input name="price" inputMode="decimal" defaultValue={r ? r.priceCents / 100 : ""} className={inp} /></Field>
               <Field label="Tarifs selon la formule d'adhésion (un par ligne : Formule | prix)" hint="Ex. Dame Premium | 10. La formule de l'adhérente est reconnue automatiquement : elle paie ce tarif, les autres paient le prix de base." className="sm:col-span-2"><textarea name="tiers" rows={2} defaultValue={r?.tiers?.map((t) => `${t.label} | ${t.priceCents / 100}`).join("\n")} className={area} /></Field>
@@ -105,7 +105,7 @@ export function EventForm({ event, canPricing = true, matches = [], linkedMatchI
       </Panel>
 
       <Panel title="7 · Publication">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Statut"><select name="status" defaultValue={event?.status ?? "draft"} className={inp}><option value="draft">Brouillon</option><option value="scheduled">Planifié</option><option value="published">Publié</option><option value="archived">Archivé</option></select></Field>
           <Field label="Publication programmée (si « Planifié »)"><input type="datetime-local" name="publishAt" defaultValue={toLocal(event?.publishAt)} className={inp} /></Field>
         </div>

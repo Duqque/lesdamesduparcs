@@ -25,7 +25,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       <PageHeader title="Produits" subtitle={`${rows.length} produit(s). Seuil de stock bas : ${cfg.lowStock}.`} actions={<>{ctx.can("shop.edit") && <LinkButton href="/admin/boutique/nouveau" variant="primary"><Plus aria-hidden className="size-4" /> Nouveau produit</LinkButton>}<a href="/admin/export/produits?format=csv" className={btn.outline}>Exporter</a></>} />
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
       <Panel className="mb-4" title="Filtres">
-        <form method="get" className="grid gap-3 sm:grid-cols-5">
+        <form method="get" className="grid grid-cols-1 gap-3 sm:grid-cols-5">
           <label className="sm:col-span-2"><span className={lbl}>Nom ou référence</span><input name="q" defaultValue={f.q} className={cn(inp, "mt-1.5")} /></label>
           <label><span className={lbl}>Statut</span><select name="statut" defaultValue={f.statut ?? ""} className={cn(inp, "mt-1.5")}><option value="">Tous</option>{Object.entries(ST).map(([k, [l]]) => <option key={k} value={k}>{l}</option>)}</select></label>
           <label><span className={lbl}>Catégorie</span><select name="categorie" defaultValue={f.categorie ?? ""} className={cn(inp, "mt-1.5")}><option value="">Toutes</option>{cats.map((c) => <option key={c}>{c}</option>)}</select></label>

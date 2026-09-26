@@ -22,7 +22,7 @@ export default async function PaymentSettingsPage({ searchParams }: { searchPara
         <p className="mt-3 font-body text-[12.5px] text-mist">Adresse de notification à déclarer dans HelloAsso (Intégrations et API &gt; Notifications) : <code className="break-all text-white">{(process.env.NEXT_PUBLIC_SITE_URL ?? "https://votre-site").replace(/\/$/, "")}/api/webhooks/helloasso?k=VOTRE_JETON</code> où le jeton est la valeur de <code>HELLOASSO_WEBHOOK_SECRET</code> (16 caractères minimum). Même sans notification, les paiements sont rapprochés au retour du visiteur et par un contrôle planifié.</p>
       </Panel>
       <Panel>
-        <form action={saveSettingsAction.bind(null, "payments")} className="grid gap-4 sm:grid-cols-2">
+        <form action={saveSettingsAction.bind(null, "payments")} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Devise"><input name="currency" defaultValue={p.currency} className={inp} /></Field>
           <label className="flex items-end gap-2 pb-2.5 font-body text-[13.5px] text-white/85"><input type="checkbox" name="onlinePayment" defaultChecked={p.onlinePayment} className="size-4 accent-[#d90f2c]" /> Paiement en ligne activé</label>
           <Field label="Politique de remboursement" className="sm:col-span-2"><textarea name="refundPolicy" rows={3} defaultValue={p.refundPolicy} className={area} /></Field>

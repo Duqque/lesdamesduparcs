@@ -33,7 +33,7 @@ export function MemberCard({ season }: { season: string }) {
             </div>
             <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-mist">Saison</p>
+                <p className="text-[12px] uppercase tracking-[0.2em] text-mist">Saison</p>
                 <p className="font-display text-[26px] font-semibold tabular-nums text-white">{season}</p>
               </div>
               <span aria-hidden className="grid size-9 place-items-center rounded-full border border-white/20 text-white/70">

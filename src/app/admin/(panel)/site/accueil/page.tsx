@@ -38,7 +38,7 @@ export default async function HomeEditorPage({ searchParams }: { searchParams: P
           <div className="grid gap-5 md:grid-cols-[260px_1fr]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={shown} alt={home.heroImageAlt || "Photo actuelle de l'en-tête"} className="aspect-[16/10] w-full rounded-[10px] border border-line object-cover" />
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Envoyer une nouvelle photo" hint="JPEG, PNG ou WebP, 12 Mo maximum (paysage, de préférence 2000 px de large). Elle est ajoutée à la médiathèque." className="sm:col-span-2">
                 <input type="file" name="heroImageFile" accept="image/jpeg,image/png,image/webp,image/gif" className={inp} />
               </Field>
@@ -60,7 +60,7 @@ export default async function HomeEditorPage({ searchParams }: { searchParams: P
           <div className="grid gap-5 md:grid-cols-[260px_1fr]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={ctaImage || DEFAULT_CTA.image} alt={home.ctaImageAlt || "Photo actuelle de la carte"} className="aspect-[4/3] w-full rounded-[10px] border border-line object-cover" />
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Titre" hint={`Vide = « ${DEFAULT_CTA.title} »`} className="sm:col-span-2"><input name="ctaTitle" defaultValue={home.ctaTitle} className={inp} /></Field>
               <Field label="Texte" hint="Vide = texte d'origine" className="sm:col-span-2"><textarea name="ctaText" rows={3} defaultValue={home.ctaText} className={area} /></Field>
               <Field label="Bouton" hint={`Vide = « ${DEFAULT_CTA.button} ». Il mène à la page d'adhésion.`} className="sm:col-span-2"><input name="ctaButton" defaultValue={home.ctaButton} className={inp} /></Field>
@@ -87,7 +87,7 @@ export default async function HomeEditorPage({ searchParams }: { searchParams: P
         </Panel>
         <Panel title="Articles mis en avant">
           <p className="mb-3 font-body text-[12.5px] text-mist">Cochez les articles à placer en tête des actualités de l&rsquo;accueil (trois affichés).</p>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {articles.filter((a) => a.status === "published").map((a) => (
               <label key={a.id} className="flex items-center gap-2.5 font-body text-[13.5px] text-white/85"><input type="checkbox" name="articles" value={a.id} defaultChecked={home.featuredArticleIds.includes(a.id)} className="size-4 accent-[#d90f2c]" />{a.title}</label>
             ))}

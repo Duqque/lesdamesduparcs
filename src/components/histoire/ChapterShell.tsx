@@ -79,7 +79,7 @@ export function ChapterShell({ chapter, art, children, standalone }: Props) {
 
       {!standalone && (
       <nav aria-label="Chapitre précédent et suivant" className={cn(wrap, "pb-24 md:pb-32")}>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {prev ? (
             <Link href={`/groupe/${prev.slug}`} className="group min-w-0 overflow-hidden rounded-[10px] border border-line bg-night-900/85 p-6 transition-colors hover:border-white/30 md:p-8">
               <p className="flex items-center gap-2 t-caption text-mist">

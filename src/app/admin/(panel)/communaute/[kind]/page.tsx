@@ -26,7 +26,7 @@ function Input({ f, row }: { f: FieldDef; row?: Record<string, unknown> }) {
 
 function RowForm({ kind, fields, row }: { kind: string; fields: FieldDef[]; row?: Record<string, unknown> }) {
   return (
-    <form action={saveRowAction.bind(null, kind)} className="grid gap-4 sm:grid-cols-2">
+    <form action={saveRowAction.bind(null, kind)} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {row && <input type="hidden" name="id" value={String(row.id)} />}
       {fields.map((f) => <Input key={f.name} f={f} row={row} />)}
       <div className="sm:col-span-2"><SubmitButton>{row ? "Enregistrer" : "Ajouter"}</SubmitButton></div>

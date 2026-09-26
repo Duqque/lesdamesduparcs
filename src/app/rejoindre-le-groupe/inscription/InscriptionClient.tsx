@@ -176,7 +176,7 @@ export function InscriptionClient() {
 
           <form onSubmit={submit} noValidate className="mt-8 rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-6 md:p-9">
             {logical === 0 && (
-              <fieldset className="grid gap-5 sm:grid-cols-2">
+              <fieldset className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <legend className="sr-only">Identité et coordonnées</legend>
                 <Field id="f-firstName" label="Prénom" error={err("firstName")}>
                   <input id="f-firstName" autoComplete="given-name" className={inputCls} {...text("firstName")} {...inv("firstName")} />
@@ -212,7 +212,7 @@ export function InscriptionClient() {
             )}
 
             {logical === 1 && (
-              <fieldset className="grid gap-5 sm:grid-cols-2">
+              <fieldset className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <legend className="sr-only">Autorisation parentale</legend>
                 <p className="sm:col-span-2 text-mist t-small">
                   Vous avez moins de 18 ans : l&rsquo;autorisation d&rsquo;un responsable légal est obligatoire. Téléchargez le{" "}

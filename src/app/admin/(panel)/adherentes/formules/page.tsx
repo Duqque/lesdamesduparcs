@@ -10,7 +10,7 @@ export const metadata = { title: "Formules d'adhésion" };
 
 function PlanForm({ plan }: { plan?: Plan }) {
   return (
-    <form action={savePlanAction} className="grid gap-4 sm:grid-cols-2">
+    <form action={savePlanAction} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {plan && <input type="hidden" name="id" value={plan.id} />}
       <Field label="Nom" className="sm:col-span-2"><input name="name" defaultValue={plan?.name} required className={inp} /></Field>
       <Field label="Description" className="sm:col-span-2"><textarea name="description" defaultValue={plan?.description} rows={2} className={area} /></Field>

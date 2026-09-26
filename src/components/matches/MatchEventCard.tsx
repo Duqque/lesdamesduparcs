@@ -19,14 +19,14 @@ export function MatchEventCard({ match, next, className }: { match: MatchView; n
       className={cn("group flex h-full w-[min(78vw,290px)] shrink-0 snap-start flex-col overflow-hidden rounded-[4px] border border-psg-red-bright/40 bg-[#0b1327] text-white md:w-auto", className)}
     >
       <div className="flex flex-col px-[clamp(16px,1.6vw,24px)] pb-5 pt-6">
-        <p className="flex items-center justify-between gap-2 font-body text-[10.5px] font-bold uppercase tracking-[0.12em]">
+        <p className="flex items-center justify-between gap-2 font-body text-[12px] font-bold uppercase tracking-[0.12em]">
           <span className={next ? "text-psg-red-bright" : "text-mist"}>{next ? "Prochain match" : "Match du PSG"}</span>
           {match.competition && <span className="min-w-0 truncate text-mist">{match.competition}</span>}
         </p>
         {/* Trois logos carrés : domicile, extérieur, compétition */}
         <div className="mt-4 flex items-center gap-2.5">
           <MatchLogo src={match.homeLogo} name={match.homeTeam} className="size-[46px]" />
-          <span aria-hidden className="font-display text-[11px] uppercase text-white/75">vs</span>
+          <span aria-hidden className="font-display text-[12px] uppercase text-white/75">vs</span>
           <MatchLogo src={match.awayLogo} name={match.awayTeam} className="size-[46px]" />
           {(match.competitionLogo || match.competition) && <MatchLogo src={match.competitionLogo} name={match.competition || "Compétition"} className="ml-auto size-[34px]" />}
         </div>

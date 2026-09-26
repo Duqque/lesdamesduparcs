@@ -17,7 +17,7 @@ export function ChantPlayer() {
     >
       <div className="flex items-center justify-between">
         <CardLabel icon={Music2}>Le chant du groupe</CardLabel>
-        <span className="font-body text-[11px] tabular-nums text-mist" aria-hidden>
+        <span className="font-body text-[12px] tabular-nums text-mist" aria-hidden>
           {formatClock(currentTime)} / {formatClock(duration)}
         </span>
       </div>

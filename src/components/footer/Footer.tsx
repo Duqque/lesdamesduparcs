@@ -15,7 +15,7 @@ export async function Footer() {
           <Image src="/logos/dames-du-parc-logo.webp" alt="" width={56} height={56} className="size-[54px] rounded-full" />
           <span>
             <span className="block font-body text-[13px] font-semibold uppercase tracking-[0.08em] text-white">Les Dames du Parc</span>
-            <span className="mt-1 block font-body text-[11px] uppercase tracking-[0.12em] text-mist">Paris</span>
+            <span className="mt-1 block font-body text-[12px] uppercase tracking-[0.12em] text-mist">Paris</span>
           </span>
         </Link>
 

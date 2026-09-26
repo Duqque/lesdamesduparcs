@@ -64,10 +64,10 @@ export function AdminRegistrations({ event }: { event: ClubEvent }) {
 
   return (
     <div className="rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-6 md:p-9">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {tiles.map((t) => (
           <div key={t.label} className="rounded-[12px] border border-white/10 bg-black/20 p-5">
-            <p className="font-body text-[11px] uppercase tracking-[0.2em] text-mist">{t.label}</p>
+            <p className="font-body text-[12px] uppercase tracking-[0.2em] text-mist">{t.label}</p>
             <p className="mt-2 font-display text-[34px] font-semibold tabular-nums leading-none text-white">{t.value}</p>
           </div>
         ))}
@@ -100,7 +100,7 @@ export function AdminRegistrations({ event }: { event: ClubEvent }) {
                 <span className="font-body text-[13px] tabular-nums text-white/80">
                   {r.places} pl. · {formatEuros(r.amountCents)}
                 </span>
-                <span className="rounded-full border border-white/15 px-3 py-1 font-body text-[11.5px] text-white/85">{statusLabel[r.status]}</span>
+                <span className="rounded-full border border-white/15 px-3 py-1 font-body text-[12px] text-white/85">{statusLabel[r.status]}</span>
               </div>
             </li>
           ))}

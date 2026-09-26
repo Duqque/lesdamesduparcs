@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { HeroBackdrop } from "./HeroBackdrop";
 import { HeroContent } from "./HeroContent";
@@ -19,6 +20,8 @@ export function Hero({ title, subtitle, cta, image, imageAlt }: { title?: string
   const veil = useTransform(scrollYProgress, [0, 0.9], [0, 0.92]);
   const textY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -140]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
+  // Logo d'origine, en haut de l'écran sur mobile et tablette : il s'efface dès les premiers pixels de défilement.
+  const logoOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
   const cueOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
   const goToManifesto = () => document.getElementById("manifeste")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
@@ -37,6 +40,9 @@ export function Hero({ title, subtitle, cta, image, imageAlt }: { title?: string
         className="absolute inset-0 z-[1] bg-[linear-gradient(0deg,rgba(3,9,25,0.94)_0%,rgba(3,9,25,0.6)_26%,rgba(3,9,25,0)_58%),linear-gradient(90deg,rgba(3,9,25,0.78)_0%,rgba(3,9,25,0.35)_38%,rgba(3,9,25,0)_70%),linear-gradient(180deg,rgba(3,9,25,0.62)_0%,rgba(3,9,25,0)_20%)]"
       />
       <motion.div aria-hidden className="absolute inset-0 z-[2] bg-night-950" style={{ opacity: veil }} />
+      <motion.div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center pt-[max(20px,env(safe-area-inset-top))] lg:hidden" style={{ opacity: logoOpacity }}>
+        <Image src="/logos/dames-du-parc-logo.webp" alt="" width={120} height={120} priority className="size-[88px] drop-shadow-[0_8px_24px_rgba(0,0,0,0.55)] sm:size-[104px]" />
+      </motion.div>
       <motion.div className="relative z-10 flex w-full items-end" style={{ y: textY, opacity: textOpacity }}>
         <HeroContent title={title} subtitle={subtitle} cta={cta} />
       </motion.div>
@@ -46,7 +52,7 @@ export function Hero({ title, subtitle, cta, image, imageAlt }: { title?: string
         onClick={goToManifesto}
         aria-label="Passer au manifeste"
         style={{ opacity: cueOpacity }}
-        className="absolute bottom-[104px] right-5 z-10 flex flex-col items-center gap-2 font-body text-[11px] font-medium uppercase tracking-[0.28em] text-white/75 transition-colors hover:text-white lg:bottom-8 lg:left-1/2 lg:right-auto lg:-translate-x-1/2"
+        className="absolute bottom-[104px] right-5 z-10 flex flex-col items-center gap-2 font-body text-[12px] font-medium uppercase tracking-[0.28em] text-white/75 transition-colors hover:text-white lg:bottom-8 lg:left-1/2 lg:right-auto lg:-translate-x-1/2"
       >
         <span className="hidden lg:block">Découvrir</span>
         <motion.span

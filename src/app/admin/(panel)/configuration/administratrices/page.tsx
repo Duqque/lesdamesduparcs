@@ -65,7 +65,7 @@ export default async function AdminsPage({ searchParams }: { searchParams: Promi
         )}
       </Panel>
       <Panel title="Ajouter une administratrice">
-        <form action={createAdminAction} className="grid gap-4 sm:grid-cols-2">
+        <form action={createAdminAction} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Prénom"><input name="firstName" required className={inp} /></Field>
           <Field label="Nom"><input name="lastName" className={inp} /></Field>
           <Field label="Adresse e-mail"><input name="email" type="email" required className={inp} /></Field>

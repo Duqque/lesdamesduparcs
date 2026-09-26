@@ -165,6 +165,9 @@ export const DEFAULT_TEMPLATES: Array<Omit<EmailTemplate, "createdAt" | "updated
   { id: "order_shipped", key: "order_shipped", name: "Commande expédiée", subject: "Ta commande {{objet}} est en route", body: "Bonjour {{prenom}},\n\nTa commande {{objet}} vient de partir. Suivi : {{suivi}}." },
   { id: "order_ready", key: "order_ready", name: "Commande prête au retrait", subject: "Ta commande {{objet}} est prête", body: "Bonjour {{prenom}},\n\nTa commande {{objet}} est prête : tu pourras la retirer lors du prochain événement des Dames du Parc. Nous te préciserons la date et le lieu." },
   { id: "event_payment_due", key: "event_payment_due", name: "Inscription : paiement à régler", subject: "Règlement de ton inscription : {{objet}}", body: "Bonjour {{prenom}},\n\nTon inscription à {{objet}} est enregistrée. Montant à régler : {{montant}}.\n\n{{consignes}}" },
+  { id: "new_article", key: "new_article", name: "Nouvel article publié (adhérentes)", subject: "Nouvel article : {{titre}}", body: "Bonjour {{prenom}},\n\nUn nouvel article vient d'être publié sur le site des Dames du Parc :\n\n{{titre}}\n{{resume}}\n\n{{lien}}" },
+  { id: "new_event", key: "new_event", name: "Nouvel événement publié (adhérentes)", subject: "Nouvel événement : {{titre}}", body: "Bonjour {{prenom}},\n\nUn nouvel événement vient d'être publié :\n\n{{titre}}\n{{date}}, {{lieu}}\n{{resume}}\n\nLes adhérentes actives ont la priorité sur les inscriptions.\n\n{{lien}}" },
+  { id: "new_product", key: "new_product", name: "Nouveau produit en boutique (adhérentes)", subject: "Nouveau à la boutique : {{titre}}", body: "Bonjour {{prenom}},\n\nUn nouveau produit vient d'arriver à la boutique des Dames du Parc :\n\n{{titre}}\n{{resume}}\nPrix : {{prix}}\n\n{{lien}}" },
 ];
 
 export const templates = collection<EmailTemplate>("email_templates", () => DEFAULT_TEMPLATES);

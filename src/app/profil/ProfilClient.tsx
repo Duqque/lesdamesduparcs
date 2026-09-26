@@ -184,7 +184,7 @@ function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: strin
       </Section>
 
       <Section id="avantages" title="Mes avantages">
-        <ul className="grid gap-4 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {benefits.map((b) => (
             <li key={b.id} className="rounded-[14px] border border-white/10 bg-[#0b1327]/90 p-6">
               <p className="font-body text-[16px] font-semibold text-white">{b.title}</p>

@@ -21,7 +21,7 @@ export default async function NewMemberPage({ searchParams }: { searchParams: Pr
       <Flash error={first(sp.erreur)} />
       <form action={createMemberAction} className="grid gap-4">
         <Panel title="Identité">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Prénom"><input name="firstName" required className={inp} /></Field>
             <Field label="Nom"><input name="lastName" required className={inp} /></Field>
             <div><span className="block font-body text-[12px] font-medium uppercase tracking-[0.14em] text-mist">Date de naissance</span><BirthDateInput id="m-birth" name="birthDate" className="mt-1.5" /></div>
@@ -32,7 +32,7 @@ export default async function NewMemberPage({ searchParams }: { searchParams: Pr
           </div>
         </Panel>
         <Panel title="Responsable légal (si mineure)">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Prénom"><input name="gFirstName" className={inp} /></Field>
             <Field label="Nom"><input name="gLastName" className={inp} /></Field>
             <Field label="Lien"><select name="gRelation" className={inp}><option value="mere">Mère</option><option value="pere">Père</option><option value="tuteur">Représentant légal</option></select></Field>
@@ -41,7 +41,7 @@ export default async function NewMemberPage({ searchParams }: { searchParams: Pr
           </div>
         </Panel>
         <Panel title="Adhésion et paiement">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Field label="Formule"><select name="planId" className={inp}>{list.map((p) => <option key={p.id} value={p.id}>{p.name} · {eur(p.promoPriceCents ?? p.priceCents)}</option>)}</select></Field>
             <Field label="Mode de paiement"><select name="method" className={inp}><option value="manual">À définir</option><option value="virement">Virement</option><option value="cash">Espèces</option><option value="cheque">Chèque</option><option value="online">Carte</option><option value="autre">Autre</option></select></Field>
             <label className="flex items-end gap-2 pb-2.5 font-body text-[13.5px] text-white/85"><input type="checkbox" name="paid" value="1" className="size-4 accent-[#d90f2c]" /> Adhésion déjà réglée</label>

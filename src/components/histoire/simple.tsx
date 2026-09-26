@@ -129,7 +129,7 @@ const buildIcons: LucideIcon[] = [Users, Handshake, Globe, Sparkles];
 export function BuildBody() {
   return (
     <div className={wrap}>
-      <ul className="grid gap-4 md:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {g.build.map((b, i) => {
           const Icon = buildIcons[i] ?? Sparkles;
           return (

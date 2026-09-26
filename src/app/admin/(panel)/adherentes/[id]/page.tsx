@@ -75,7 +75,7 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <Panel title="Informations personnelles">
-          <form action={updateMemberAction.bind(null, id)} className="grid gap-4 sm:grid-cols-2">
+          <form action={updateMemberAction.bind(null, id)} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Prénom"><input name="firstName" defaultValue={m.firstName} className={inp} disabled={anonymized} /></Field>
             <Field label="Nom"><input name="lastName" defaultValue={m.lastName} className={inp} disabled={anonymized} /></Field>
             <Field label="Adresse e-mail"><input name="email" type="email" defaultValue={m.email} className={inp} disabled={anonymized} /></Field>
