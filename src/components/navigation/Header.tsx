@@ -50,7 +50,7 @@ function NavLinks({ items, pathname }: { items: typeof leftNav; pathname: string
           <div key={item.href} className="group/menu relative">
             {link}
             <div className="invisible absolute left-0 top-full z-50 w-[min(640px,calc(100vw-48px))] pt-3 opacity-0 transition-[opacity,visibility] duration-200 group-focus-within/menu:visible group-focus-within/menu:opacity-100 group-hover/menu:visible group-hover/menu:opacity-100">
-              <ul className="grid grid-cols-2 gap-1 overflow-hidden rounded-[10px] border border-white/[0.1] bg-night-950/95 p-3 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.9)] backdrop-blur-md">
+              <ul className="grid grid-cols-2 gap-1 overflow-hidden rounded-[10px] border border-white/[0.1] bg-night-950/95 p-3 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.9)]">
                 {item.children.map((c) => (
                   <li key={c.href} className="min-w-0">
                     <Link
@@ -96,10 +96,10 @@ export function Header({ navConfig }: { navConfig?: NavConfig }) {
     <>
       <header
         className={cn(
-          "fixed inset-x-0 top-0 z-50 hidden transition-[height,background-color,border-color,backdrop-filter] duration-300 lg:block",
+          "fixed inset-x-0 top-0 z-50 hidden transition-[background-color,border-color] duration-300 lg:block",
           "lg:h-[var(--header-h)]",
           scrolled || open
-            ? "border-b border-white/[0.07] bg-night-950/88 backdrop-blur-md lg:h-[76px]"
+            ? "border-b border-white/[0.07] bg-night-950/95"
             : "border-b border-transparent bg-transparent",
         )}
       >
@@ -143,7 +143,7 @@ export function Header({ navConfig }: { navConfig?: NavConfig }) {
         </div>
       </header>
       <MobileDock open={open} onToggle={() => setOpen((v) => !v)} onClose={() => setOpen(false)} />
-      <SoundToggle className="fixed bottom-6 right-6 z-40 hidden size-12 place-items-center rounded-full border border-white/[0.14] bg-[#0d0f13]/90 text-white/85 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.9)] backdrop-blur-md transition-[background-color,border-color,color] duration-300 hover:border-white/35 hover:bg-[#161a20] hover:text-white lg:grid" />
+      <SoundToggle className="fixed bottom-6 right-6 z-40 hidden size-12 place-items-center rounded-full border border-white/[0.14] bg-[#0d0f13]/90 text-white/85 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.9)] transition-[background-color,border-color,color] duration-300 hover:border-white/35 hover:bg-[#161a20] hover:text-white lg:grid" />
       <MobileMenu open={open} pathname={pathname} items={apply(mainNav)} onNavigate={() => setOpen(false)} />
     </>
   );

@@ -39,7 +39,7 @@ export function ContactWindow({ email }: { email: string }) {
     <section
       role="dialog"
       aria-label="Nous contacter"
-      className="fixed bottom-[76px] right-6 z-[60] hidden max-h-[30svh] w-[30vw] min-w-[300px] max-w-[30vw] overflow-y-auto overscroll-contain rounded-[14px] border border-white/[0.14] bg-[#07090d]/97 p-2 shadow-[0_18px_50px_-18px_rgba(0,0,0,0.95)] backdrop-blur-md lg:block"
+      className="fixed bottom-[76px] right-6 z-[60] hidden max-h-[30svh] w-[30vw] min-w-[300px] max-w-[30vw] overflow-y-auto overscroll-contain rounded-[14px] border border-white/[0.14] bg-[#07090d]/97 p-2 shadow-[0_18px_50px_-18px_rgba(0,0,0,0.95)] lg:block"
     >
       <div className="mb-1 flex items-center justify-between gap-3">
         <h2 className="min-w-0 truncate font-display text-[12.5px] uppercase leading-none text-white">Nous contacter</h2>
