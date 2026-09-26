@@ -1,6 +1,8 @@
 import "server-only";
 import { emailLog, ensureTemplates, templates } from "./content";
 import { settings } from "./admin-store";
+import { renderEmail } from "@/lib/email-html";
+import { siteOrigin } from "./http";
 
 export const emailConfigured = () => Boolean(process.env.RESEND_API_KEY);
 
@@ -13,7 +15,19 @@ export const fill = (text: string, vars: Record<string, string | number | undefi
  */
 export async function sendEmail(opts: { to: string; subject: string; body: string; kind: string; replyTo?: string }) {
   const conf = await settings.get();
-  const signature = conf.emails.signature ? `\n\n${conf.emails.signature}` : "";
+  let origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com";
+  try {
+    origin = await siteOrigin();
+  } catch {
+    /* hors requête (tâche planifiée) : adresse configurée */
+  }
+  const a = conf.association;
+  const { html, text } = renderEmail({
+    subject: opts.subject,
+    body: opts.body,
+    kind: opts.kind,
+    brand: { origin, name: a.name || "Les Dames du Parc", address: [a.address, [a.postalCode, a.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || undefined, email: a.email || undefined, instagram: a.instagram, tiktok: a.tiktok, facebook: a.facebook, signature: conf.emails.signature },
+  });
   if (!emailConfigured()) {
     await emailLog.insert({ to: opts.to, subject: opts.subject, kind: opts.kind, status: "skipped", detail: "Aucun service d'e-mail configuré (RESEND_API_KEY)." });
     return { ok: false as const, skipped: true };
@@ -22,7 +36,7 @@ export async function sendEmail(opts: { to: string; subject: string; body: strin
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: `${conf.emails.fromName} <${conf.emails.fromEmail}>`, to: [opts.to], subject: opts.subject, text: opts.body + signature, ...(opts.replyTo ? { reply_to: opts.replyTo } : {}) }),
+      body: JSON.stringify({ from: `${conf.emails.fromName} <${conf.emails.fromEmail}>`, to: [opts.to], subject: opts.subject, html, text, ...(opts.replyTo ? { reply_to: opts.replyTo } : {}) }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     await emailLog.insert({ to: opts.to, subject: opts.subject, kind: opts.kind, status: "sent" });

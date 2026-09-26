@@ -52,13 +52,16 @@ export const tooMany = () => json({ error: "Trop de tentatives. Réessayez dans 
 /** Adresse publique du site depuis une server action (pas de Request) : variable d'environnement, sinon en-têtes de la requête. */
 export async function siteOrigin() {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  // En production, on ne fait jamais confiance à l'en-tête Host pour fabriquer les liens des e-mails (empoisonnement de lien de réinitialisation).
+  if (process.env.NODE_ENV === "production") return "https://www.lesdamesduparc.com";
   const { headers } = await import("next/headers");
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost";
   return `${h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https")}://${host}`;
 }
 
-export const siteUrl = (req: Request) => process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || new URL(req.url).origin;
+export const siteUrl = (req: Request) =>
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || (process.env.NODE_ENV === "production" ? "https://www.lesdamesduparc.com" : new URL(req.url).origin);
 
 /** Corps JSON limité en taille (64 Ko par défaut) : refuse plutôt que de charger un corps démesuré en mémoire. */
 export async function readJson<T = unknown>(req: Request, maxBytes = 64 * 1024): Promise<T | null> {
