@@ -231,6 +231,12 @@ export const siteConfig = singleton("site_config", {
     /** Photo de l'en-tête de l'accueil (vide = photo d'origine) */
     heroImage: "",
     heroImageAlt: "",
+    /** Carte rouge « Adhérer » sous le manifeste (vide = valeurs d'origine) */
+    ctaImage: "",
+    ctaImageAlt: "",
+    ctaTitle: "",
+    ctaText: "",
+    ctaButton: "",
     hiddenSections: [] as string[],
     sectionOrder: [] as string[],
     featuredEventIds: [] as string[],

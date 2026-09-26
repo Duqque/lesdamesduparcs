@@ -1,3 +1,4 @@
+import { JoinCtaCard } from "@/components/home/JoinCtaCard";
 import { Button } from "@/components/ui/Button";
 import { IdCard } from "lucide-react";
 import { safeUrl } from "@/lib/safe-url";
@@ -42,16 +43,8 @@ export default async function HomePage() {
     manifeste: (
       <>
         <Manifesto />
-        {/* Appel à adhérer, juste sous le manifeste */}
-        <section aria-label="Adhérer aux Dames du Parc" className={`${wrap} -mt-8 pb-8 text-center md:-mt-16`}>
-          <Reveal>
-            <p className="mx-auto max-w-xl text-white/80 t-lead">Envie de vivre le PSG avec nous ? Rejoignez Les Dames du Parc, le groupe de supportrices du Paris Saint-Germain.</p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button size="lg" href="/rejoindre-le-groupe/inscription" icon={IdCard} arrow={false}>Adhérer aux Dames du Parc</Button>
-              <Button size="lg" variant="outline" href="/groupe">Découvrir le groupe</Button>
-            </div>
-          </Reveal>
-        </section>
+        {/* Carte rouge d'appel à adhérer, juste sous le manifeste */}
+        <JoinCtaCard image={safeUrl(home.ctaImage) || undefined} alt={home.ctaImageAlt || undefined} title={home.ctaTitle || undefined} text={home.ctaText || undefined} button={home.ctaButton || undefined} />
       </>
     ),
     rendezvous: (

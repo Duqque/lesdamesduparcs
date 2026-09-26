@@ -25,8 +25,13 @@ export async function saveHomeContentAction(formData: FormData) {
     heroTitle: s(formData, "heroTitle"),
     heroSubtitle: s(formData, "heroSubtitle"),
     heroCta: s(formData, "heroCta"),
-    ...(await heroImageFromForm(formData, before.heroImage ?? "")),
+    heroImage: await imageFromForm(formData, "hero", before.heroImage ?? ""),
     heroImageAlt: s(formData, "heroImageAlt").slice(0, 200),
+    ctaImage: await imageFromForm(formData, "cta", before.ctaImage ?? ""),
+    ctaImageAlt: s(formData, "ctaImageAlt").slice(0, 200),
+    ctaTitle: s(formData, "ctaTitle").slice(0, 120),
+    ctaText: s(formData, "ctaText").slice(0, 400),
+    ctaButton: s(formData, "ctaButton").slice(0, 60),
     featuredEventIds: formData.getAll("events").map(String).filter(Boolean),
     featuredArticleIds: formData.getAll("articles").map(String).filter(Boolean),
   };
@@ -185,10 +190,10 @@ export async function saveGroupPhotosAction(formData: FormData) {
   done("/admin/site/groupe", "Photos enregistrées.");
 }
 
-/** Photo de l'en-tête : nouvelle photo envoyée > adresse saisie > photo choisie dans la médiathèque ; « par défaut » la retire. */
-async function heroImageFromForm(formData: FormData, current: string): Promise<{ heroImage: string }> {
-  if (formData.get("resetHeroImage") === "on") return { heroImage: "" };
-  const file = formData.get("heroImageFile");
+/** Photo d'une rubrique de l'accueil : nouvelle photo envoyée > adresse saisie > photo choisie dans la médiathèque ; « par défaut » la retire. */
+async function imageFromForm(formData: FormData, prefix: "hero" | "cta", current: string): Promise<string> {
+  if (formData.get(`reset${prefix === "hero" ? "Hero" : "Cta"}Image`) === "on") return "";
+  const file = formData.get(`${prefix}ImageFile`);
   if (file instanceof File && file.size > 0) {
     const up = await saveMedia(file);
     if (!up.ok) redirect("/admin/site/accueil?erreur=" + encodeURIComponent(up.error));
@@ -196,8 +201,7 @@ async function heroImageFromForm(formData: FormData, current: string): Promise<{
       await deleteMedia(up.media.id);
       redirect("/admin/site/accueil?erreur=" + encodeURIComponent("Choisissez une photo (JPEG, PNG, WebP ou GIF)."));
     }
-    return { heroImage: mediaUrl(up.media) };
+    return mediaUrl(up.media);
   }
-  const picked = safeUrl(s(formData, "heroImageUrl")) || safeUrl(s(formData, "heroImagePick"));
-  return { heroImage: picked || current };
+  return safeUrl(s(formData, `${prefix}ImageUrl`)) || safeUrl(s(formData, `${prefix}ImagePick`)) || current;
 }

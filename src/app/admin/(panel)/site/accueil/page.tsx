@@ -5,7 +5,7 @@ import { first, type SP } from "@/lib/admin/params";
 import { requireAdmin } from "@/lib/server/admin-auth";
 import { articlesDb, mediaDb, siteConfig } from "@/lib/server/content";
 import { mediaUrl } from "@/lib/server/media";
-import { DEFAULT_HERO_IMAGE } from "@/lib/hero";
+import { DEFAULT_CTA, DEFAULT_HERO_IMAGE } from "@/lib/hero";
 import { getPublishedEvents } from "@/lib/server/events";
 import { saveHomeContentAction } from "../actions";
 
@@ -19,6 +19,8 @@ export default async function HomeEditorPage({ searchParams }: { searchParams: P
   const heroImage = home.heroImage || "";
   const shown = heroImage || DEFAULT_HERO_IMAGE;
   const inLibrary = images.some((m) => mediaUrl(m) === heroImage);
+  const ctaImage = home.ctaImage || "";
+  const ctaInLibrary = images.some((m) => mediaUrl(m) === ctaImage);
   const today = new Date().toISOString().slice(0, 10);
   return (
     <>
@@ -51,6 +53,27 @@ export default async function HomeEditorPage({ searchParams }: { searchParams: P
               </Field>
               <Field label="Description de la photo (accessibilité)" className="sm:col-span-2"><input name="heroImageAlt" defaultValue={home.heroImageAlt} maxLength={200} className={inp} /></Field>
               {heroImage && <label className="flex items-center gap-2 font-body text-[13.5px] text-white/85 sm:col-span-2"><input type="checkbox" name="resetHeroImage" className="size-4 accent-[#d90f2c]" /> Revenir à la photo d&rsquo;origine</label>}
+            </div>
+          </div>
+        </Panel>
+        <Panel title="Carte rouge « Adhérer » (sous le manifeste)">
+          <div className="grid gap-5 md:grid-cols-[260px_1fr]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={ctaImage || DEFAULT_CTA.image} alt={home.ctaImageAlt || "Photo actuelle de la carte"} className="aspect-[4/3] w-full rounded-[10px] border border-line object-cover" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Titre" hint={`Vide = « ${DEFAULT_CTA.title} »`} className="sm:col-span-2"><input name="ctaTitle" defaultValue={home.ctaTitle} className={inp} /></Field>
+              <Field label="Texte" hint="Vide = texte d'origine" className="sm:col-span-2"><textarea name="ctaText" rows={3} defaultValue={home.ctaText} className={area} /></Field>
+              <Field label="Bouton" hint={`Vide = « ${DEFAULT_CTA.button} ». Il mène à la page d'adhésion.`} className="sm:col-span-2"><input name="ctaButton" defaultValue={home.ctaButton} className={inp} /></Field>
+              <Field label="Envoyer une photo de supporters" hint="JPEG, PNG ou WebP, 12 Mo maximum. Une photo de groupe, en paysage." className="sm:col-span-2"><input type="file" name="ctaImageFile" accept="image/jpeg,image/png,image/webp,image/gif" className={inp} /></Field>
+              <Field label="Ou choisir dans la médiathèque">
+                <select name="ctaImagePick" defaultValue={ctaInLibrary ? ctaImage : ""} className={inp}>
+                  <option value="">Garder la photo actuelle</option>
+                  {images.map((m) => <option key={m.id} value={mediaUrl(m)}>{m.name}</option>)}
+                </select>
+              </Field>
+              <Field label="Ou adresse d'une image"><input name="ctaImageUrl" defaultValue={ctaImage && !ctaInLibrary ? ctaImage : ""} placeholder="https://…" className={inp} /></Field>
+              <Field label="Description de la photo (accessibilité)" className="sm:col-span-2"><input name="ctaImageAlt" defaultValue={home.ctaImageAlt} maxLength={200} className={inp} /></Field>
+              {ctaImage && <label className="flex items-center gap-2 font-body text-[13.5px] text-white/85 sm:col-span-2"><input type="checkbox" name="resetCtaImage" className="size-4 accent-[#d90f2c]" /> Revenir à la photo d&rsquo;origine</label>}
             </div>
           </div>
         </Panel>
