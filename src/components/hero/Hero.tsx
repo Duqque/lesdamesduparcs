@@ -11,7 +11,7 @@ import { HeroContent } from "./HeroContent";
  * En descendant, la photo se rapproche et s'assombrit, les textes glissent vers le haut et s'effacent : la page « entre » dans le
  * manifeste juste en dessous (le bouton en bas de l'écran y mène en douceur).
  */
-export function Hero({ title, subtitle, cta }: { title?: string; subtitle?: string; cta?: string }) {
+export function Hero({ title, subtitle, cta, image, imageAlt }: { title?: string; subtitle?: string; cta?: string; image?: string; imageAlt?: string }) {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
@@ -30,7 +30,7 @@ export function Hero({ title, subtitle, cta }: { title?: string; subtitle?: stri
       className="grain vignette relative flex h-[100svh] max-h-[100svh] items-end overflow-hidden bg-night-950"
     >
       <motion.div className="absolute inset-0 origin-center" style={{ scale: photoScale }}>
-        <HeroBackdrop />
+        <HeroBackdrop src={image || undefined} alt={imageAlt} />
       </motion.div>
       <div
         aria-hidden

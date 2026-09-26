@@ -228,6 +228,9 @@ export const siteConfig = singleton("site_config", {
     heroTitle: "",
     heroSubtitle: "",
     heroCta: "",
+    /** Photo de l'en-tête de l'accueil (vide = photo d'origine) */
+    heroImage: "",
+    heroImageAlt: "",
     hiddenSections: [] as string[],
     sectionOrder: [] as string[],
     featuredEventIds: [] as string[],

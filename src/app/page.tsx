@@ -1,3 +1,4 @@
+import { safeUrl } from "@/lib/safe-url";
 import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -107,7 +108,7 @@ export default async function HomePage() {
 
   return (
     <main>
-      <Hero title={home.heroTitle || undefined} subtitle={home.heroSubtitle || undefined} cta={home.heroCta || undefined} />
+      <Hero title={home.heroTitle || undefined} subtitle={home.heroSubtitle || undefined} cta={home.heroCta || undefined} image={safeUrl(home.heroImage) || undefined} imageAlt={home.heroImageAlt || undefined} />
       {orderHomeSections(home.sectionOrder, home.hiddenSections).map((k) => (
         <Fragment key={k}>{blocks[k]}</Fragment>
       ))}

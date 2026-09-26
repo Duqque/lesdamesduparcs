@@ -4,8 +4,9 @@ import Image from "next/image";
 import { motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
 import { useIntroDone } from "@/lib/intro";
+import { DEFAULT_HERO_IMAGE } from "@/lib/hero";
 
-export function HeroBackdrop() {
+export function HeroBackdrop({ src = DEFAULT_HERO_IMAGE, alt = "" }: { src?: string; alt?: string }) {
   const reduce = useReducedMotion();
   const introDone = useIntroDone();
   const mx = useMotionValue(0);
@@ -33,8 +34,9 @@ export function HeroBackdrop() {
         transition={{ duration: 1.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
       >
         <Image
-          src="/images/fans-drapeau-fumigene.webp"
-          alt=""
+          src={src}
+          alt={alt}
+          unoptimized={src.startsWith("/medias/") || src.startsWith("http")}
           fill
           priority
           sizes="(min-width: 1280px) 80vw, 100vw"

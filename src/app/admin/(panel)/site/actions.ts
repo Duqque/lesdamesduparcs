@@ -25,6 +25,8 @@ export async function saveHomeContentAction(formData: FormData) {
     heroTitle: s(formData, "heroTitle"),
     heroSubtitle: s(formData, "heroSubtitle"),
     heroCta: s(formData, "heroCta"),
+    ...(await heroImageFromForm(formData, before.heroImage ?? "")),
+    heroImageAlt: s(formData, "heroImageAlt").slice(0, 200),
     featuredEventIds: formData.getAll("events").map(String).filter(Boolean),
     featuredArticleIds: formData.getAll("articles").map(String).filter(Boolean),
   };
@@ -181,4 +183,21 @@ export async function saveGroupPhotosAction(formData: FormData) {
   await audit(ctx, "modification", "site", "Photos de la rubrique « Le groupe » modifiées", { before, after: next });
   refreshSite();
   done("/admin/site/groupe", "Photos enregistrées.");
+}
+
+/** Photo de l'en-tête : nouvelle photo envoyée > adresse saisie > photo choisie dans la médiathèque ; « par défaut » la retire. */
+async function heroImageFromForm(formData: FormData, current: string): Promise<{ heroImage: string }> {
+  if (formData.get("resetHeroImage") === "on") return { heroImage: "" };
+  const file = formData.get("heroImageFile");
+  if (file instanceof File && file.size > 0) {
+    const up = await saveMedia(file);
+    if (!up.ok) redirect("/admin/site/accueil?erreur=" + encodeURIComponent(up.error));
+    if (!up.media.mime.startsWith("image/") || up.media.mime === "image/svg+xml") {
+      await deleteMedia(up.media.id);
+      redirect("/admin/site/accueil?erreur=" + encodeURIComponent("Choisissez une photo (JPEG, PNG, WebP ou GIF)."));
+    }
+    return { heroImage: mediaUrl(up.media) };
+  }
+  const picked = safeUrl(s(formData, "heroImageUrl")) || safeUrl(s(formData, "heroImagePick"));
+  return { heroImage: picked || current };
 }
