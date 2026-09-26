@@ -13,7 +13,7 @@ export default async function ShopSettingsPage({ searchParams }: { searchParams:
   const c = await shopConfig.get();
   return (
     <>
-      <PageHeader title="Réglages de la boutique" subtitle="Livraison, seuil de stock bas et ordre des catégories. Les codes promotionnels se gèrent dans Communauté > Codes promotionnels." />
+      <PageHeader title="Réglages de la boutique" subtitle="Livraison, seuil de stock bas et ordre des catégories. Les codes de réduction se gèrent dans Boutique > Codes de réduction." />
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
       <Panel>
         <form action={saveShopSettingsAction} className="grid gap-4 sm:grid-cols-3">

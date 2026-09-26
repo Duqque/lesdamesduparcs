@@ -170,7 +170,7 @@ export function IntroLoader() {
             </button>
           </div>
           <div className="grid grid-cols-3 items-end">
-            <p className={cn("flex items-center gap-2 font-body text-[10px] uppercase tracking-[0.24em] text-white/45 transition-opacity", playing && "opacity-0")}>
+            <p className={cn("hidden items-center gap-2 font-body text-[10px] lg:flex uppercase tracking-[0.24em] text-white/45 transition-opacity", playing && "opacity-0")}>
               <Volume2 aria-hidden className="size-3.5" />
               <span className="hidden sm:inline">Touchez pour le son</span>
             </p>

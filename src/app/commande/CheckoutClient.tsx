@@ -207,7 +207,7 @@ export function CheckoutClient() {
             </p>
             <div className="mt-6">
               <Check id="c-terms" checked={terms} onChange={setTerms} error={errors.acceptTerms}>
-                J&rsquo;ai lu et j&rsquo;accepte les conditions générales de vente. Je peux retourner mon article sous 14 jours.
+                J&rsquo;ai lu et j&rsquo;accepte les <Link href="/conditions-generales-de-vente" className="underline underline-offset-4 hover:text-white" target="_blank" rel="noopener">conditions générales de vente</Link> et la <Link href="/politique-de-confidentialite" className="underline underline-offset-4 hover:text-white" target="_blank" rel="noopener">politique de confidentialité</Link>. Je peux retourner mon article sous 14 jours.
               </Check>
             </div>
           </Section>

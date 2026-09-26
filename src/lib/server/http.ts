@@ -49,6 +49,15 @@ export async function throttled(req: Request, scope: string, max = 10, windowMs 
 
 export const tooMany = () => json({ error: "Trop de tentatives. Réessayez dans quelques minutes." }, 429);
 
+/** Adresse publique du site depuis une server action (pas de Request) : variable d'environnement, sinon en-têtes de la requête. */
+export async function siteOrigin() {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const { headers } = await import("next/headers");
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost";
+  return `${h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https")}://${host}`;
+}
+
 export const siteUrl = (req: Request) => process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || new URL(req.url).origin;
 
 /** Corps JSON limité en taille (64 Ko par défaut) : refuse plutôt que de charger un corps démesuré en mémoire. */

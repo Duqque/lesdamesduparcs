@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { PageViewTracker } from "./PageViewTracker";
+import { CookieNotice } from "./CookieNotice";
 
 /** Habillage du site public (en-tête, pied de page) : absent du back-office. */
 export function SiteFrame({ header, footer, children }: { header: ReactNode; footer: ReactNode; children: ReactNode }) {
@@ -13,7 +14,8 @@ export function SiteFrame({ header, footer, children }: { header: ReactNode; foo
       <PageViewTracker />
       {header}
       <div id="contenu">{children}</div>
-      {footer}
+      <div className="max-lg:pb-[96px]">{footer}</div>
+      <CookieNotice />
     </>
   );
 }

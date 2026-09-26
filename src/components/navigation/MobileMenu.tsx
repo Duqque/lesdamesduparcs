@@ -28,7 +28,7 @@ export function MobileMenu({ open, pathname, items, onNavigate }: Props) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-night-950/97 px-[var(--gutter)] pb-10 pt-[112px] backdrop-blur-xl lg:hidden"
+          className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-night-950/97 px-[var(--gutter)] pb-[132px] pt-[56px] backdrop-blur-xl lg:hidden"
         >
           <nav aria-label="Navigation mobile" className="flex flex-col">
             {items.map((item, i) => {
@@ -45,7 +45,7 @@ export function MobileMenu({ open, pathname, items, onNavigate }: Props) {
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex min-h-16 items-center justify-between border-b border-white/10 font-display text-[32px] font-semibold uppercase tracking-[0.05em]",
+                      "flex min-h-16 items-center justify-between border-b border-white/10 font-display text-[26px] uppercase",
                       active ? "text-white" : "text-white/70",
                     )}
                   >

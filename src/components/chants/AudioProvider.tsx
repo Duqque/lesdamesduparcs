@@ -62,6 +62,8 @@ export function AudioProvider({ chant, children }: { chant: Chant; children: Rea
     const audio = ref.current;
     if (!audio) return;
     audio.volume = 0.6;
+    // Pas de musique de fond sur mobile et tablette (aucun bouton de son sur ces écrans).
+    if (window.matchMedia("(max-width: 1023px)").matches) return;
     try {
       if (localStorage.getItem(PREF_KEY) === "off") return;
     } catch {}

@@ -1,3 +1,4 @@
+import { privacyRequests } from "./privacy";
 import "server-only";
 import { ageAt } from "@/lib/registration";
 import { addDays, dayKey, monthKey } from "@/lib/admin/format";
@@ -232,6 +233,12 @@ export async function adminNotifications(ctx: AdminContext): Promise<Alert[]> {
     if (unusual) list.push({ level: "important", text: `${unusual} connexion${unusual > 1 ? "s" : ""} depuis une nouvelle adresse (24 h)`, href: "/admin/configuration/journal" });
     const fails = logins.filter((e) => !e.success).length;
     if (fails >= 3) list.push({ level: "important", text: `${fails} tentatives de connexion échouées (24 h)`, href: "/admin/configuration/journal" });
+  }
+  if (ctx.can("privacy.manage")) {
+    const open = await privacyRequests.find((r) => r.status === "received" || r.status === "in_progress");
+    const late = open.filter((r) => new Date(r.dueAt).getTime() < Date.now()).length;
+    if (late) list.push({ level: "urgent", text: `${late} demande${late > 1 ? "s" : ""} RGPD hors délai (1 mois)`, href: "/admin/rgpd" });
+    else if (open.length) list.push({ level: "important", text: `${open.length} demande${open.length > 1 ? "s" : ""} RGPD à traiter`, href: "/admin/rgpd" });
   }
   const order = { urgent: 0, important: 1, info: 2 } as const;
   return list.sort((a, b) => order[a.level] - order[b.level]);

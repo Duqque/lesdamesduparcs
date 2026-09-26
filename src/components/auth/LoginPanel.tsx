@@ -53,6 +53,7 @@ export function LoginPanel({ onSuccess, defaultRole = "member", className }: { o
             <div>
               <label htmlFor={`${uid}-mpwd`} className={labelCls}>Mot de passe</label>
               <input id={`${uid}-mpwd`} name="password" type="password" required autoComplete="current-password" className={field} />
+              <p className="mt-2 text-right"><Link href="/connexion/mot-de-passe-oublie" className="font-body text-[13px] text-mist underline underline-offset-4 hover:text-white">Mot de passe oublié ou première connexion ?</Link></p>
             </div>
           </>
         ) : null}

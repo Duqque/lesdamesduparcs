@@ -136,6 +136,7 @@ export async function checkPromo(code: string | undefined, scope: "shop" | "even
   if (promo.scope !== "all" && promo.scope !== scope) return { ok: false, error: "Ce code ne s'applique pas à cet achat." };
   if ((promo.startsAt && promo.startsAt > today) || (promo.endsAt && promo.endsAt < today)) return { ok: false, error: "Ce code n'est plus valable." };
   if (promo.maxUses && promo.uses >= promo.maxUses) return { ok: false, error: "Ce code a atteint son nombre maximum d'utilisations." };
+  if (promo.minCents && baseCents < promo.minCents) return { ok: false, error: `Ce code s'applique à partir de ${(promo.minCents / 100).toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} € d'achats.` };
   const raw = promo.type === "percent" ? Math.round((baseCents * promo.value) / 100) : promo.value;
   return { ok: true, discountCents: Math.min(Math.max(raw, 0), baseCents), promo };
 }

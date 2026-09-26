@@ -113,6 +113,8 @@ export interface PromoCode extends Row {
   startsAt?: string;
   endsAt?: string;
   maxUses?: number;
+  /** Panier minimum (centimes) pour que le code s'applique */
+  minCents?: number;
   uses: number;
   active: boolean;
 }
@@ -219,4 +221,6 @@ export const siteConfig = singleton("site_config", {
   seo: {} as Record<string, { title?: string; description?: string }>,
   navigation: { hidden: [] as string[], labels: {} as Record<string, string> },
   design: { accent: "#d90f2c", note: "" },
+  /** Photos de la rubrique « Le groupe » modifiées en administration (clé : identifiant du chapitre). */
+  groupPhotos: {} as Record<string, { src: string; alt: string }>,
 });

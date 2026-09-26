@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { seoFor } from "@/lib/server/site";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { getGroupPhotos } from "@/lib/server/site";
 import { GroupHero } from "@/components/group/GroupHero";
-import { ChapterIcon } from "@/components/histoire/ChapterIcon";
 import { wrap } from "@/components/histoire/styles";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
@@ -13,7 +14,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return seoFor("/groupe", { title: "Le groupe", description: "Les Dames du Parc : 22 supportrices réunies par la même passion, le Paris Saint-Germain. Notre histoire, nos valeurs, pourquoi un fan club 100 % féminin, ce que nous voulons construire." });
 }
 
-export default function GroupPage() {
+export default async function GroupPage() {
+  const photos = await getGroupPhotos();
   return (
     <main className="overflow-x-clip">
       <GroupHero />
@@ -34,20 +36,25 @@ export default function GroupPage() {
               <Reveal delay={(i % 3) * 0.06} className="h-full">
                 <Link
                   href={`/groupe/${c.slug}`}
-                  className="group relative flex h-full min-h-[230px] min-w-0 flex-col justify-between gap-8 overflow-hidden rounded-[10px] border border-line bg-night-900/85 p-7 transition-[border-color,background-color,transform] duration-500 hover:-translate-y-1 hover:border-psg-red-bright/50 hover:bg-night-800"
+                  className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[10px] border border-line bg-night-900/85 transition-[border-color,background-color,transform] duration-500 hover:-translate-y-1 hover:border-psg-red-bright/50 hover:bg-night-800"
                 >
-                  <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-psg-red/0 blur-2xl transition-colors duration-500 group-hover:bg-psg-red/25" />
-                  <div className="relative flex items-start justify-between gap-4">
-                    <span aria-hidden className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full border border-psg-red-bright/50 bg-night-800 transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-105">
-                      <ChapterIcon name={c.icon} className="size-6 text-white" />
-                    </span>
-                    <span className="font-display text-[38px] font-semibold leading-none tabular-nums text-white/25 transition-colors duration-500 group-hover:text-psg-red-bright">{c.number ?? "·"}</span>
+                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-night-900">
+                    <Image
+                      src={photos[c.slug].src}
+                      alt=""
+                      fill
+                      unoptimized={photos[c.slug].src.startsWith("/medias/") || photos[c.slug].src.startsWith("http")}
+                      sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
+                      className="object-cover saturate-[0.85] transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.06]"
+                    />
+                    <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,9,25,0)_40%,rgba(3,9,25,0.75)_100%)]" />
+                    <span className="absolute bottom-3 left-4 font-display text-[28px] leading-none tabular-nums text-white/90">{c.number ?? "·"}</span>
                   </div>
-                  <div className="relative min-w-0">
-                    <h3 className="break-words font-display text-[clamp(22px,2vw,28px)] font-semibold uppercase leading-[1.1] tracking-[0.04em] text-white">{c.title}</h3>
-                    <p className="mt-3 line-clamp-3 break-words text-mist t-small">{c.sub}</p>
+                  <div className="relative flex min-w-0 flex-1 flex-col gap-3 p-6">
+                    <h3 className="break-words font-display text-[clamp(17px,1.5vw,21px)] uppercase leading-[1.15] text-white">{c.title}</h3>
+                    <p className="line-clamp-3 break-words text-mist t-small">{c.sub}</p>
                   </div>
-                  <span aria-hidden className="absolute bottom-6 right-6 grid size-9 place-items-center rounded-full border border-white/15 text-white/60 transition-[transform,color,border-color] duration-300 group-hover:translate-x-1 group-hover:border-psg-red-bright group-hover:text-white">
+                  <span aria-hidden className="absolute bottom-5 right-5 grid size-9 place-items-center rounded-full border border-white/15 text-white/60 transition-[transform,color,border-color] duration-300 group-hover:translate-x-1 group-hover:border-psg-red-bright group-hover:text-white">
                     <ArrowRight className="size-4" />
                   </span>
                 </Link>

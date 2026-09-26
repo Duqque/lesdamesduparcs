@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow } from "next/font/google";
+import localFont from "next/font/local";
 import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "@/components/layout/Providers";
@@ -10,8 +10,12 @@ import { INTRO_STORAGE_KEY } from "@/lib/intro-key";
 import { accentOverride, getNavConfig, siteMeta } from "@/lib/server/site";
 import { getPublicCatalog } from "@/lib/server/shop";
 
-/** Une seule famille typographique sur tout le site : seules la graisse et la casse varient. */
-const barlow = Barlow({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: "--font-barlow", display: "swap" });
+/**
+ * Deux familles : Geomini (police variable, graisses 200 à 800) pour les sous-titres, les paragraphes et tout le corps de texte ;
+ * Special Gothic Expanded One (une seule graisse) pour les titres importants. Fichiers auto-hébergés dans src/fonts.
+ */
+const geomini = localFont({ src: "../fonts/Geomini-Variable.woff2", weight: "200 800", variable: "--font-geomini", display: "swap" });
+const gothic = localFont({ src: "../fonts/SpecialGothicExpandedOne-Regular.woff2", weight: "400", variable: "--font-gothic", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await siteMeta();
@@ -32,7 +36,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const [navConfig, accent, shop] = await Promise.all([getNavConfig(), accentOverride(), getPublicCatalog()]);
   return (
-    <html lang="fr" className={barlow.variable} suppressHydrationWarning>
+    <html lang="fr" className={`${geomini.variable} ${gothic.variable}`} suppressHydrationWarning>
       <head>
         <script
           nonce={nonce}

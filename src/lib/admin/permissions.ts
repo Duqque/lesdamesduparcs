@@ -31,6 +31,7 @@ export const PERMISSIONS = [
   "admins.manage",
   "settings.edit",
   "audit.view",
+  "privacy.manage", // demandes RGPD, effacement des données personnelles, registre des traitements
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -60,7 +61,7 @@ export const ROLE_PERMISSIONS: Record<Role, ReadonlySet<Permission>> = {
   admin: set(
     "dashboard.view", "members.view", "members.pii", "members.edit", "members.export", "plans.manage",
     "events.view", "events.edit", "events.attendance", "events.pricing", "shop.view", "shop.edit", "shop.pricing", "shop.stock", "shop.orders", "content.edit", "media.manage", "community.edit",
-    "communication.send", "analytics.view", "reports.generate", "site.content",
+    "communication.send", "analytics.view", "reports.generate", "site.content", "privacy.manage",
   ),
   tresoriere: set("dashboard.view", "members.view", "events.view", "events.pricing", "shop.view", "shop.pricing", "shop.orders", "finance.view", "finance.edit", "finance.export", "analytics.view", "reports.generate"),
   communication: set("dashboard.view", "events.view", "events.edit", "shop.view", "shop.edit", "content.edit", "media.manage", "community.edit", "communication.send", "site.content", "analytics.view"),
@@ -98,6 +99,7 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   "admins.manage": "Administratrices et rôles",
   "settings.edit": "Paramètres de l'association",
   "audit.view": "Journal d'activité",
+  "privacy.manage": "RGPD : demandes et effacement des données",
 };
 
 export const can = (role: Role, perm: Permission) => ROLE_PERMISSIONS[role].has(perm);

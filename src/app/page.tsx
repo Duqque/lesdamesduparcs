@@ -64,7 +64,7 @@ export default async function HomePage() {
     ),
     chant: (
       <section aria-labelledby="chant-title" className={`${wrap} pt-32 md:pt-48`}>
-        <div className="grid items-center gap-12 md:grid-cols-[1fr_minmax(0,520px)] md:gap-24">
+        <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-12 md:grid-cols-[1fr_minmax(0,520px)] md:gap-24">
           <Reveal>
             <p className={label}>À écouter</p>
             <h2 id="chant-title" className={h2}>

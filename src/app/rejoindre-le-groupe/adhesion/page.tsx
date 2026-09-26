@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { seoFor } from "@/lib/server/site";
 import { ChapterShell } from "@/components/histoire/ChapterShell";
+import { ChapterPhoto } from "@/components/histoire/ChapterPhoto";
 import { chapterContent } from "@/components/histoire/registry";
 import { adhesionChapter } from "@/data/chapters";
 
@@ -11,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function AdhesionPage() {
   const content = chapterContent.adhesion;
   return (
-    <ChapterShell chapter={adhesionChapter} art={content.art} standalone={{ parentHref: "/rejoindre-le-groupe", parentLabel: "Rejoindre le groupe", eyebrow: "Adhésion" }}>
+    <ChapterShell chapter={adhesionChapter} art={<ChapterPhoto slug="adhesion" />} standalone={{ parentHref: "/rejoindre-le-groupe", parentLabel: "Rejoindre le groupe", eyebrow: "Adhésion" }}>
       {content.body}
     </ChapterShell>
   );

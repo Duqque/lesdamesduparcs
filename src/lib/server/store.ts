@@ -72,12 +72,13 @@ export const getOrder = (id: string) => readOrders().then((all) => all.find((o) 
 
 /* ---------- Membres (comptes, cartes, autorisations parentales) ---------- */
 
-export type StoredMember = MemberPublic & { passwordHash: string };
+export type StoredMember = MemberPublic & { passwordHash: string; reset?: { hash: string; exp: number } };
 
 const readMembers = () => membersStore.read();
 
-export const toPublic = ({ passwordHash: _p, ...m }: StoredMember): MemberPublic => {
+export const toPublic = ({ passwordHash: _p, reset: _r, ...m }: StoredMember): MemberPublic => {
   void _p;
+  void _r;
   return m;
 };
 

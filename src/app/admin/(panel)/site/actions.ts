@@ -6,7 +6,9 @@ import { HOME_SECTIONS } from "@/data/home-sections";
 import { audit, requireAdmin } from "@/lib/server/admin-auth";
 import { settings } from "@/lib/server/admin-store";
 import { siteConfig } from "@/lib/server/content";
-import { deleteMedia, replaceMedia, saveMedia } from "@/lib/server/media";
+import { deleteMedia, mediaUrl, replaceMedia, saveMedia } from "@/lib/server/media";
+import { safeUrl } from "@/lib/safe-url";
+import { DEFAULT_GROUP_PHOTOS, GROUP_SLOTS } from "@/lib/group-photos";
 import { mediaDb } from "@/lib/server/content";
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
@@ -152,3 +154,33 @@ export async function replaceMediaAction(id: string, formData: FormData) {
   done("/admin/site/mediatheque", "Fichier remplacé : l'adresse reste la même partout où il est utilisé.");
 }
 
+
+/* ---------- Photos de « Le groupe » ---------- */
+
+export async function saveGroupPhotosAction(formData: FormData) {
+  const ctx = await requireAdmin("site.content");
+  const before = (await siteConfig.get()).groupPhotos ?? {};
+  const next: Record<string, { src: string; alt: string }> = {};
+  for (const slot of GROUP_SLOTS) {
+    const slug = slot.slug;
+    const alt = s(formData, `alt_${slug}`).slice(0, 200);
+    if (formData.get(`reset_${slug}`) === "on") continue;
+    let src = "";
+    const file = formData.get(`file_${slug}`);
+    if (file instanceof File && file.size > 0) {
+      const up = await saveMedia(file);
+      if (!up.ok) redirect("/admin/site/groupe?erreur=" + encodeURIComponent(up.error));
+      if (!up.media.mime.startsWith("image/") || up.media.mime === "image/svg+xml") {
+        await deleteMedia(up.media.id);
+        redirect("/admin/site/groupe?erreur=" + encodeURIComponent(`${slot.label} : choisissez une photo (JPEG, PNG, WebP ou GIF).`));
+      }
+      src = mediaUrl(up.media);
+    } else src = safeUrl(s(formData, `url_${slug}`)) || safeUrl(s(formData, `src_${slug}`));
+    if (src && src !== DEFAULT_GROUP_PHOTOS[slug].src) next[slug] = { src, alt };
+    else if (alt && !src) next[slug] = { src: DEFAULT_GROUP_PHOTOS[slug].src, alt };
+  }
+  await siteConfig.set({ groupPhotos: next });
+  await audit(ctx, "modification", "site", "Photos de la rubrique « Le groupe » modifiées", { before, after: next });
+  refreshSite();
+  done("/admin/site/groupe", "Photos enregistrées.");
+}

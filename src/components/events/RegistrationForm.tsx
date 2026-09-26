@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { CheckCircle2, Lock } from "lucide-react";
 import { Check, Field, inputCls, textareaCls } from "@/components/ui/form";
@@ -268,10 +269,10 @@ export function RegistrationForm({ event, member }: Props) {
       <fieldset className="space-y-4 border-t border-white/10 pt-8">
         <legend className="pr-4 font-body text-[16px] font-medium text-white">Engagements</legend>
         <Check id="f-rules" checked={v.rules} onChange={(c) => set("rules", c)} error={err("rules")}>
-          J&rsquo;ai lu et j&rsquo;accepte le règlement de l&rsquo;événement et de l&rsquo;association.
+          J&rsquo;ai lu et j&rsquo;accepte le <Link href="/reglement" className="underline underline-offset-4 hover:text-white" target="_blank" rel="noopener">règlement</Link> de l&rsquo;association et de l&rsquo;événement.
         </Check>
         <Check id="f-privacy" checked={v.privacy} onChange={(c) => set("privacy", c)} error={err("privacy")}>
-          J&rsquo;accepte que mes données soient traitées par Les Dames du Parc pour gérer mon inscription.
+          J&rsquo;accepte que mes données soient traitées par Les Dames du Parc pour gérer mon inscription, selon la <Link href="/politique-de-confidentialite" className="underline underline-offset-4 hover:text-white" target="_blank" rel="noopener">politique de confidentialité</Link>.
         </Check>
         <Check id="f-image" checked={v.image} onChange={(c) => set("image", c)}>
           J&rsquo;autorise la prise et la diffusion de photos de l&rsquo;événement (facultatif).

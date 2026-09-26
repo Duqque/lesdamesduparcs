@@ -19,8 +19,8 @@
   --color-mist: #a9b4c8;
   --color-line: rgba(255, 255, 255, 0.13);
 
-  --font-body: var(--font-barlow), system-ui, sans-serif;
-  --font-display: var(--font-body);
+  --font-body: var(--font-geomini), system-ui, sans-serif;
+  --font-display: var(--font-gothic), var(--font-geomini), system-ui, sans-serif;
   --font-script: var(--font-body);
   --font-serif: var(--font-body);
 
@@ -50,6 +50,8 @@ html {
   scroll-behavior: smooth;
   background: var(--color-night-950);
   -webkit-text-size-adjust: 100%;
+  /* Special Gothic n'a qu'une graisse : ne jamais fabriquer de faux gras. */
+  font-synthesis-weight: none;
 }
 
 body {
@@ -280,7 +282,12 @@ html[data-intro-seen] .intro-root { display: none; }
   to { transform: scaleX(1); }
 }
 
-/* Échelle typographique commune : une seule famille, seules la taille et la graisse varient. */
+/* Special Gothic Expanded est déjà très large : on neutralise les grands espacements de lettres hérités de l'ancienne police. */
+.font-display {
+  letter-spacing: 0.015em !important;
+}
+
+/* Échelle typographique commune : titres importants en Special Gothic Expanded One, tout le reste en Geomini (graisses 200 à 800). */
 @utility t-eyebrow {
   font-size: 12px;
   font-weight: 600;
@@ -290,38 +297,42 @@ html[data-intro-seen] .intro-root { display: none; }
 }
 @utility t-display {
   font-family: var(--font-display);
-  font-size: clamp(44px, 7vw, 96px);
-  font-weight: 600;
+  font-size: clamp(28px, 5.4vw, 84px);
+  font-weight: 400;
   text-transform: uppercase;
-  line-height: 0.98;
-  letter-spacing: 0.05em;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  overflow-wrap: break-word;
   color: #fff;
 }
 @utility t-h1 {
   font-family: var(--font-display);
-  font-size: clamp(38px, 5vw, 64px);
-  font-weight: 600;
+  font-size: clamp(26px, 4vw, 56px);
+  font-weight: 400;
   text-transform: uppercase;
-  line-height: 1;
-  letter-spacing: 0.05em;
+  line-height: 1.04;
+  letter-spacing: 0.01em;
+  overflow-wrap: break-word;
   color: #fff;
 }
 @utility t-h2 {
   font-family: var(--font-display);
-  font-size: clamp(30px, 4vw, 52px);
-  font-weight: 600;
+  font-size: clamp(22px, 3.2vw, 44px);
+  font-weight: 400;
   text-transform: uppercase;
-  line-height: 1.04;
-  letter-spacing: 0.05em;
+  line-height: 1.08;
+  letter-spacing: 0.01em;
+  overflow-wrap: break-word;
   color: #fff;
 }
 @utility t-h3 {
   font-family: var(--font-display);
-  font-size: clamp(20px, 2vw, 26px);
-  font-weight: 600;
+  font-size: clamp(17px, 1.7vw, 23px);
+  font-weight: 400;
   text-transform: uppercase;
-  line-height: 1.1;
-  letter-spacing: 0.06em;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  overflow-wrap: break-word;
   color: #fff;
 }
 @utility t-lead {

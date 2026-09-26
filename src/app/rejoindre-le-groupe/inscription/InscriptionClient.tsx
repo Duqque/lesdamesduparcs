@@ -290,10 +290,10 @@ export function InscriptionClient() {
                 </dl>
                 <div className="space-y-4">
                   <Check id="f-rules" checked={v.rules === true} onChange={(b) => set("rules", b)} error={errors.rules}>
-                    J&rsquo;ai lu et j&rsquo;accepte les statuts et le règlement intérieur de l&rsquo;association.
+                    J&rsquo;ai lu et j&rsquo;accepte le <Link href="/reglement" className="underline underline-offset-4 hover:text-white" target="_blank" rel="noopener">règlement</Link> de l&rsquo;association.
                   </Check>
                   <Check id="f-privacy" checked={v.privacy === true} onChange={(b) => set("privacy", b)} error={errors.privacy}>
-                    J&rsquo;accepte que mes données soient traitées pour la gestion de mon adhésion et sa vérification par les administrateurs.
+                    J&rsquo;ai pris connaissance de la <Link href="/politique-de-confidentialite" className="underline underline-offset-4 hover:text-white" target="_blank" rel="noopener">politique de confidentialité</Link> et j&rsquo;accepte que mes données soient traitées pour la gestion de mon adhésion. Je peux les consulter, les corriger ou les effacer à tout moment depuis <Link href="/mes-donnees" className="underline underline-offset-4 hover:text-white" target="_blank" rel="noopener">Mes données</Link>.
                   </Check>
                   <Check id="f-image" checked={v.image === true} onChange={(b) => set("image", b)}>
                     J&rsquo;autorise l&rsquo;utilisation de mon image lors des événements (facultatif).

@@ -4,6 +4,7 @@ import { socialLinks } from "@/data/navigation";
 import { FleurDeLisIcon, socialIcons } from "@/components/icons/BrandIcons";
 import { Scribble } from "@/components/ui/Scribble";
 import { settings } from "@/lib/server/admin-store";
+import { legalLinks } from "@/components/legal/LegalPage";
 
 export async function Footer() {
   const { site, association } = await settings.get();
@@ -54,6 +55,16 @@ export async function Footer() {
           </div>
         </div>
       </div>
+      <nav aria-label="Informations légales" className="border-t border-white/[0.07]">
+        <ul className="mx-auto flex max-w-[1800px] flex-wrap items-center justify-center gap-x-6 gap-y-1 px-[var(--gutter)] py-5 font-body text-[12.5px] text-mist md:justify-between">
+          <li className="w-full text-center md:w-auto md:text-left">© {new Date().getFullYear()} {association.name}</li>
+          {legalLinks.map((l) => (
+            <li key={l.href}>
+              <Link href={l.href} className="inline-flex min-h-11 items-center transition-colors hover:text-white">{l.label}</Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </footer>
   );
 }

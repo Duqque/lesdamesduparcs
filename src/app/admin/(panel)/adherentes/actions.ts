@@ -11,6 +11,10 @@ import { addMemberRaw, anonymizeMember, getMemberById, takenMemberNumbers, toPub
 import { createMembership, currentMembership, memberships, plans, setTxStatus, addManualPayment, type PayMethod, type TxStatus } from "@/lib/server/business";
 import { hashPassword } from "@/lib/server/password";
 import { sendEmail, sendTemplate } from "@/lib/server/email";
+import { eraseMemberData } from "@/lib/server/privacy";
+import { createMemberResetToken } from "@/lib/server/member-reset";
+import { siteOrigin } from "@/lib/server/http";
+import { cookies } from "next/headers";
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const back = (id: string, msg: { ok?: string; erreur?: string }) => redirect(`/admin/adherentes/${id}?${msg.ok ? `ok=${encodeURIComponent(msg.ok)}` : `erreur=${encodeURIComponent(msg.erreur!)}`}`);
@@ -55,8 +59,16 @@ export async function createMemberAction(formData: FormData) {
   await createMembership(toPublic(member), plan, { paid, method: (s(formData, "method") || "manual") as PayMethod });
   await audit(ctx, "création", "adhérente", `Adhérente créée : ${member.firstName} ${member.lastName} (${member.memberNumber})`, { entityId: member.id });
   await sendTemplate("welcome", member.email, { prenom: member.firstName, saison: member.season, numero: member.memberNumber }, "welcome");
+  const link = `${await siteOrigin()}/connexion/reinitialiser/${await createMemberResetToken(member.id, 7 * 24 * 3600_000)}`;
+  const mail = await sendEmail({
+    to: member.email,
+    subject: "Votre compte Les Dames du Parc",
+    body: `Bonjour ${member.firstName},\n\nL'équipe a créé votre compte membre (numéro ${member.memberNumber}). Pour définir votre mot de passe et accéder à votre espace, ouvrez ce lien (valable 7 jours, à usage unique) :\n${link}`,
+    kind: "invitation",
+  });
+  await cookies().then((jar) => jar.set("ddp_admin_link", link, { httpOnly: true, sameSite: "strict", path: "/admin/adherentes", maxAge: 60, secure: process.env.NODE_ENV === "production" && process.env.SESSION_INSECURE_COOKIE !== "1" }));
   revalidatePath("/admin/adherentes");
-  redirect(`/admin/adherentes/${member.id}?ok=${encodeURIComponent("Adhérente créée. Elle pourra définir son mot de passe via « Mot de passe oublié » sur le site.")}`);
+  redirect(`/admin/adherentes/${member.id}?ok=${encodeURIComponent(mail.ok ? "Adhérente créée : un e-mail lui a été envoyé pour définir son mot de passe (lien aussi ci-dessous)." : "Adhérente créée. Aucun e-mail n'est parti (service d'e-mail non configuré) : transmettez-lui le lien ci-dessous pour qu'elle définisse son mot de passe.")}`);
 }
 
 export async function updateMemberAction(id: string, formData: FormData) {
@@ -107,16 +119,17 @@ export async function renewMemberAction(id: string, formData: FormData) {
 }
 
 export async function anonymizeMemberAction(id: string) {
-  const ctx = await requireAdmin("members.delete");
+  const ctx = await requireAdmin();
+  if (!ctx.can("members.delete") && !ctx.can("privacy.manage")) redirect("/admin/acces-refuse");
   await requireFresh(ctx);
   const m = await getMemberById(id);
   if (!m) redirect("/admin/adherentes");
-  await anonymizeMember(id);
-  const cur = await currentMembership(id);
-  if (cur) await memberships.update(cur.id, { status: "cancelled" });
-  await audit(ctx, "anonymisation", "adhérente", `Fiche anonymisée : ${m.memberNumber}`, { entityId: id });
+  const label = m.memberNumber;
+  const summary = await eraseMemberData(id);
+  await audit(ctx, "effacement", "adhérente", `Données effacées : fiche ${id.slice(0, 8)} (${summary ? `${summary.registrations} inscription(s), ${summary.orders} commande(s)` : "aucune"})`, { entityId: id });
+  void label;
   revalidatePath("/admin/adherentes");
-  redirect("/admin/adherentes?ok=" + encodeURIComponent("Fiche anonymisée : les données personnelles et les pièces ont été effacées."));
+  redirect("/admin/adherentes?ok=" + encodeURIComponent("Données effacées : fiche, coordonnées, pièces, inscriptions et commandes sont rendues anonymes ; seules les pièces comptables sont conservées."));
 }
 
 export async function sendMemberEmailAction(id: string, formData: FormData) {
@@ -264,4 +277,15 @@ export async function importMembersAction(formData: FormData) {
   revalidatePath("/admin/adherentes");
   const msg = `${created} adhérente(s) importée(s).` + (skipped.length ? ` Ignorées : ${skipped.slice(0, 5).join(" ; ")}${skipped.length > 5 ? "…" : ""}.` : "");
   redirect("/admin/adherentes/import-export?ok=" + encodeURIComponent(msg));
+}
+
+/** Génère un lien (7 jours, usage unique) que l'équipe peut transmettre : première connexion d'un compte créé par l'équipe, ou mot de passe perdu. */
+export async function memberInviteLinkAction(id: string) {
+  const ctx = await requireAdmin("members.edit");
+  const m = await getMemberById(id);
+  if (!m || m.status === "anonymized") redirect("/admin/adherentes");
+  const link = `${await siteOrigin()}/connexion/reinitialiser/${await createMemberResetToken(id, 7 * 24 * 3600_000)}`;
+  await cookies().then((jar) => jar.set("ddp_admin_link", link, { httpOnly: true, sameSite: "strict", path: "/admin/adherentes", maxAge: 60, secure: process.env.NODE_ENV === "production" && process.env.SESSION_INSECURE_COOKIE !== "1" }));
+  await audit(ctx, "sécurité", "adhérente", `Lien de définition du mot de passe généré : fiche ${id.slice(0, 8)}`, { entityId: id });
+  back(id, { ok: "Lien généré (valable 7 jours, à usage unique)." });
 }

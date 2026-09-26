@@ -150,6 +150,9 @@ function MemberSpace({ welcome }: { welcome: boolean }) {
         >
           Me déconnecter de tous mes appareils
         </button>
+        <p className="mt-6 font-body text-[14px] text-mist">
+          Vos droits sur vos données (télécharger, corriger, supprimer votre compte) : <Link href="/mes-donnees" className="text-white underline underline-offset-4">Mes données</Link>.
+        </p>
       </Section>
     </div>
   );

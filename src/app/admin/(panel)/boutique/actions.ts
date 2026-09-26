@@ -165,3 +165,59 @@ export async function saveOrderNoteAction(orderId: string, formData: FormData) {
   redirect(`/admin/boutique/commandes/${orderId}?ok=${encodeURIComponent("Note enregistrée.")}`);
 }
 
+
+/* ---------- Codes de réduction de la boutique ---------- */
+
+import { promoCodes } from "@/lib/server/content";
+
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const randomCode = () => Array.from({ length: 8 }, () => CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)]).join("");
+const codesBack = (m: { ok?: string; erreur?: string; edit?: string }) => redirect(`/admin/boutique/codes?${m.ok ? `ok=${encodeURIComponent(m.ok)}` : `erreur=${encodeURIComponent(m.erreur!)}`}${m.edit ? `&edit=${m.edit}` : ""}`);
+
+export async function saveShopCodeAction(formData: FormData) {
+  const ctx = await requireAdmin("shop.pricing");
+  const id = s(formData, "id");
+  const fail = (erreur: string) => codesBack({ erreur, edit: id || undefined });
+  const code = (s(formData, "code").toUpperCase().replace(/\s+/g, "") || randomCode()).slice(0, 24);
+  if (!/^[A-Z0-9-]{3,24}$/.test(code)) fail("Le code doit contenir 3 à 24 lettres, chiffres ou tirets.");
+  if (await promoCodes.findOne((p) => p.code === code && p.id !== id)) fail("Ce code existe déjà.");
+  const type: "amount" | "percent" = s(formData, "type") === "amount" ? "amount" : "percent";
+  const raw = parseFloat(s(formData, "value").replace(",", "."));
+  if (!Number.isFinite(raw) || raw <= 0) fail("Indiquez une valeur de réduction supérieure à zéro.");
+  if (type === "percent" && raw > 100) fail("Un pourcentage ne peut pas dépasser 100.");
+  const value = type === "percent" ? Math.round(raw) : Math.round(raw * 100);
+  const maxUses = Math.max(Math.floor(Number(s(formData, "maxUses"))) || 0, 0);
+  const minCents = euros(s(formData, "min"));
+  const startsAt = /^\d{4}-\d{2}-\d{2}$/.test(s(formData, "startsAt")) ? s(formData, "startsAt") : undefined;
+  const endsAt = /^\d{4}-\d{2}-\d{2}$/.test(s(formData, "endsAt")) ? s(formData, "endsAt") : undefined;
+  if (startsAt && endsAt && endsAt < startsAt) fail("La date de fin est avant la date de début.");
+  const data = { code, label: s(formData, "label").slice(0, 120), type, value, scope: "shop" as const, startsAt, endsAt, maxUses: maxUses || undefined, minCents: minCents || undefined, active: formData.get("active") === "on" };
+  if (id) {
+    const before = await promoCodes.get(id);
+    if (!before) fail("Code introuvable.");
+    await promoCodes.update(id, data);
+    await audit(ctx, "modification", "code de réduction", `Code de réduction modifié : ${code}`, { entityId: id });
+  } else {
+    const row = await promoCodes.insert({ ...data, uses: 0 });
+    await audit(ctx, "création", "code de réduction", `Code de réduction créé : ${code}`, { entityId: row.id });
+  }
+  codesBack({ ok: id ? `Code ${code} modifié.` : `Code ${code} créé.` });
+}
+
+export async function toggleShopCodeAction(id: string) {
+  const ctx = await requireAdmin("shop.pricing");
+  const p = await promoCodes.get(id);
+  if (!p) return codesBack({ erreur: "Code introuvable." });
+  await promoCodes.update(id, { active: !p.active });
+  await audit(ctx, "modification", "code de réduction", `Code ${p.code} ${p.active ? "désactivé" : "activé"}`, { entityId: id });
+  codesBack({ ok: `Code ${p.code} ${p.active ? "désactivé" : "activé"}.` });
+}
+
+export async function deleteShopCodeAction(id: string) {
+  const ctx = await requireAdmin("shop.pricing");
+  const p = await promoCodes.get(id);
+  if (!p) return codesBack({ erreur: "Code introuvable." });
+  await promoCodes.remove(id);
+  await audit(ctx, "suppression", "code de réduction", `Code de réduction supprimé : ${p.code}`, { entityId: id });
+  codesBack({ ok: `Code ${p.code} supprimé.` });
+}

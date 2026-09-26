@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Download, FileText } from "lucide-react";
@@ -13,7 +14,7 @@ import { TX_STATUS_LABEL, getTransactions, membershipsOf, plans, effectiveStatus
 import { getAllEventsAdmin } from "@/lib/server/events";
 import { emailConfigured } from "@/lib/server/email";
 import { getMemberById, listAllRegistrations } from "@/lib/server/store";
-import { addPaymentAction, anonymizeMemberAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, updateMemberAction } from "../actions";
+import { addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, updateMemberAction } from "../actions";
 
 export const metadata = { title: "Fiche adhérente" };
 
@@ -23,6 +24,7 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
   const ctx = await requireAdmin("members.view");
   const { id } = await params;
   const sp = await searchParams;
+  const inviteLink = (await cookies()).get("ddp_admin_link")?.value ?? "";
   const stored = await getMemberById(id);
   if (!stored) notFound();
   const { passwordHash: _p, ...m } = stored;
@@ -54,6 +56,12 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
         }
       />
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
+      {inviteLink.startsWith("http") && (
+        <Panel className="mb-4" title="Lien de première connexion (à transmettre à l'adhérente)">
+          <p className="mb-2 font-body text-[12.5px] text-mist">Valable 7 jours, à usage unique. Il ne sera plus affiché après une minute.</p>
+          <input readOnly value={inviteLink} className={inp} />
+        </Panel>
+      )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Kpi label="Membre depuis" value={<span className="text-[26px]">{fmtDateLong(m.joinedAt)}</span>} />
@@ -199,9 +207,10 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
             ) : (
               <form action={setMemberStatusAction.bind(null, id, "suspended")}><SubmitButton variant="outline" confirm="Suspendre cette adhésion ?">Suspendre</SubmitButton></form>
             ))}
+            {ctx.can("members.edit") && !anonymized && <form action={memberInviteLinkAction.bind(null, id)}><SubmitButton variant="outline">Générer un lien de connexion</SubmitButton></form>}
             {ctx.can("members.export") && !anonymized && <a href={`/admin/export/membre/${id}`} className={btn.outline}><Download aria-hidden className="size-4" /> Exporter ses données</a>}
-            {ctx.can("members.delete") && !anonymized && (
-              <form action={anonymizeMemberAction.bind(null, id)}><SubmitButton variant="danger" confirm="Anonymiser définitivement cette fiche ? Les données personnelles et les pièces jointes seront effacées. Cette action est irréversible.">Anonymiser (droit à l&rsquo;effacement)</SubmitButton></form>
+            {(ctx.can("members.delete") || ctx.can("privacy.manage")) && !anonymized && (
+              <form action={anonymizeMemberAction.bind(null, id)}><SubmitButton variant="danger" confirm="Effacer définitivement les données de cette personne ? Fiche, coordonnées, pièces jointes, inscriptions et commandes sont rendues anonymes (seules les pièces comptables sont conservées). Cette action est irréversible.">Effacer les données (RGPD)</SubmitButton></form>
             )}
           </div>
         </div>

@@ -4,13 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
-import { ChevronDown, IdCard, Menu, X } from "lucide-react";
+import { ChevronDown, IdCard } from "lucide-react";
 import { joinLink, leftNav, mainNav, rightNav } from "@/data/navigation";
 import { applyNav, type NavConfig } from "@/lib/nav-config";
 import { useScrolled } from "@/hooks/useScrolled";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
 import { MobileMenu } from "./MobileMenu";
+import { MobileDock } from "./MobileDock";
 import { CartButton } from "@/components/shop/CartButton";
 import { AccountMenu } from "./AccountMenu";
 import { SoundToggle } from "./SoundToggle";
@@ -95,8 +96,8 @@ export function Header({ navConfig }: { navConfig?: NavConfig }) {
     <>
       <header
         className={cn(
-          "fixed inset-x-0 top-0 z-50 transition-[height,background-color,border-color,backdrop-filter] duration-300",
-          "h-[72px] lg:h-[var(--header-h)]",
+          "fixed inset-x-0 top-0 z-50 hidden transition-[height,background-color,border-color,backdrop-filter] duration-300 lg:block",
+          "lg:h-[var(--header-h)]",
           scrolled || open
             ? "border-b border-white/[0.07] bg-night-950/88 backdrop-blur-md lg:h-[76px]"
             : "border-b border-transparent bg-transparent",
@@ -105,17 +106,7 @@ export function Header({ navConfig }: { navConfig?: NavConfig }) {
         <div className="grid h-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-[clamp(14px,1.6vw,32px)]">
           {/* Gauche */}
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
-              aria-expanded={open}
-              aria-controls="mobile-menu"
-              onClick={() => setOpen((v) => !v)}
-              className={cn(squareBtn, "lg:hidden")}
-            >
-              {open ? <X aria-hidden className="size-5" /> : <Menu aria-hidden className="size-5" />}
-            </button>
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
               <Button href={joinLink.href} size="sm" icon={IdCard} arrow={false}>
                 <span className="xl:hidden">Rejoindre</span>
                 <span className="hidden xl:inline">{joinLink.label}</span>
@@ -146,11 +137,12 @@ export function Header({ navConfig }: { navConfig?: NavConfig }) {
             </nav>
             <span className="hidden lg:block lg:flex-1" />
             <CartButton className={squareBtn} />
-            <SoundToggle className={cn(squareBtn, "size-11")} />
             <AccountMenu buttonClassName={squareBtn} />
           </div>
         </div>
       </header>
+      <MobileDock open={open} onToggle={() => setOpen((v) => !v)} onClose={() => setOpen(false)} />
+      <SoundToggle className="fixed bottom-6 right-6 z-40 hidden size-12 place-items-center rounded-full border border-white/[0.14] bg-[#0d0f13]/90 text-white/85 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.9)] backdrop-blur-md transition-[background-color,border-color,color] duration-300 hover:border-white/35 hover:bg-[#161a20] hover:text-white lg:grid" />
       <MobileMenu open={open} pathname={pathname} items={apply(mainNav)} onNavigate={() => setOpen(false)} />
     </>
   );

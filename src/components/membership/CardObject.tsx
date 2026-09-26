@@ -84,7 +84,7 @@ export function CardObject({ motion: m, name, season, number, qrValue }: Props) 
           {/* Identité imprimée sur la carte */}
           <motion.div style={{ opacity: m.identity, z: 10 }} className="absolute bottom-[7%] left-[6%]">
             <p className="font-body text-[1.9cqw] font-light uppercase tracking-[0.34em] text-white/70">Membre {season}</p>
-            <p className="mt-[1.2cqw] font-display text-[5.6cqw] font-semibold uppercase leading-none tracking-[0.1em] text-white">{name}</p>
+            <p className="mt-[1.2cqw] font-body text-[5.6cqw] font-semibold uppercase leading-none tracking-[0.1em] text-white">{name}</p>
             <p className="mt-[1.2cqw] font-body text-[2.1cqw] font-light tabular-nums tracking-[0.3em] text-white/80">{number}</p>
           </motion.div>
           <motion.div style={{ opacity: m.qr, z: 14 }} className="absolute bottom-[7%] right-[5.5%] w-[15cqw] rounded-[1cqw] shadow-[0_1.4cqw_2.4cqw_rgba(0,0,0,0.5)]">
@@ -129,7 +129,7 @@ export function CardObject({ motion: m, name, season, number, qrValue }: Props) 
             className="card-radius absolute inset-[3%] flex flex-col justify-center bg-[linear-gradient(135deg,#0c1a33,#050b18)] px-[7%] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)]"
           >
             <p className="font-body text-[1.9cqw] font-medium uppercase tracking-[0.4em] text-psg-red-bright">Dames du Parc</p>
-            <p className="mt-[1.6cqw] font-display text-[7cqw] font-semibold uppercase leading-none tracking-[0.08em] text-white">Espace privé</p>
+            <p className="mt-[1.6cqw] font-display text-[5cqw] uppercase leading-none tracking-[0.02em] text-white">Espace privé</p>
             <p className="mt-[2cqw] max-w-[70%] font-body text-[2.6cqw] leading-snug text-white/75">Annonces, événements et échanges réservés aux membres.</p>
             <span className="mt-[3cqw] w-fit border border-white/45 px-[2.4cqw] py-[1.2cqw] font-body text-[1.9cqw] font-semibold uppercase tracking-[0.16em] text-white">
               Rejoindre l’espace →

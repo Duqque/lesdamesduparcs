@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ChapterShell } from "@/components/histoire/ChapterShell";
+import { ChapterPhoto } from "@/components/histoire/ChapterPhoto";
 import { chapterContent } from "@/components/histoire/registry";
 import { chapters, getChapter } from "@/data/chapters";
 
@@ -21,7 +22,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ chapit
   const content = chapterContent[chapitre];
   if (!chapter || !content) notFound();
   return (
-    <ChapterShell chapter={chapter} art={content.art}>
+    <ChapterShell chapter={chapter} art={<ChapterPhoto slug={chapitre} />}>
       {content.body}
     </ChapterShell>
   );
