@@ -17,10 +17,12 @@ export function AdminNav({ groups, roleLabel, name }: { groups: NavGroup[]; role
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
+  /** Un lien avec paramètres (?vue=…) n'est actif que sur ces paramètres ; le lien « nu » du même groupe s'efface dès qu'un frère correspond mieux. */
   const isActive = (href: string) => {
     if (href === "/admin") return pathname === "/admin";
     if (href.includes("?")) return current === href;
-    return pathname === href || (pathname.startsWith(`${href}/`) && !groups.some((g) => g.children?.some((c) => c.href !== href && c.href.split("?")[0] === pathname)));
+    if (pathname !== href) return pathname.startsWith(`${href}/`) && !groups.some((g) => g.children?.some((c) => c.href !== href && c.href.split("?")[0] === pathname));
+    return !groups.some((g) => g.children?.some((c) => c.href.includes("?") && c.href === current));
   };
   const groupOpen = (g: NavGroup) => expanded[g.label] ?? Boolean(g.children?.some((c) => isActive(c.href) || pathname.startsWith(c.href.split("?")[0])));
 

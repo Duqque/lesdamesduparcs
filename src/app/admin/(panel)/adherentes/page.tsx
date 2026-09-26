@@ -51,7 +51,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
 
       <Panel className="mb-4" title="Filtres">
-        <form method="get" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <form method="get" autoComplete="off" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="lg:col-span-2"><span className={lbl}>Nom, prénom, e-mail, téléphone, numéro</span><input name="q" defaultValue={f.q} className={cn(inp, "mt-1.5")} placeholder="Rechercher" /></label>
           <label><span className={lbl}>Formule</span><select name="plan" defaultValue={f.plan ?? ""} className={cn(inp, "mt-1.5")}><option value="">Toutes</option>{planList.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
           <label><span className={lbl}>Statut</span><select name="statut" defaultValue={f.statut ?? ""} className={cn(inp, "mt-1.5")}><option value="">Tous</option>{(["active", "expired", "suspended"] as const).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}</select></label>
