@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/Button";
+import { IdCard } from "lucide-react";
 import { safeUrl } from "@/lib/safe-url";
 import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
@@ -37,7 +39,21 @@ export default async function HomePage() {
   const featuredEvent = pinned.find((e) => e && e.date >= new Date().toISOString().slice(0, 10)) ?? upcoming[0] ?? null;
   const news = [...home.featuredArticleIds.map((id) => allNews.find((n) => n.id === id)).filter((n): n is NonNullable<typeof n> => Boolean(n)), ...allNews.filter((n) => !home.featuredArticleIds.includes(n.id))];
   const blocks: Record<HomeSectionKey, ReactNode> = {
-    manifeste: <Manifesto />,
+    manifeste: (
+      <>
+        <Manifesto />
+        {/* Appel à adhérer, juste sous le manifeste */}
+        <section aria-label="Adhérer aux Dames du Parc" className={`${wrap} -mt-8 pb-8 text-center md:-mt-16`}>
+          <Reveal>
+            <p className="mx-auto max-w-xl text-white/80 t-lead">Envie de vivre le PSG avec nous ? Rejoignez Les Dames du Parc, le groupe de supportrices du Paris Saint-Germain.</p>
+            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Button size="lg" href="/rejoindre-le-groupe/inscription" icon={IdCard} arrow={false}>Adhérer aux Dames du Parc</Button>
+              <Button size="lg" variant="outline" href="/groupe">Découvrir le groupe</Button>
+            </div>
+          </Reveal>
+        </section>
+      </>
+    ),
     rendezvous: (
       <section aria-label="Prochains rendez-vous" className={`${wrap} grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8`}>
         <Reveal className="flex md:col-span-3">

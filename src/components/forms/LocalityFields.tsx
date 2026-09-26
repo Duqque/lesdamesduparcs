@@ -77,7 +77,7 @@ function Suggest({ id, items, active, onPick }: { id: string; items: Suggestion[
 /**
  * Code postal, ville et pays d'une adresse. Pour la France (toutes les communes, outre-mer compris) :
  * le code postal choisi complète la ville, la ville choisie complète le code postal. Autres pays : saisie libre.
- * Renvoie trois blocs (à placer dans une grille) : code postal, ville, pays.
+ * Renvoie trois blocs (à placer dans une grille) : pays, code postal, ville (le pays d'abord).
  */
 export function LocalityFields({ ids, value, onChange, errors = {}, variant = "public", names }: { ids: { postalCode: string; city: string; country: string }; value: Locality; onChange: (patch: Partial<Locality>) => void; errors?: Partial<Record<keyof Locality, string>>; variant?: "public" | "admin"; names?: { postalCode: string; city: string; country: string } }) {
   const st = STYLES[variant];
@@ -122,6 +122,18 @@ export function LocalityFields({ ids, value, onChange, errors = {}, variant = "p
 
   return (
     <>
+      <div className="sm:col-span-2">
+        <label htmlFor={ids.country} className={st.label}>Pays</label>
+        <CountrySelect
+          id={ids.country}
+          name={names?.country}
+          value={value.country || "France"}
+          invalid={Boolean(errors.country)}
+          onChange={(country) => onChange({ country, ...(country !== "France" && france ? { postalCode: "", city: "" } : {}) })}
+          className={variant === "admin" ? "mt-1.5 h-11 rounded-[10px] border-white/[0.14] bg-white/[0.04] text-[14px]" : undefined}
+        />
+        {errors.country && <p role="alert" className={st.error}>{errors.country}</p>}
+      </div>
       <div className="relative">
         <label htmlFor={ids.postalCode} className={st.label}>Code postal</label>
         <input
@@ -153,18 +165,6 @@ export function LocalityFields({ ids, value, onChange, errors = {}, variant = "p
         />
         {france && focus === "city" && skipCity.current !== value.city && <Suggest id={`${uid}-city`} items={cityItems} active={cursor} onPick={pick} />}
         {errors.city && <p role="alert" className={st.error}>{errors.city}</p>}
-      </div>
-      <div className="sm:col-span-2">
-        <label htmlFor={ids.country} className={st.label}>Pays</label>
-        <CountrySelect
-          id={ids.country}
-          name={names?.country}
-          value={value.country || "France"}
-          invalid={Boolean(errors.country)}
-          onChange={(country) => onChange({ country, ...(country !== "France" && france ? { postalCode: "", city: "" } : {}) })}
-          className={variant === "admin" ? "mt-1.5 h-11 rounded-[10px] border-white/[0.14] bg-white/[0.04] text-[14px]" : undefined}
-        />
-        {errors.country && <p role="alert" className={st.error}>{errors.country}</p>}
       </div>
     </>
   );
