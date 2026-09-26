@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { BirthDateInput } from "@/components/forms/BirthDateInput";
+import { PhoneInput } from "@/components/forms/PhoneInput";
 import { useEffect, useState, type FormEvent } from "react";
 import { CheckCircle2, Lock } from "lucide-react";
 import { Check, Field, inputCls, textareaCls } from "@/components/ui/form";
@@ -212,11 +214,11 @@ export function RegistrationForm({ event, member }: Props) {
           <input id="f-email" type="email" value={v.email} onChange={(e) => set("email", e.target.value)} autoComplete="email" className={inputCls} {...ia("email")} />
         </Field>
         <Field id="f-phone" label="Téléphone" error={err("phone")}>
-          <input id="f-phone" type="tel" value={v.phone} onChange={(e) => set("phone", e.target.value)} autoComplete="tel" placeholder="06 00 00 00 00" className={inputCls} {...ia("phone")} />
+          <PhoneInput id="f-phone" value={v.phone} onChange={(full) => set("phone", full)} invalid={Boolean(err("phone"))} describedBy={err("phone") ? "f-phone-err" : undefined} />
         </Field>
         {cfg.guardianRequired && (
           <Field id="f-birthDate" label="Date de naissance" hint={`Réservé aux ${cfg.minAge} à ${cfg.maxAge} ans (âge le jour de l'événement).`} error={err("birthDate")}>
-            <input id="f-birthDate" type="date" value={v.birthDate} onChange={(e) => set("birthDate", e.target.value)} autoComplete="bday" className={inputCls} {...ia("birthDate")} />
+            <BirthDateInput id="f-birthDate" value={v.birthDate} onChange={(iso) => set("birthDate", iso)} invalid={Boolean(err("birthDate"))} describedBy={err("birthDate") ? "f-birthDate-err" : undefined} />
           </Field>
         )}
         {!cfg.singlePlace && (
@@ -238,7 +240,7 @@ export function RegistrationForm({ event, member }: Props) {
             <input id="f-guardianName" value={v.guardianName} onChange={(e) => set("guardianName", e.target.value)} className={inputCls} {...ia("guardianName")} />
           </Field>
           <Field id="f-guardianPhone" label="Téléphone" error={err("guardianPhone")}>
-            <input id="f-guardianPhone" type="tel" value={v.guardianPhone} onChange={(e) => set("guardianPhone", e.target.value)} className={inputCls} {...ia("guardianPhone")} />
+            <PhoneInput id="f-guardianPhone" value={v.guardianPhone} onChange={(full) => set("guardianPhone", full)} invalid={Boolean(err("guardianPhone"))} describedBy={err("guardianPhone") ? "f-guardianPhone-err" : undefined} />
           </Field>
           <Field id="f-guardianEmail" label="Adresse e-mail" error={err("guardianEmail")} className="sm:col-span-2">
             <input id="f-guardianEmail" type="email" value={v.guardianEmail} onChange={(e) => set("guardianEmail", e.target.value)} className={inputCls} {...ia("guardianEmail")} />
@@ -256,7 +258,7 @@ export function RegistrationForm({ event, member }: Props) {
           <input id="f-emergencyName" value={v.emergencyName} onChange={(e) => set("emergencyName", e.target.value)} className={inputCls} {...ia("emergencyName")} />
         </Field>
         <Field id="f-emergencyPhone" label="Téléphone d'urgence" error={err("emergencyPhone")}>
-          <input id="f-emergencyPhone" type="tel" value={v.emergencyPhone} onChange={(e) => set("emergencyPhone", e.target.value)} className={inputCls} {...ia("emergencyPhone")} />
+          <PhoneInput id="f-emergencyPhone" value={v.emergencyPhone} onChange={(full) => set("emergencyPhone", full)} invalid={Boolean(err("emergencyPhone"))} describedBy={err("emergencyPhone") ? "f-emergencyPhone-err" : undefined} />
         </Field>
         <Field id="f-allergies" label="Allergies, régime ou besoins particuliers" hint="Facultatif. Ces informations ne sont utilisées que pour l'organisation de l'événement." className="sm:col-span-2">
           <textarea id="f-allergies" value={v.allergies} onChange={(e) => set("allergies", e.target.value)} maxLength={500} className={textareaCls} />

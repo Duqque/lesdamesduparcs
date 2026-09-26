@@ -6,6 +6,9 @@ import { useMemo, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, FileText, Paperclip, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Check, Field, inputCls } from "@/components/ui/form";
+import { BirthDateInput } from "@/components/forms/BirthDateInput";
+import { LocalityFields } from "@/components/forms/LocalityFields";
+import { PhoneInput } from "@/components/forms/PhoneInput";
 import { cn } from "@/lib/cn";
 import { MAX_AUTH_FILE_BYTES, MAX_AUTH_FILES, guardianRelations, isMinor, validateMember, type Guardian, type MemberInput } from "@/lib/members";
 import { membership } from "@/data/membership";
@@ -175,10 +178,10 @@ export function InscriptionClient() {
                   <input id="f-lastName" autoComplete="family-name" className={inputCls} {...text("lastName")} {...inv("lastName")} />
                 </Field>
                 <Field id="f-birthDate" label="Date de naissance" error={err("birthDate")} hint="Pour les moins de 18 ans, une autorisation parentale sera demandée.">
-                  <input id="f-birthDate" type="date" autoComplete="bday" max={new Date().toISOString().slice(0, 10)} className={inputCls} {...text("birthDate")} {...inv("birthDate")} />
+                  <BirthDateInput id="f-birthDate" value={String(v.birthDate)} onChange={(iso) => set("birthDate", iso)} invalid={Boolean(err("birthDate"))} describedBy={err("birthDate") ? "f-birthDate-err" : undefined} />
                 </Field>
                 <Field id="f-phone" label="Téléphone" error={err("phone")}>
-                  <input id="f-phone" type="tel" autoComplete="tel" className={inputCls} {...text("phone")} {...inv("phone")} />
+                  <PhoneInput id="f-phone" value={String(v.phone)} onChange={(full) => set("phone", full)} invalid={Boolean(err("phone"))} describedBy={err("phone") ? "f-phone-err" : undefined} />
                 </Field>
                 <Field id="f-email" label="Adresse e-mail" error={err("email")} className="sm:col-span-2" hint="Elle servira d'identifiant de connexion.">
                   <input id="f-email" type="email" autoComplete="email" className={inputCls} {...text("email")} {...inv("email")} />
@@ -189,15 +192,12 @@ export function InscriptionClient() {
                 <Field id="f-line2" label="Complément d'adresse" className="sm:col-span-2">
                   <input id="f-line2" autoComplete="address-line2" className={inputCls} {...text("line2")} />
                 </Field>
-                <Field id="f-postalCode" label="Code postal" error={err("postalCode")}>
-                  <input id="f-postalCode" autoComplete="postal-code" className={inputCls} {...text("postalCode")} {...inv("postalCode")} />
-                </Field>
-                <Field id="f-city" label="Ville" error={err("city")}>
-                  <input id="f-city" autoComplete="address-level2" className={inputCls} {...text("city")} {...inv("city")} />
-                </Field>
-                <Field id="f-country" label="Pays" error={err("country")} className="sm:col-span-2">
-                  <input id="f-country" autoComplete="country-name" className={inputCls} {...text("country")} {...inv("country")} />
-                </Field>
+                <LocalityFields
+                  ids={{ postalCode: "f-postalCode", city: "f-city", country: "f-country" }}
+                  value={{ postalCode: String(v.postalCode), city: String(v.city), country: String(v.country) }}
+                  onChange={(patch) => setV((p) => ({ ...p, ...patch }))}
+                  errors={{ postalCode: err("postalCode"), city: err("city"), country: err("country") }}
+                />
                 <Field id="f-password" label="Mot de passe" error={err("password")} hint="10 caractères minimum, avec des lettres et des chiffres." className="sm:col-span-2">
                   <input id="f-password" type="password" autoComplete="new-password" className={inputCls} {...text("password")} {...inv("password")} />
                 </Field>
@@ -226,7 +226,7 @@ export function InscriptionClient() {
                   </select>
                 </Field>
                 <Field id="f-gPhone" label="Téléphone du responsable" error={err("gPhone")}>
-                  <input id="f-gPhone" type="tel" className={inputCls} {...text("gPhone")} {...inv("gPhone")} />
+                  <PhoneInput id="f-gPhone" value={String(v.gPhone)} onChange={(full) => set("gPhone", full)} invalid={Boolean(err("gPhone"))} describedBy={err("gPhone") ? "f-gPhone-err" : undefined} />
                 </Field>
                 <Field id="f-gEmail" label="E-mail du responsable" error={err("gEmail")} className="sm:col-span-2">
                   <input id="f-gEmail" type="email" className={inputCls} {...text("gEmail")} {...inv("gEmail")} />

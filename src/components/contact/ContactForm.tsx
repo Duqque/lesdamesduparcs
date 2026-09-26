@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useId, useState, type FormEvent } from "react";
 import { Send } from "lucide-react";
+import { PhoneInput } from "@/components/forms/PhoneInput";
 import { cn } from "@/lib/cn";
 
 const field =
@@ -47,13 +48,13 @@ export function ContactForm({ compact = false, autoFocus = false, onDone }: { co
     );
 
   const err = (k: string) => state.errors?.[k];
-  const inp = (k: string) => cn(field, compact ? "h-8 rounded-[8px] px-2.5 text-[13px]" : "h-11", err(k) && "border-psg-red-bright/70");
+  const inp = (k: string) => cn(field, compact ? "mt-0 h-7 rounded-[8px] px-2.5 text-[12.5px]" : "h-11", err(k) && "border-psg-red-bright/70");
   const lbl = compact ? "sr-only" : "block text-[12.5px] font-medium text-white/80";
   const wrapCls = compact ? "block" : "block text-[12.5px] font-medium text-white/80";
   const full = !compact ? "sm:col-span-2" : "";
   const ph = (t: string) => (compact ? t : undefined);
   return (
-    <form onSubmit={submit} noValidate className={cn("grid font-body", compact ? "grid-cols-2 gap-1.5" : "gap-3.5 sm:grid-cols-2")}>
+    <form onSubmit={submit} noValidate className={cn("grid font-body", compact ? "grid-cols-2 gap-1" : "gap-3.5 sm:grid-cols-2")}>
       <label className={wrapCls} htmlFor={`${uid}-fn`}>
         <span className={compact ? "sr-only" : ""}>Prénom</span>
         <input id={`${uid}-fn`} name="firstName" required autoComplete="given-name" autoFocus={autoFocus} maxLength={80} placeholder={ph("Prénom")} className={inp("firstName")} aria-invalid={Boolean(err("firstName"))} />
@@ -64,19 +65,19 @@ export function ContactForm({ compact = false, autoFocus = false, onDone }: { co
         <input id={`${uid}-ln`} name="lastName" required autoComplete="family-name" maxLength={80} placeholder={ph("Nom")} className={inp("lastName")} aria-invalid={Boolean(err("lastName"))} />
         {err("lastName") && <span role="alert" className="mt-0.5 block text-[11px] text-[#ff9aa8]">{err("lastName")}</span>}
       </label>
-      <label className={cn(wrapCls, !compact && full)} htmlFor={`${uid}-em`}>
+      <label className={cn(wrapCls, compact ? "col-span-2" : full)} htmlFor={`${uid}-em`}>
         <span className={compact ? "sr-only" : ""}>E-mail</span>
         <input id={`${uid}-em`} name="email" type="email" required autoComplete="email" maxLength={160} placeholder={ph("E-mail")} className={inp("email")} aria-invalid={Boolean(err("email"))} />
         {err("email") && <span role="alert" className="mt-0.5 block text-[11px] text-[#ff9aa8]">{err("email")}</span>}
       </label>
-      <label className={cn(wrapCls, !compact && full)} htmlFor={`${uid}-ph`}>
-        <span className={compact ? "sr-only" : ""}>Téléphone</span>
-        <input id={`${uid}-ph`} name="phone" type="tel" required autoComplete="tel" maxLength={24} placeholder={ph("Téléphone")} className={inp("phone")} aria-invalid={Boolean(err("phone"))} />
+      <div className={cn(compact ? "col-span-2" : full)}>
+        <label className={compact ? "sr-only" : "block text-[12.5px] font-medium text-white/80"} htmlFor={`${uid}-ph`}>Téléphone</label>
+        <PhoneInput id={`${uid}-ph`} name="phone" required size={compact ? "sm" : "md"} invalid={Boolean(err("phone"))} className={compact ? undefined : "mt-1.5"} />
         {err("phone") && <span role="alert" className="mt-0.5 block text-[11px] text-[#ff9aa8]">{err("phone")}</span>}
-      </label>
+      </div>
       <label className={cn(wrapCls, compact ? "col-span-2" : full)} htmlFor={`${uid}-msg`}>
         <span className={compact ? "sr-only" : ""}>Message</span>
-        <textarea id={`${uid}-msg`} name="message" required rows={compact ? 2 : 6} maxLength={4000} placeholder={ph("Votre message")} className={cn(field, compact ? "min-h-[44px] resize-none rounded-[8px] px-2.5 py-1.5 text-[13px]" : "py-3", err("message") && "border-psg-red-bright/70")} aria-invalid={Boolean(err("message"))} />
+        <textarea id={`${uid}-msg`} name="message" required rows={compact ? 1 : 6} maxLength={4000} placeholder={ph("Votre message")} className={cn(field, compact ? "min-h-[38px] resize-none rounded-[8px] px-2.5 py-1 text-[12.5px]" : "py-3", err("message") && "border-psg-red-bright/70")} aria-invalid={Boolean(err("message"))} />
         {err("message") && <span role="alert" className="mt-0.5 block text-[11px] text-[#ff9aa8]">{err("message")}</span>}
       </label>
       {/* Champ piège pour les robots : invisible et hors du parcours au clavier. */}
@@ -85,7 +86,7 @@ export function ContactForm({ compact = false, autoFocus = false, onDone }: { co
       </div>
       {state.error && !state.errors && <p role="alert" className={cn("rounded-[8px] border border-psg-red/40 bg-psg-red/10 px-2.5 py-1.5 text-[12px] text-[#ff9aa8]", compact ? "col-span-2" : full)}>{state.error}</p>}
       <div className={cn("flex items-center gap-2", compact ? "col-span-2" : full)}>
-        <button type="submit" disabled={state.busy} className={cn("inline-flex items-center justify-center gap-2 rounded-[8px] border border-[#ff6b80]/45 bg-[linear-gradient(180deg,#e51b36_0%,#b30d27_100%)] font-medium text-white transition-[filter] hover:brightness-110 disabled:opacity-60", compact ? "h-8 shrink-0 px-3.5 text-[12.5px]" : "h-12 w-full text-[15px]")}>
+        <button type="submit" disabled={state.busy} className={cn("inline-flex items-center justify-center gap-2 rounded-[8px] border border-[#ff6b80]/45 bg-[linear-gradient(180deg,#e51b36_0%,#b30d27_100%)] font-medium text-white transition-[filter] hover:brightness-110 disabled:opacity-60", compact ? "h-7 shrink-0 px-3 text-[12.5px]" : "h-12 w-full text-[15px]")}>
           <Send aria-hidden className={compact ? "size-3.5" : "size-4"} strokeWidth={1.8} />
           {state.busy ? "Envoi…" : "Envoyer"}
         </button>

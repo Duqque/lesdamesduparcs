@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { LocalityFields } from "@/components/forms/LocalityFields";
+import { PhoneInput } from "@/components/forms/PhoneInput";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Lock, MapPin, Truck } from "lucide-react";
@@ -14,7 +16,6 @@ import { formatPrice } from "@/lib/money";
 import { validateCheckout, type CheckoutInput } from "@/lib/orders";
 import { cn } from "@/lib/cn";
 
-const countries = ["France", "Belgique", "Suisse", "Luxembourg", "Allemagne", "Espagne", "Italie", "Portugal"];
 
 function Section({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
@@ -153,7 +154,7 @@ export function CheckoutClient() {
                 <input id="c-email" type="email" value={v.email} onChange={(e) => set("email", e.target.value)} autoComplete="email" className={inputCls} {...ia("email")} />
               </Field>
               <Field id="c-phone" label="Téléphone (facultatif)" error={errors.phone}>
-                <input id="c-phone" type="tel" value={v.phone} onChange={(e) => set("phone", e.target.value)} autoComplete="tel" className={inputCls} {...ia("phone")} />
+                <PhoneInput id="c-phone" value={v.phone} onChange={(full) => set("phone", full)} invalid={Boolean(errors.phone)} describedBy={errors.phone ? "c-phone-err" : undefined} />
               </Field>
             </div>
           </Section>
@@ -183,17 +184,12 @@ export function CheckoutClient() {
                 <Field id="c-line2" label="Complément (facultatif)" className="sm:col-span-2">
                   <input id="c-line2" value={v.line2} onChange={(e) => set("line2", e.target.value)} autoComplete="address-line2" className={inputCls} />
                 </Field>
-                <Field id="c-postalCode" label="Code postal" error={errors.postalCode}>
-                  <input id="c-postalCode" value={v.postalCode} onChange={(e) => set("postalCode", e.target.value)} autoComplete="postal-code" className={inputCls} {...ia("postalCode")} />
-                </Field>
-                <Field id="c-city" label="Ville" error={errors.city}>
-                  <input id="c-city" value={v.city} onChange={(e) => set("city", e.target.value)} autoComplete="address-level2" className={inputCls} {...ia("city")} />
-                </Field>
-                <Field id="c-country" label="Pays" error={errors.country}>
-                  <select id="c-country" value={v.country} onChange={(e) => set("country", e.target.value)} autoComplete="country-name" className={inputCls}>
-                    {countries.map((c) => <option key={c}>{c}</option>)}
-                  </select>
-                </Field>
+                <LocalityFields
+                  ids={{ postalCode: "c-postalCode", city: "c-city", country: "c-country" }}
+                  value={{ postalCode: v.postalCode, city: v.city, country: v.country }}
+                  onChange={(patch) => setV((p) => ({ ...p, ...patch }))}
+                  errors={{ postalCode: errors.postalCode, city: errors.city, country: errors.country }}
+                />
               </div>
             ) : (
               <p className="mt-6 rounded-[12px] border border-white/10 bg-black/20 p-5 text-mist t-small">Vous retirerez votre commande lors du prochain événement des Dames du Parc. Nous vous écrirons pour convenir de la date et du lieu.</p>

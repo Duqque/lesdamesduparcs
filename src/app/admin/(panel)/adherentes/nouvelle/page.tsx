@@ -5,6 +5,9 @@ import { first, type SP } from "@/lib/admin/params";
 import { requireAdmin } from "@/lib/server/admin-auth";
 import { plans } from "@/lib/server/business";
 import { createMemberAction } from "../actions";
+import { BirthDateInput } from "@/components/forms/BirthDateInput";
+import { LocalityGroup } from "@/components/forms/LocalityGroup";
+import { PhoneInput } from "@/components/forms/PhoneInput";
 
 export const metadata = { title: "Nouvelle adhérente" };
 
@@ -21,13 +24,11 @@ export default async function NewMemberPage({ searchParams }: { searchParams: Pr
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Prénom"><input name="firstName" required className={inp} /></Field>
             <Field label="Nom"><input name="lastName" required className={inp} /></Field>
-            <Field label="Date de naissance"><input name="birthDate" type="date" required className={inp} /></Field>
-            <Field label="Téléphone"><input name="phone" required className={inp} /></Field>
+            <div><span className="block font-body text-[12px] font-medium uppercase tracking-[0.14em] text-mist">Date de naissance</span><BirthDateInput id="m-birth" name="birthDate" className="mt-1.5" /></div>
+            <div><span className="block font-body text-[12px] font-medium uppercase tracking-[0.14em] text-mist">Téléphone</span><PhoneInput id="m-phone" name="phone" className="mt-1.5" /></div>
             <Field label="Adresse e-mail" className="sm:col-span-2"><input name="email" type="email" required className={inp} /></Field>
             <Field label="Adresse" className="sm:col-span-2"><input name="line1" required className={inp} /></Field>
-            <Field label="Code postal"><input name="postalCode" required className={inp} /></Field>
-            <Field label="Ville"><input name="city" required className={inp} /></Field>
-            <Field label="Pays"><input name="country" defaultValue="France" required className={inp} /></Field>
+            <LocalityGroup idPrefix="new" />
           </div>
         </Panel>
         <Panel title="Responsable légal (si mineure)">
@@ -35,7 +36,7 @@ export default async function NewMemberPage({ searchParams }: { searchParams: Pr
             <Field label="Prénom"><input name="gFirstName" className={inp} /></Field>
             <Field label="Nom"><input name="gLastName" className={inp} /></Field>
             <Field label="Lien"><select name="gRelation" className={inp}><option value="mere">Mère</option><option value="pere">Père</option><option value="tuteur">Représentant légal</option></select></Field>
-            <Field label="Téléphone"><input name="gPhone" className={inp} /></Field>
+            <div><span className="block font-body text-[12px] font-medium uppercase tracking-[0.14em] text-mist">Téléphone</span><PhoneInput id="m-gphone" name="gPhone" className="mt-1.5" /></div>
             <Field label="E-mail" className="sm:col-span-2"><input name="gEmail" type="email" className={inp} /></Field>
           </div>
         </Panel>

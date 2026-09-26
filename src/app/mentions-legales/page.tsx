@@ -49,7 +49,12 @@ export default async function MentionsLegalesPage() {
         {
           id: "conception",
           title: "Conception et développement",
-          body: <P>Site conçu et développé sur mesure par Quentin Duquenne.</P>,
+          body: (
+            <>
+              <P>Site conçu et développé sur mesure par Quentin Duquenne.</P>
+              <P>Crédits : polices Geomini et Special Gothic Expanded One (licence SIL Open Font) ; drapeaux Twemoji (licence CC-BY 4.0) ; liste des communes et codes postaux issue de l&rsquo;API Géo (Licence Ouverte Etalab) ; noms et indicatifs des pays du jeu de données ouvert « countries » (ODbL).</P>
+            </>
+          ),
         },
         {
           id: "propriete",

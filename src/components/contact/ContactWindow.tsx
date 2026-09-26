@@ -39,9 +39,9 @@ export function ContactWindow({ email }: { email: string }) {
     <section
       role="dialog"
       aria-label="Nous contacter"
-      className="fixed bottom-[76px] right-6 z-[60] hidden max-h-[30svh] w-[30vw] min-w-[300px] max-w-[30vw] overflow-y-auto overscroll-contain rounded-[14px] border border-white/[0.14] bg-[#07090d]/97 p-2.5 shadow-[0_18px_50px_-18px_rgba(0,0,0,0.95)] backdrop-blur-md lg:block"
+      className="fixed bottom-[76px] right-6 z-[60] hidden max-h-[30svh] w-[30vw] min-w-[300px] max-w-[30vw] overflow-y-auto overscroll-contain rounded-[14px] border border-white/[0.14] bg-[#07090d]/97 p-2 shadow-[0_18px_50px_-18px_rgba(0,0,0,0.95)] backdrop-blur-md lg:block"
     >
-      <div className="mb-1.5 flex items-center justify-between gap-3">
+      <div className="mb-1 flex items-center justify-between gap-3">
         <h2 className="min-w-0 truncate font-display text-[12.5px] uppercase leading-none text-white">Nous contacter</h2>
         <a href={`mailto:${email}`} className="ml-auto min-w-0 truncate font-body text-[11px] text-white/60 underline underline-offset-2 hover:text-white">{email}</a>
         <button type="button" onClick={() => setContactOpen(false)} aria-label="Fermer la fenêtre de contact" className="grid size-7 shrink-0 place-items-center rounded-full border border-white/[0.16] text-white transition-colors hover:border-white/40 hover:bg-white/5">

@@ -347,3 +347,14 @@ html[data-intro-seen] .intro-root { display: none; }
   font-size: 12.5px;
   line-height: 1.7;
 }
+
+/* Drapeaux emoji sur les systèmes qui ne les affichent pas (Windows) : police Twemoji Country Flags (CC-BY 4.0), limitée aux drapeaux. */
+@font-face {
+  font-family: "Twemoji Country Flags";
+  unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E007F;
+  src: url("../fonts/TwemojiCountryFlags.woff2") format("woff2");
+  font-display: swap;
+}
+.flag {
+  font-family: "Twemoji Country Flags", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}

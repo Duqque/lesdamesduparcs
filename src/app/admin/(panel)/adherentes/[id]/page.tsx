@@ -14,6 +14,9 @@ import { TX_STATUS_LABEL, getTransactions, membershipsOf, plans, effectiveStatus
 import { getAllEventsAdmin } from "@/lib/server/events";
 import { emailConfigured } from "@/lib/server/email";
 import { getMemberById, listAllRegistrations } from "@/lib/server/store";
+import { BirthDateInput } from "@/components/forms/BirthDateInput";
+import { LocalityGroup } from "@/components/forms/LocalityGroup";
+import { PhoneInput } from "@/components/forms/PhoneInput";
 import { addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, updateMemberAction } from "../actions";
 
 export const metadata = { title: "Fiche adhérente" };
@@ -76,15 +79,13 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
             <Field label="Prénom"><input name="firstName" defaultValue={m.firstName} className={inp} disabled={anonymized} /></Field>
             <Field label="Nom"><input name="lastName" defaultValue={m.lastName} className={inp} disabled={anonymized} /></Field>
             <Field label="Adresse e-mail"><input name="email" type="email" defaultValue={m.email} className={inp} disabled={anonymized} /></Field>
-            <Field label="Téléphone"><input name="phone" defaultValue={m.phone} className={inp} disabled={anonymized} /></Field>
+            <div><span className="block font-body text-[12px] font-medium uppercase tracking-[0.14em] text-mist">Téléphone</span>{anonymized ? <input name="phone" defaultValue={m.phone} className={inp + " mt-1.5"} disabled /> : <PhoneInput id="e-phone" name="phone" defaultValue={m.phone} className="mt-1.5" />}</div>
             {pii ? (
               <>
-                <Field label="Date de naissance"><input name="birthDate" type="date" defaultValue={m.birthDate} className={inp} disabled={anonymized} /></Field>
+                <div><span className="block font-body text-[12px] font-medium uppercase tracking-[0.14em] text-mist">Date de naissance</span>{anonymized ? <input name="birthDate" type="date" defaultValue={m.birthDate} className={inp + " mt-1.5"} disabled /> : <BirthDateInput id="e-birth" name="birthDate" value={m.birthDate} className="mt-1.5" />}</div>
                 <Field label="Adresse"><input name="line1" defaultValue={m.address.line1} className={inp} disabled={anonymized} /></Field>
                 <Field label="Complément"><input name="line2" defaultValue={m.address.line2} className={inp} disabled={anonymized} /></Field>
-                <Field label="Code postal"><input name="postalCode" defaultValue={m.address.postalCode} className={inp} disabled={anonymized} /></Field>
-                <Field label="Ville"><input name="city" defaultValue={m.address.city} className={inp} disabled={anonymized} /></Field>
-                <Field label="Pays"><input name="country" defaultValue={m.address.country} className={inp} disabled={anonymized} /></Field>
+                {anonymized ? (<><Field label="Code postal"><input name="postalCode" defaultValue={m.address.postalCode} className={inp} disabled /></Field><Field label="Ville"><input name="city" defaultValue={m.address.city} className={inp} disabled /></Field><Field label="Pays"><input name="country" defaultValue={m.address.country} className={inp} disabled /></Field></>) : <LocalityGroup idPrefix="edit" defaults={{ postalCode: m.address.postalCode, city: m.address.city, country: m.address.country }} />}
               </>
             ) : (
               <p className="sm:col-span-2 font-body text-[12.5px] text-mist">Date de naissance et adresse : réservées aux rôles autorisés.</p>
