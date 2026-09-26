@@ -12,6 +12,13 @@ const DURATION_MS = 8200;
 const HOLD_MS = 1400;
 const EXIT_MS = 1500;
 const LOAD_TIMEOUT_MS = 7000;
+/** Filet de sécurité : quoi qu'il arrive, le loader disparaît et le scroll est rendu. */
+const MAX_TOTAL_MS = 20000;
+
+const unlockScroll = () => {
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
+};
 
 const webglAvailable = () => {
   try {
@@ -42,6 +49,7 @@ export function IntroLoader() {
     skipRef.current = true;
     setExiting(true);
     finishIntro();
+    unlockScroll();
   }, []);
 
   useEffect(() => {
@@ -75,7 +83,7 @@ export function IntroLoader() {
       if (cancelled) return;
       skipRef.current = true;
       finishIntro();
-      document.documentElement.style.overflow = "";
+      unlockScroll();
       setGone(true);
     };
 
@@ -103,6 +111,7 @@ export function IntroLoader() {
     const timeout = window.setTimeout(() => {
       if (!scene) bail();
     }, LOAD_TIMEOUT_MS);
+    const failsafe = debug ? 0 : window.setTimeout(bail, MAX_TOTAL_MS);
 
     import("./parcScene")
       .then(({ createParcScene }) => createParcScene(stageRef.current!, (f) => setPct(f * 4)))
@@ -123,19 +132,23 @@ export function IntroLoader() {
     return () => {
       cancelled = true;
       window.clearTimeout(timeout);
+      window.clearTimeout(failsafe);
       cancelAnimationFrame(raf);
       if (scene) {
         window.removeEventListener("resize", scene.resize);
         scene.dispose();
       }
-      document.documentElement.style.overflow = "";
+      unlockScroll();
     };
   }, [startExit]);
 
   useEffect(() => {
     if (!exiting) return;
     exitRef.current();
-    const t = window.setTimeout(() => setGone(true), EXIT_MS + 100);
+    const t = window.setTimeout(() => {
+      unlockScroll();
+      setGone(true);
+    }, EXIT_MS + 100);
     return () => window.clearTimeout(t);
   }, [exiting]);
 
