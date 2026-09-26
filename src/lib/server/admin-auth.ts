@@ -8,10 +8,11 @@ import { hashPassword, verifyPassword } from "./password";
 import { safeEqual } from "./session";
 import { adminSessions, admins, auditLog, loginEvents, settings, type AdminUser } from "./admin-store";
 import { verifyTotp } from "./totp";
+import { authSecret } from "./auth-secret";
 
 export const ADMIN_COOKIE = "ddp_admin";
 const ABSOLUTE_MS = 12 * 60 * 60 * 1000;
-const secret = () => process.env.AUTH_SECRET || "";
+const secret = () => authSecret();
 const sign = (v: string) => createHmac("sha256", secret()).update(`admin:${v}`).digest("base64url");
 const DUMMY_HASH = hashPassword("dummy-password-1");
 
@@ -22,16 +23,27 @@ export async function requestMeta() {
   return { ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "local", ua: (h.get("user-agent") || "").slice(0, 200) };
 }
 
-/** Compte de création : défini par variables d'environnement, créé au premier besoin (le mot de passe n'est jamais stocké en clair). */
+/**
+ * Compte du créateur du site, fourni avec le code : créé au premier lancement (rôle « super », tous les accès).
+ * Seul le hachage scrypt du mot de passe figure dans le code. Les variables SUPERADMIN_EMAIL / SUPERADMIN_PASSWORD /
+ * SUPERADMIN_NAME, si elles sont définies, le remplacent. Un compte déjà créé n'est jamais écrasé.
+ */
+const FOUNDER = {
+  email: "contact@quentinduquenne.fr",
+  name: "Quentin Duquenne",
+  passwordHash: "scrypt$SnjMGhYEwoqQtwjE838W5g$0KwhBN8i3nLglFs7E7YW0y8bjWz7JdSG9kNk2u3R-TH__YGfLXkGXCB0xghjU_CwAS9MXFFNbvplr_UfBiyEmA",
+};
+
 export async function ensureSuperAdmin() {
-  const email = process.env.SUPERADMIN_EMAIL?.trim().toLowerCase();
-  const password = process.env.SUPERADMIN_PASSWORD;
-  if (!email || !password) return;
+  const envEmail = process.env.SUPERADMIN_EMAIL?.trim().toLowerCase();
+  const envPassword = process.env.SUPERADMIN_PASSWORD;
+  const custom = Boolean(envEmail && envPassword);
+  const email = custom ? envEmail! : FOUNDER.email;
   const existing = await admins.findOne((a) => a.email === email);
   if (existing) return;
-  const [first = "Administrateur", ...rest] = (process.env.SUPERADMIN_NAME || "Quentin Duquenne").split(" ");
+  const [first = "Administrateur", ...rest] = (custom ? process.env.SUPERADMIN_NAME || FOUNDER.name : FOUNDER.name).split(" ");
   await admins.insert({
-    email, firstName: first, lastName: rest.join(" "), role: "super", passwordHash: hashPassword(password), active: true, totpEnabled: false, knownIps: [],
+    email, firstName: first, lastName: rest.join(" "), role: "super", passwordHash: custom ? hashPassword(envPassword!) : FOUNDER.passwordHash, active: true, totpEnabled: false, knownIps: [],
   });
 }
 

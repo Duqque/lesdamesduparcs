@@ -156,7 +156,7 @@ de l'espace membre : `/admin/connexion`.
 - **Comptes et sécurité** : mot de passe haché (scrypt), sessions côté serveur avec expiration par inactivité (30 min par défaut),
   blocage après 5 tentatives, double authentification TOTP (facultative ou imposée à la super administratrice), déconnexion de toutes les
   sessions, journal des connexions (adresse IP, connexions depuis une nouvelle adresse signalées), réinitialisation du mot de passe par lien
-  généré par la super administratrice. La super administratrice de départ est créée depuis `SUPERADMIN_EMAIL` / `SUPERADMIN_PASSWORD` / `SUPERADMIN_NAME`.
+  généré par la super administratrice. Le compte du créateur (`contact@quentinduquenne.fr`, rôle super) est intégré au code (hachage scrypt seulement) et créé à la première connexion ; `SUPERADMIN_EMAIL` / `SUPERADMIN_PASSWORD` / `SUPERADMIN_NAME` peuvent le remplacer. La clé de session est générée dans `.data/auth-secret` si `AUTH_SECRET` est absent.
 - **Rôles** (`src/lib/admin/permissions.ts`) : super administratrice, administratrice, trésorière, communication, bénévole événementiel.
   Chaque page, chaque action et chaque export vérifient la permission. **La structure et le design du site (sections de l'accueil,
   navigation, SEO, couleur d'accent, pied de page) ne sont modifiables que par la super administratrice.**

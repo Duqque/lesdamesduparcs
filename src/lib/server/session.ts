@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { authSecret } from "./auth-secret";
 
 export const SESSION_COOKIE = "ddp_session";
 const MAX_AGE_S = 60 * 60 * 8;
@@ -11,7 +12,7 @@ export type SessionUser =
 
 type Payload = SessionUser & { exp: number };
 
-const secret = () => process.env.AUTH_SECRET || "";
+const secret = () => authSecret();
 export const authConfigured = () => secret().length >= 24;
 
 const b64 = (s: string) => Buffer.from(s).toString("base64url");
