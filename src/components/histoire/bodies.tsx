@@ -15,6 +15,7 @@ import { Timeline } from "./Timeline";
 import { ValueIcon } from "./ValueIcon";
 import { WhyTabs } from "./WhyTabs";
 import { bigc, body, card, h2c, pullc, wrap } from "./styles";
+import { JoinGate } from "@/components/member/JoinGate";
 
 const Sign = () => (
   <Reveal>
@@ -315,7 +316,7 @@ export function ConclusionBody() {
       </div>
       <Reveal className="mt-20 flex flex-col gap-3 sm:flex-row">
         <Button size="lg" href="/groupe/adhesion">Communauté et adhésion</Button>
-        <Button size="lg" variant="outline" href="/rejoindre-le-groupe">Devenir membre</Button>
+        <JoinGate><Button size="lg" variant="outline" href="/rejoindre-le-groupe">Devenir membre</Button></JoinGate>
       </Reveal>
     </div>
   );
@@ -539,7 +540,7 @@ export function AdhesionBody() {
       <Reveal className="flex flex-col items-start gap-6 overflow-hidden rounded-[10px] border border-line bg-night-900/85 p-8 md:flex-row md:items-center md:justify-between md:p-12">
         <p className={`${h2c} min-w-0 max-w-[24ch]`}>Prête à rejoindre officiellement la communauté ?</p>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button size="lg" href={membership.joinHref}>Devenir membre</Button>
+          <JoinGate><Button size="lg" href={membership.joinHref}>Devenir membre</Button></JoinGate>
           <Button size="lg" variant="outline" href="/rejoindre-le-groupe" arrow={false}>Voir la carte membre</Button>
         </div>
       </Reveal>

@@ -1,3 +1,4 @@
+import { JoinGate, JoinSectionGate, JoinText } from "@/components/member/JoinGate";
 import type { Metadata } from "next";
 import { seoFor } from "@/lib/server/site";
 import Link from "next/link";
@@ -45,10 +46,12 @@ export default async function EventsPage() {
           </Link>
         </div>
 
+        <JoinSectionGate>
         <aside aria-label="Adhérer" className="mt-16 flex flex-col items-start gap-5 rounded-[10px] border border-psg-red-bright/40 bg-[linear-gradient(90deg,rgba(217,15,44,0.16),rgba(217,15,44,0.03))] p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
-          <p className="max-w-xl font-body text-[16px] leading-[1.6] text-white">Vivez les matchs et les événements avec Les Dames du Parc : rejoignez le groupe de supportrices du Paris Saint-Germain.</p>
-          <Button size="sm" href="/rejoindre-le-groupe/inscription">Adhérer aux Dames du Parc</Button>
+          <p className="max-w-xl font-body text-[16px] leading-[1.6] text-white"><JoinText guest="Vivez les matchs et les événements avec Les Dames du Parc : rejoignez le groupe de supportrices du Paris Saint-Germain." renew="Votre adhésion est terminée : renouvelez-la pour continuer à vivre les matchs et les événements avec Les Dames du Parc." pay="Il ne reste qu’à régler votre adhésion pour vivre les matchs et les événements avec Les Dames du Parc." /></p>
+          <JoinGate><Button size="sm" href="/rejoindre-le-groupe/inscription">Adhérer aux Dames du Parc</Button></JoinGate>
         </aside>
+        </JoinSectionGate>
 
         <section aria-labelledby="upcoming" className="mt-24 md:mt-32">
           <h2 id="upcoming" className="font-body text-[20px] font-medium text-white">Prochains événements</h2>

@@ -3,6 +3,7 @@
 import { motion, type Variants } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { useIntroDone } from "@/lib/intro";
+import { JoinGate, JoinSectionGate } from "@/components/member/JoinGate";
 
 const container: Variants = {
   hidden: {},
@@ -40,11 +41,15 @@ export function HeroContent({ title = "Les Dames du Parc", subtitle, cta = "Rejo
           </>
         )}
       </motion.p>
-      <motion.div variants={item} className="mt-9 xl:mt-12">
-        <Button size="lg" href="/rejoindre-le-groupe" className="w-full sm:w-auto sm:min-w-[232px]">
-          {cta}
-        </Button>
-      </motion.div>
+      <JoinSectionGate>
+        <motion.div variants={item} className="mt-9 xl:mt-12">
+          <JoinGate>
+            <Button size="lg" href="/rejoindre-le-groupe" className="w-full sm:w-auto sm:min-w-[232px]">
+              {cta}
+            </Button>
+          </JoinGate>
+        </motion.div>
+      </JoinSectionGate>
     </motion.div>
   );
 }

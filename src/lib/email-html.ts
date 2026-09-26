@@ -28,12 +28,15 @@ const CTA_LABEL: Record<string, string> = {
   "mot-de-passe": "Définir mon mot de passe",
   invitation: "Accéder à mon espace",
   rgpd: "Confirmer ma demande",
+  "nouvel-article": "Lire l’article",
+  "nouvel-evenement": "Voir l’événement",
+  "nouveau-produit": "Voir dans la boutique",
 };
 
 const linkify = (escaped: string) => escaped.replace(URL_RE, (u) => `<a href="${u}" style="color:#ffffff;text-decoration:underline;text-decoration-color:${RED};">${u}</a>`);
 
-export function renderEmail(opts: { subject: string; body: string; kind?: string; brand: EmailBrand }): { html: string; text: string } {
-  const { subject, body, kind = "", brand } = opts;
+export function renderEmail(opts: { subject: string; body: string; kind?: string; brand: EmailBrand; image?: { src: string; alt: string }; unsubscribeUrl?: string }): { html: string; text: string } {
+  const { subject, body, kind = "", brand, image, unsubscribeUrl } = opts;
   const o = brand.origin.replace(/\/$/, "");
   const button = (t: string) =>
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 6px;"><tr><td bgcolor="${RED}" style="border-radius:10px;background:linear-gradient(180deg,#e51b36 0%,#b30d27 100%);"><a href="${esc(t)}" style="display:inline-block;padding:15px 30px;font-family:${BODY_FONT};font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;">${esc(CTA_LABEL[kind] ?? "Ouvrir le lien")}</a></td></tr></table><p style="margin:6px 0 20px;font-family:${BODY_FONT};font-size:12px;line-height:1.5;color:#8d99b0;word-break:break-all;">${esc(t)}</p>`;
@@ -113,6 +116,7 @@ a{color:#ffffff;}
     </td></tr>
     <tr><td class="card" bgcolor="${CARD}" style="background:${CARD};padding:38px 36px 34px;border:1px solid #1c2846;border-top:0;border-radius:0 0 14px 14px;">
       <h1 class="title" style="margin:0 0 24px;font-family:${TITLE_FONT};font-size:24px;line-height:1.2;font-weight:400;text-transform:uppercase;color:#ffffff;">${esc(subject)}</h1>
+      ${image ? `<img src="${esc(image.src)}" width="528" alt="${esc(image.alt)}" style="display:block;width:100%;max-width:528px;height:auto;border:0;border-radius:10px;margin:0 0 22px;">` : ""}
       ${blocks}
       ${signature}
     </td></tr>
@@ -121,6 +125,7 @@ a{color:#ffffff;}
       <p style="margin:0 0 6px;"><strong style="color:#c3ccdc;font-weight:600;">${esc(brand.name)}</strong>${brand.address ? ` · ${esc(brand.address)}` : ""}</p>
       ${brand.email ? `<p style="margin:0 0 12px;"><a href="mailto:${esc(brand.email)}" style="color:#8d99b0;text-decoration:underline;">${esc(brand.email)}</a></p>` : ""}
       <p style="margin:0;font-size:12px;">${legal}</p>
+      ${unsubscribeUrl ? `<p style="margin:14px 0 0;font-size:12px;">Vous recevez ce message car vous êtes adhérente. <a href="${esc(unsubscribeUrl)}" style="color:#c3ccdc;text-decoration:underline;">Ne plus recevoir ces e-mails de nouveautés</a></p>` : ""}
     </td></tr>
   </table>
 </td></tr>
@@ -128,6 +133,6 @@ a{color:#ffffff;}
 </body>
 </html>`;
 
-  const text = `${body.trim()}${brand.signature?.trim() ? `\n\n${brand.signature.trim()}` : ""}\n\n—\n${brand.name}${brand.address ? `\n${brand.address}` : ""}${brand.email ? `\n${brand.email}` : ""}\n${o}`;
+  const text = `${body.trim()}${brand.signature?.trim() ? `\n\n${brand.signature.trim()}` : ""}\n\n—\n${brand.name}${brand.address ? `\n${brand.address}` : ""}${brand.email ? `\n${brand.email}` : ""}\n${o}${unsubscribeUrl ? `\n\nNe plus recevoir ces e-mails de nouveautés : ${unsubscribeUrl}` : ""}`;
   return { html, text };
 }

@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { MatchLogo } from "./MatchLogo";
 import { Tone } from "@/components/news/NewsCard";
 import type { MatchView } from "@/lib/server/matches";
+import { JoinGate } from "@/components/member/JoinGate";
 
 /**
  * Match du PSG présenté comme un événement spécial du calendrier, à la même taille et sur le même gabarit que les cartes
@@ -44,12 +45,12 @@ export function MatchEventCard({ match, next, className }: { match: MatchView; n
         <Image src={match.image} alt="" fill sizes="(min-width: 1024px) 22vw, (min-width: 768px) 45vw, 78vw" className="object-cover saturate-[0.8] transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.06]" />
         <Tone />
       </div>
-      <div className="grid grid-cols-2 divide-x divide-white/15 border-t border-white/15 bg-night-900 font-body text-[13px] text-white">
+      <div className="grid grid-flow-col auto-cols-fr divide-x divide-white/15 border-t border-white/15 bg-night-900 font-body text-[13px] text-white">
         <a href={match.ticketHref} target="_blank" rel="noopener noreferrer" className="grid min-h-11 place-items-center px-3 text-center transition-colors hover:bg-white/10">Billetterie</a>
         {match.related ? (
           <Link href={`/evenements/${match.related.id}`} className="grid min-h-11 place-items-center bg-psg-red px-2 text-center text-[12.5px] font-medium leading-tight transition-colors hover:bg-psg-red-bright">Vivre le match avec les Dames !</Link>
         ) : (
-          <Link href="/rejoindre-le-groupe/inscription" className="grid min-h-11 place-items-center px-2 text-center leading-tight transition-colors hover:bg-white/10">Adhérer aux Dames</Link>
+          <JoinGate><Link href="/rejoindre-le-groupe/inscription" className="grid min-h-11 place-items-center px-2 text-center leading-tight transition-colors hover:bg-white/10">Adhérer aux Dames</Link></JoinGate>
         )}
       </div>
     </article>

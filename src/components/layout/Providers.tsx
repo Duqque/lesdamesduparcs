@@ -3,7 +3,7 @@
 import { MotionConfig } from "framer-motion";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { AuthProvider } from "@/components/auth/AuthProvider";
+import { AuthProvider, type Session } from "@/components/auth/AuthProvider";
 import { AudioProvider } from "@/components/chants/AudioProvider";
 import { CartDrawer } from "@/components/shop/CartDrawer";
 import { IntroLoader } from "@/components/intro/IntroLoader";
@@ -12,12 +12,12 @@ import type { ShopCatalog } from "@/lib/shop";
 import { featuredChant } from "@/data/chants";
 import { CustomCursor } from "./CustomCursor";
 
-export function Providers({ children, shop }: { children: ReactNode; shop: ShopCatalog }) {
+export function Providers({ children, shop, initialSession }: { children: ReactNode; shop: ShopCatalog; initialSession?: Session }) {
   const admin = usePathname().startsWith("/admin");
   if (admin) return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
   return (
     <MotionConfig reducedMotion="user">
-      <AuthProvider>
+      <AuthProvider initial={initialSession}>
         <AudioProvider chant={featuredChant}>
           <ShopProvider catalog={shop}>
             <IntroLoader />

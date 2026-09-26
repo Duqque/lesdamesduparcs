@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { audit, requireAdmin } from "@/lib/server/admin-auth";
 import { articlesDb, slugify, type Article, type PublishStatus } from "@/lib/server/content";
 import { mediaUrl, saveMedia } from "@/lib/server/media";
+import { announceAfterSave } from "@/lib/server/notify";
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const refresh = (id?: string) => {
@@ -52,6 +53,7 @@ export async function saveArticleAction(formData: FormData) {
   if (editing) {
     const before = await articlesDb.get(editing);
     await articlesDb.update(editing, data as Partial<Article>);
+    announceAfterSave();
     await audit(ctx, status === "published" && before?.status !== "published" ? "publication" : "modification", "article", `Article ${status === "published" && before?.status !== "published" ? "publié" : "modifié"} : ${title}`, { entityId: editing, before: before && { title: before.title, status: before.status }, after: { title, status } });
     refresh(editing);
     redirect(`/admin/contenu/${editing}?ok=${encodeURIComponent("Article enregistré.")}`);
@@ -60,6 +62,7 @@ export async function saveArticleAction(formData: FormData) {
   let id = slugify(s(formData, "slug") || title);
   while (await articlesDb.get(id)) id = `${id}-${Math.random().toString(36).slice(2, 5)}`;
   await articlesDb.insert({ id, views: 0, ...data } as never);
+  announceAfterSave();
   await audit(ctx, status === "published" ? "publication" : "création", "article", `Article ${status === "published" ? "publié" : "créé"} : ${title}`, { entityId: id });
   refresh(id);
   redirect(`/admin/contenu/${id}?ok=${encodeURIComponent("Article créé.")}`);
@@ -70,6 +73,7 @@ export async function setArticleStatusAction(id: string, status: PublishStatus) 
   const a = await articlesDb.get(id);
   if (!a) redirect("/admin/contenu");
   await articlesDb.update(id, { status, publishAt: status === "published" ? undefined : a.publishAt });
+  announceAfterSave();
   await audit(ctx, status === "published" ? "publication" : "modification", "article", `Article « ${a.title} » : statut ${status}`, { entityId: id, before: a.status, after: status });
   refresh(id);
   redirect(`/admin/contenu/${id}?ok=${encodeURIComponent("Statut mis à jour.")}`);

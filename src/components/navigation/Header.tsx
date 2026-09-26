@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
 import { ChevronDown, IdCard, Mail } from "lucide-react";
 import { joinLink, leftNav, mainNav, rightNav } from "@/data/navigation";
+import { ADHESION_HREF, JOIN_LABELS, JoinGate, useJoinMode } from "@/components/member/JoinGate";
 import { applyNav, type NavConfig } from "@/lib/nav-config";
 import { useScrolled } from "@/hooks/useScrolled";
 import { cn } from "@/lib/cn";
@@ -77,7 +78,13 @@ function NavLinks({ items, pathname }: { items: typeof leftNav; pathname: string
 
 export function Header({ navConfig }: { navConfig?: NavConfig }) {
   const pathname = usePathname();
-  const apply = (items: typeof leftNav) => applyNav(items, navConfig ?? { hidden: [], labels: {} });
+  const joinMode = useJoinMode();
+  const apply = (items: typeof leftNav) =>
+    applyNav(items, navConfig ?? { hidden: [], labels: {} }).flatMap((item) => {
+      if (item.href !== "/rejoindre-le-groupe/inscription" || joinMode === "join") return [item];
+      if (joinMode === "hidden") return [];
+      return [{ ...item, href: ADHESION_HREF, label: JOIN_LABELS[joinMode] ?? item.label }];
+    });
   const scrolled = useScrolled(24);
   const [open, setOpen] = useState(false);
 
@@ -107,10 +114,12 @@ export function Header({ navConfig }: { navConfig?: NavConfig }) {
           {/* Gauche */}
           <div className="flex items-center gap-3">
             <div className="hidden lg:block">
-              <Button href={joinLink.href} size="sm" icon={IdCard} arrow={false}>
-                <span className="xl:hidden">Rejoindre</span>
-                <span className="hidden xl:inline">{joinLink.label}</span>
-              </Button>
+              <JoinGate>
+                <Button href={joinLink.href} size="sm" icon={IdCard} arrow={false}>
+                  <span className="xl:hidden">Rejoindre</span>
+                  <span className="hidden xl:inline">{joinLink.label}</span>
+                </Button>
+              </JoinGate>
             </div>
             <nav aria-label="Navigation principale" className="hidden items-center gap-[clamp(28px,3.4vw,64px)] lg:ml-auto lg:flex lg:pr-[clamp(24px,3vw,64px)]">
               <NavLinks items={apply(leftNav)} pathname={pathname} />

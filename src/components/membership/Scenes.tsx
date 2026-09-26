@@ -10,6 +10,7 @@ import { formatDay, formatMonthShort } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { useWindow } from "./pose";
 import { WalletButton } from "./WalletButton";
+import { JoinGate } from "@/components/member/JoinGate";
 
 /*
  * La carte est fixe au centre. Chaque scène vit dans une zone qui ne la recouvre jamais :
@@ -338,9 +339,11 @@ function Price() {
 function Cta() {
   return (
     <>
-      <Button size="lg" href={membership.joinHref}>
-        Devenir membre
-      </Button>
+      <JoinGate>
+        <Button size="lg" href={membership.joinHref}>
+          Devenir membre
+        </Button>
+      </JoinGate>
       <p className="mt-4 font-body text-[13px] text-mist">
         <Link href={membership.infoHref} className="font-semibold text-white underline decoration-white/30 underline-offset-4 transition-colors hover:decoration-white">
           Tout savoir sur l&rsquo;adhésion

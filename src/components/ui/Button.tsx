@@ -15,11 +15,13 @@ interface Props {
   arrow?: boolean;
   icon?: LucideIcon;
   className?: string;
+  onClick?: () => void;
+  disabled?: boolean;
   children: ReactNode;
 }
 
 const base =
-  "group/btn inline-flex items-center justify-center gap-3 whitespace-nowrap font-body font-medium select-none rounded-[10px] " +
+  "group/btn inline-flex max-w-full items-center justify-center gap-3 text-center font-body sm:whitespace-nowrap font-medium select-none rounded-[10px] " +
   "transition-[transform,background-color,border-color,filter] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] " +
   "hover:-translate-y-[2px] active:translate-y-0 min-h-11";
 
@@ -30,12 +32,12 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  lg: "h-[54px] px-7 text-[15.5px]",
-  sm: "h-11 px-5 text-[14px]",
-  xs: "h-10 px-4 text-[12.5px] gap-2.5",
+  lg: "min-h-[54px] px-6 py-2 text-[15.5px] leading-[1.25] sm:px-7",
+  sm: "min-h-11 px-4 py-1.5 text-[14px] leading-[1.25] sm:px-5",
+  xs: "min-h-10 px-4 py-1.5 text-[12.5px] leading-[1.25] gap-2.5",
 };
 
-export function Button({ variant = "primary", size = "sm", href, external, download, arrow = true, icon: Icon, className, children }: Props) {
+export function Button({ variant = "primary", size = "sm", href, external, download, arrow = true, icon: Icon, className, onClick, disabled, children }: Props) {
   const classes = cn(base, variants[variant], sizes[size], className);
   const content = (
     <>
@@ -56,7 +58,7 @@ export function Button({ variant = "primary", size = "sm", href, external, downl
 
   if (!href) {
     return (
-      <button type="button" className={classes}>
+      <button type="button" className={cn(classes, disabled && "pointer-events-none opacity-60")} onClick={onClick} disabled={disabled}>
         {content}
       </button>
     );

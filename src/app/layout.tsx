@@ -10,6 +10,10 @@ import { INTRO_STORAGE_KEY } from "@/lib/intro-key";
 import { accentOverride, getNavConfig, siteMeta } from "@/lib/server/site";
 import { settings } from "@/lib/server/admin-store";
 import { getPublicCatalog } from "@/lib/server/shop";
+import { getSession } from "@/lib/server/session";
+import { getMemberByNumber } from "@/lib/server/store";
+import { membershipState } from "@/lib/server/business";
+import type { Session } from "@/components/auth/AuthProvider";
 
 /**
  * Deux familles : Geomini (police variable, graisses 200 à 800) pour les sous-titres, les paragraphes et tout le corps de texte ;
@@ -37,6 +41,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const [navConfig, accent, shop, conf] = await Promise.all([getNavConfig(), accentOverride(), getPublicCatalog(), settings.get()]);
   const contactEmail = conf.association.email || "contact@lesdamesduparc.com";
+  // La membre connectée est connue dès le rendu serveur (état de son abonnement compris) : pas de « saut » des appels à l'adhésion.
+  const s = await getSession().catch(() => null);
+  const stored = s?.role === "member" ? await getMemberByNumber(s.memberNumber) : null;
+  const initialSession: Session | undefined =
+    s?.role === "member" ? { status: "member", firstName: s.firstName, lastName: s.lastName, email: s.email, memberNumber: s.memberNumber, membership: stored ? await membershipState(stored.id) : "none" } : undefined;
   return (
     <html lang="fr" className={`${geomini.variable} ${gothic.variable}`} suppressHydrationWarning>
       <head>
@@ -58,7 +67,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         >
           Aller au contenu
         </a>
-        <Providers shop={shop}>
+        <Providers shop={shop} initialSession={initialSession}>
           <SiteFrame header={<Header navConfig={navConfig} />} footer={<Footer />} contactEmail={contactEmail}>
             {children}
           </SiteFrame>

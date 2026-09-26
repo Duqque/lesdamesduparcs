@@ -60,7 +60,7 @@ async function api<T>(pathname: string, init?: { method?: string; body?: unknown
   return data as T;
 }
 
-export type PaymentKind = "registration" | "order";
+export type PaymentKind = "registration" | "order" | "membership";
 
 export interface Checkout {
   id: string;

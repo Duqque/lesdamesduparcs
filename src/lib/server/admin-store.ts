@@ -78,7 +78,23 @@ export interface AssociationInfo {
   instagram: string; tiktok: string; facebook: string;
 }
 
-export const settings = singleton("settings", {
+export const DEFAULT_AUTOMATIONS = {
+  welcome: true,
+  paymentConfirmation: true,
+  paymentFailedReminder: true,
+  renewalJ30: true,
+  renewalJ7: true,
+  eventConfirmation: true,
+  eventReminderJ7: true,
+  eventReminderJ1: true,
+  waitlistNotify: true,
+  /** E-mail aux adhérentes actives à chaque nouvel article, nouvel événement, nouveau produit de la boutique */
+  notifyArticle: true,
+  notifyEvent: true,
+  notifyProduct: true,
+};
+
+const settingsStore = singleton("settings", {
   association: <AssociationInfo>{
     name: assoDefaults.name,
     legalName: assoDefaults.legalName,
@@ -101,19 +117,18 @@ export const settings = singleton("settings", {
   emails: { fromName: "Les Dames du Parc", fromEmail: assoDefaults.email as string, signature: "Avec toute notre passion,\nLes Dames du Parc" },
   payments: { currency: "EUR", refundPolicy: "Remboursement sur demande, au cas par cas.", onlinePayment: true },
   adhesions: { seasonStartMonth: 9, renewalReminderDays: [30, 7], autoRenew: false, openToAll: true },
-  automations: {
-    welcome: true,
-    paymentConfirmation: true,
-    paymentFailedReminder: true,
-    renewalJ30: true,
-    renewalJ7: true,
-    eventConfirmation: true,
-    eventReminderJ7: true,
-    eventReminderJ1: true,
-    waitlistNotify: true,
-  },
+  automations: { ...DEFAULT_AUTOMATIONS },
   security: { sessionTimeoutMin: 30, maxAttempts: 5, lockoutMin: 15, require2fa: true },
   retention: { inactiveMonths: 36 },
 });
+
+/** Les automatisations introduites après coup (valeurs d'origine) sont ajoutées aux réglages déjà enregistrés. */
+export const settings = {
+  ...settingsStore,
+  get: async () => {
+    const s = await settingsStore.get();
+    return { ...s, automations: { ...DEFAULT_AUTOMATIONS, ...s.automations } };
+  },
+};
 
 export type Settings = Awaited<ReturnType<typeof settings.get>>;

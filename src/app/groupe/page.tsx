@@ -9,6 +9,7 @@ import { wrap } from "@/components/histoire/styles";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { chapters } from "@/data/chapters";
+import { JoinGate } from "@/components/member/JoinGate";
 
 export async function generateMetadata(): Promise<Metadata> {
   return seoFor("/groupe", { title: "Le groupe", description: "Les Dames du Parc : 22 supportrices réunies par la même passion, le Paris Saint-Germain. Notre histoire, nos valeurs, pourquoi un fan club 100 % féminin, ce que nous voulons construire." });
@@ -69,7 +70,7 @@ export default async function GroupPage() {
         <Reveal className="mx-auto max-w-2xl">
           <h2 id="rejoindre" className="break-words text-balance font-display text-[clamp(30px,4.4vw,56px)] font-semibold uppercase leading-[1.04] tracking-[0.04em] text-white">Rejoindre les Dames du Parc</h2>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button size="lg" href="/rejoindre-le-groupe">Devenir membre</Button>
+            <JoinGate><Button size="lg" href="/rejoindre-le-groupe">Devenir membre</Button></JoinGate>
             <Button size="lg" variant="outline" href="/rejoindre-le-groupe/adhesion">Comment ça marche</Button>
           </div>
         </Reveal>

@@ -22,6 +22,25 @@ export function startEventPayment(
   });
 }
 
+/** Paiement (ou renouvellement) d'une adhésion : montant serveur, retour vérifié par /api/members/adhesion/confirm. */
+export function startMembershipPayment(
+  req: Request,
+  pay: { id: string; amountCents: number; label: string },
+  member: { firstName: string; lastName: string; email: string },
+) {
+  const site = siteUrl(req);
+  return createCheckout({
+    kind: "membership",
+    refId: pay.id,
+    itemName: `Adhésion ${pay.label}`,
+    totalCents: pay.amountCents,
+    payer: { firstName: member.firstName, lastName: member.lastName, email: member.email },
+    returnUrl: `${site}/api/members/adhesion/confirm?payment=${encodeURIComponent(pay.id)}`,
+    backUrl: `${site}/profil#adhesion`,
+    errorUrl: `${site}/profil?adhesion=erreur#adhesion`,
+  });
+}
+
 /** Paiement d'une commande de la boutique : montant serveur (articles + livraison − réduction). */
 export function startShopPayment(
   req: Request,

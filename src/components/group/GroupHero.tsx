@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { Logo3D } from "./Logo3D";
+import { JoinGate } from "@/components/member/JoinGate";
 
 export function GroupHero() {
   const ref = useRef<HTMLElement>(null);
@@ -24,9 +25,11 @@ export function GroupHero() {
             <Button size="lg" href="/groupe/notre-histoire">
               Lire notre histoire
             </Button>
-            <Button size="lg" variant="outline" href="/rejoindre-le-groupe">
-              Devenir membre
-            </Button>
+            <JoinGate>
+              <Button size="lg" variant="outline" href="/rejoindre-le-groupe">
+                Devenir membre
+              </Button>
+            </JoinGate>
           </div>
         </div>
         <div className="order-1 md:order-2">

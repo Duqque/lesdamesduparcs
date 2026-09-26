@@ -8,6 +8,7 @@ import { ProductCard } from "@/components/shop/ProductCard";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { Reveal } from "@/components/ui/Reveal";
 import { getPublicCatalog } from "@/lib/server/shop";
+import { JoinGate, JoinSectionGate } from "@/components/member/JoinGate";
 
 export async function generateMetadata(): Promise<Metadata> {
   return seoFor("/boutique", { title: "Boutique", description: "La boutique des Dames du Parc : écharpes, sweats, t-shirts et accessoires aux couleurs de Paris. Achat rapide, sans compte." });
@@ -51,10 +52,14 @@ export default async function ShopPage() {
           </div>
           <div className="flex flex-col justify-end rounded-[22px] bg-[#0b1327] p-8 md:p-10">
             <p className="font-display text-[clamp(26px,3vw,38px)] font-semibold uppercase leading-[1.05] tracking-[0.04em] text-white">Faite par les tribunes, pour Paris</p>
-            <p className="mt-5 text-mist t-small">Rejoignez le groupe pour profiter d&rsquo;avantages sur la boutique et vivre la saison avec nous.</p>
-            <Link href="/rejoindre-le-groupe" className="group mt-8 inline-flex min-h-11 items-center gap-2 font-body text-[14px] font-medium text-white">
-              Rejoindre le groupe <ArrowRight aria-hidden className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
+            <JoinSectionGate>
+              <p className="mt-5 text-mist t-small">Rejoignez le groupe pour profiter d&rsquo;avantages sur la boutique et vivre la saison avec nous.</p>
+              <JoinGate>
+                <Link href="/rejoindre-le-groupe" className="group mt-8 inline-flex min-h-11 items-center gap-2 font-body text-[14px] font-medium text-white">
+                  Rejoindre le groupe <ArrowRight aria-hidden className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+              </JoinGate>
+            </JoinSectionGate>
           </div>
         </Reveal>
       </section>

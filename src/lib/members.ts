@@ -62,6 +62,8 @@ export interface MemberPublic {
   /** Statut administratif : suspendue ou anonymisée par l'équipe (absent = active) */
   status?: "active" | "suspended" | "anonymized";
   notes?: string;
+  /** Recevoir un e-mail à chaque nouvel article, événement ou produit (absent = oui ; modifiable dans l'espace membre ou par lien de désabonnement) */
+  emailUpdates?: boolean;
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

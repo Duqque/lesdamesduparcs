@@ -5,6 +5,7 @@ import { CardLabel } from "@/components/ui/CardLabel";
 import { formatLongDate, formatTime } from "@/lib/format";
 import { MatchLogo } from "./MatchLogo";
 import type { MatchView } from "@/lib/server/matches";
+import { JoinGate, JoinSectionGate, JoinText } from "@/components/member/JoinGate";
 
 /** Prochain match du PSG (accueil) : logos carrés domicile / extérieur / compétition, billetterie officielle, match vécu avec les Dames, adhésion. */
 export function MatchCard({ match }: { match: MatchView }) {
@@ -70,9 +71,12 @@ export function MatchCard({ match }: { match: MatchView }) {
           </Button>
         )}
       </div>
-      <p className="mt-4 font-body text-[13px] text-white/75">
-        Pas encore membre ? <a href="/rejoindre-le-groupe/inscription" className="font-medium text-white underline decoration-psg-red-bright decoration-2 underline-offset-[5px] hover:decoration-white">Adhérer aux Dames du Parc</a>
-      </p>
+      <JoinSectionGate>
+        <p className="mt-4 font-body text-[13px] text-white/75">
+          <JoinText guest="Pas encore membre ?" renew="Adhésion terminée ?" pay="Adhésion à régler ?" />{" "}
+          <JoinGate><a href="/rejoindre-le-groupe/inscription" className="font-medium text-white underline decoration-psg-red-bright decoration-2 underline-offset-[5px] hover:decoration-white">Adhérer aux Dames du Parc</a></JoinGate>
+        </p>
+      </JoinSectionGate>
     </article>
   );
 }

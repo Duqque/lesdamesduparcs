@@ -14,6 +14,7 @@ import { getMemberByNumber, getMemberByToken, listAllRegistrations, updateRegist
 import { formatLongDate } from "@/lib/format";
 import { safeReturn } from "@/lib/admin/params";
 import { setTxStatus } from "@/lib/server/business";
+import { announceAfterSave } from "@/lib/server/notify";
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const lines = (v: string) => v.split("\n").map((x) => x.trim()).filter(Boolean);
@@ -106,6 +107,7 @@ export async function saveEventAction(formData: FormData) {
     // Sans la permission « tarifs », les prix et modes de paiement existants sont conservés tels quels.
     if (!ctx.can("events.pricing") && before) data.registration = { ...data.registration, priceCents: before.registration.priceCents, tiers: before.registration.tiers, paymentMode: before.registration.paymentMode, paymentInstructions: before.registration.paymentInstructions };
     await eventsDb.update(editing, { ...data, origin: before?.origin } as Partial<EventRow>);
+    announceAfterSave();
     if (before && ctx.can("events.pricing") && (before.registration.priceCents !== data.registration.priceCents || before.registration.paymentMode !== data.registration.paymentMode)) await audit(ctx, "tarification", "événement", `Tarif de « ${title} » : ${(before.registration.priceCents / 100).toFixed(2)} € (${before.registration.paymentMode ?? "online"}) → ${(data.registration.priceCents / 100).toFixed(2)} € (${data.registration.paymentMode})`, { entityId: editing, before: { priceCents: before.registration.priceCents, paymentMode: before.registration.paymentMode }, after: { priceCents: data.registration.priceCents, paymentMode: data.registration.paymentMode } });
     await audit(ctx, "modification", "événement", `Événement modifié : ${title}`, { entityId: editing, before: before && { date: before.date, status: before.status, capacity: before.registration.capacity }, after: { date: data.date, status: data.status, capacity: data.registration.capacity } });
     await linkMatch(editing, s(formData, "matchId"));
@@ -124,6 +126,7 @@ export async function saveEventAction(formData: FormData) {
     if (!ctx.can("events.pricing")) data.registration = { ...data.registration, priceCents: 0, tiers: undefined, paymentMode: "none", paymentInstructions: undefined };
     data.date = shift(date, repeat, i);
     await eventsDb.insert(data);
+    announceAfterSave();
     await audit(ctx, "création", "événement", `Événement créé : ${title} (${data.date})`, { entityId: id });
     if (!first) first = id;
   }
@@ -137,6 +140,7 @@ export async function setEventStatusAction(id: string, status: EventStatus) {
   const ev = await getEventAdmin(id);
   if (!ev) redirect("/admin/evenements");
   await eventsDb.update(id, { status });
+  announceAfterSave();
   await audit(ctx, status === "published" ? "publication" : "modification", "événement", `Événement « ${ev.title} » : statut ${status}`, { entityId: id, before: ev.status, after: status });
   refresh(id);
   redirect(`/admin/evenements/${id}?ok=${encodeURIComponent("Statut mis à jour.")}`);

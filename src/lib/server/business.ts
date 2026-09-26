@@ -86,6 +86,8 @@ export interface Payment extends Row {
   paidAt?: string;
   note?: string;
   membershipId?: string;
+  /** Identifiant de l'intention de paiement HelloAsso (adhésion réglée en ligne) */
+  checkoutId?: string;
 }
 
 export const memberships = collection<Membership>("memberships");
@@ -143,6 +145,35 @@ export async function membershipsOf(memberId: string) {
 
 export async function currentMembership(memberId: string) {
   return (await membershipsOf(memberId))[0] ?? null;
+}
+
+export const paymentOfMembership = (membershipId: string) => payments.findOne((p) => p.membershipId === membershipId && p.kind === "adhesion");
+
+/**
+ * État de l'abonnement d'une adhérente, pour les appels à l'action du site :
+ *  - active : adhésion en cours ET réglée (les CTA d'adhésion disparaissent) ;
+ *  - pending : adhésion créée mais pas encore réglée (« Finaliser mon adhésion ») ;
+ *  - expired : saison terminée, annulée ou remboursée (« Renouveler mon adhésion ») ;
+ *  - none : aucune adhésion enregistrée ; suspended : compte suspendu (aucun CTA).
+ */
+export type MembershipState = "active" | "pending" | "expired" | "none" | "suspended";
+export async function membershipState(memberId: string): Promise<MembershipState> {
+  const ms = await currentMembership(memberId);
+  if (!ms) return "none";
+  const eff = effectiveStatus(ms);
+  if (eff === "suspended") return "suspended";
+  if (eff !== "active") return "expired";
+  const pay = await paymentOfMembership(ms.id);
+  if (!pay || pay.status === "paid") return "active";
+  return pay.status === "pending" || pay.status === "failed" ? "pending" : "expired";
+}
+
+/** Nouvelle adhésion (renouvellement) pour la saison en cours, réglée ensuite en ligne ou auprès de l'association. */
+export async function renewMembership(member: MemberPublic) {
+  const plan = await defaultPlan();
+  if (!plan) return null;
+  const prev = await currentMembership(member.id);
+  return createMembership(member, plan, { renewedFromId: prev?.id, startsAt: new Date() });
 }
 
 /* ---------- Transactions unifiées (adhésions, événements, boutique) ---------- */
@@ -211,6 +242,9 @@ export async function setTxStatus(txId: string, status: TxStatus, opts?: { metho
     }
   };
   if (source === "payment") {
+    const pay = await payments.findOne((p) => p.id === rowId);
+    const err = pay?.status === "paid" ? await refund(pay.checkoutId) : null;
+    if (err) return { ok: false, error: `Remboursement HelloAsso impossible : ${err}. Effectuez-le depuis votre espace HelloAsso, puis marquez la transaction comme remboursée.` };
     await payments.update(rowId, { status, method: opts?.method, note: opts?.note, paidAt: status === "paid" ? new Date().toISOString() : undefined });
     return { ok: true };
   }

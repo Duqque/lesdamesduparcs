@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   }
   const kind = body.metadata?.kind;
   const ref = body.metadata?.ref;
-  if ((body.eventType !== "Order" && body.eventType !== "Payment") || (kind !== "registration" && kind !== "order") || typeof ref !== "string" || !/^[\w-]{8,64}$/.test(ref)) {
+  if ((body.eventType !== "Order" && body.eventType !== "Payment") || (kind !== "registration" && kind !== "order" && kind !== "membership") || typeof ref !== "string" || !/^[\w-]{8,64}$/.test(ref)) {
     return json({ ok: true, ignored: true });
   }
   try {

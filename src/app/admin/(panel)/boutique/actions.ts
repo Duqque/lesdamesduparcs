@@ -11,6 +11,7 @@ import { sendTemplate } from "@/lib/server/email";
 import { mediaUrl, saveMedia } from "@/lib/server/media";
 import { productsDb, shopConfig, type Product, type ProductStatus } from "@/lib/server/shop";
 import { getOrder, listOrders, updateOrder } from "@/lib/server/store";
+import { announceAfterSave } from "@/lib/server/notify";
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const lines = (v: string) => v.split("\n").map((x) => x.trim()).filter(Boolean);
@@ -72,6 +73,7 @@ export async function saveProductAction(formData: FormData) {
 
   if (editing && before) {
     await productsDb.update(editing, { ...data, origin: before.origin });
+    announceAfterSave();
     await audit(ctx, "modification", "produit", `Produit modifié : ${name}`, { entityId: editing, before: { price: before.priceCents, status: before.status, stock: before.stock }, after: { price: data.priceCents, status: data.status, stock: data.stock } });
     refresh();
     redirect(`/admin/boutique/${editing}?ok=${encodeURIComponent("Produit enregistré.")}`);
@@ -79,6 +81,7 @@ export async function saveProductAction(formData: FormData) {
   let id = slugify(s(formData, "slug") || name);
   while (await productsDb.get(id)) id = `${id}-${Math.random().toString(36).slice(2, 5)}`;
   await productsDb.insert({ id, ...data } as never);
+  announceAfterSave();
   await audit(ctx, "création", "produit", `Produit créé : ${name}`, { entityId: id });
   refresh();
   redirect(`/admin/boutique/${id}?ok=${encodeURIComponent("Produit créé.")}`);
@@ -90,6 +93,7 @@ export async function setProductStatusAction(id: string, status: ProductStatus) 
   if (!p) redirect("/admin/boutique");
   if (status === "active" && p.priceCents <= 0) redirect(`/admin/boutique/${id}?erreur=${encodeURIComponent("Fixez d'abord un prix avant de mettre en vente.")}`);
   await productsDb.update(id, { status });
+  announceAfterSave();
   await audit(ctx, "modification", "produit", `Produit « ${p.name} » : ${status}`, { entityId: id, before: p.status, after: status });
   refresh();
   redirect(`/admin/boutique/${id}?ok=${encodeURIComponent("Statut mis à jour.")}`);

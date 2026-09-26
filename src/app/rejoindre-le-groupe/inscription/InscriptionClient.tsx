@@ -125,7 +125,7 @@ export function InscriptionClient() {
     if (minor) files.forEach((f) => body.append("authorization", f));
     try {
       const res = await fetch("/api/members", { method: "POST", body });
-      const out = (await res.json()) as { error?: string; errors?: Record<string, string> };
+      const out = (await res.json()) as { error?: string; errors?: Record<string, string>; checkoutUrl?: string };
       if (!res.ok) {
         setErrors(out.errors ?? {});
         setFormError(out.error ?? "Inscription impossible pour le moment.");
@@ -133,6 +133,11 @@ export function InscriptionClient() {
         return;
       }
       await refresh();
+      // Paiement de l'adhésion sur la page sécurisée HelloAsso ; sans paiement en ligne, retour à l'espace membre.
+      if (out.checkoutUrl) {
+        window.location.href = out.checkoutUrl;
+        return;
+      }
       router.push("/profil?bienvenue=1");
     } catch {
       setFormError("Inscription impossible. Vérifiez votre connexion et réessayez.");
@@ -153,8 +158,10 @@ export function InscriptionClient() {
 
       {alreadyMember ? (
         <div className="mt-10 rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-7">
-          <p className="font-body text-[15.5px] text-white">Vous êtes déjà membre, connectée avec la carte {session.memberNumber}.</p>
-          <Link href="/profil" className="mt-4 inline-block font-body text-[14px] text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">Ouvrir mon espace</Link>
+          <p className="font-body text-[15.5px] text-white">
+            {session.membership === "expired" ? `Vous avez déjà un compte (carte ${session.memberNumber}) mais votre adhésion est terminée.` : session.membership === "pending" ? `Votre compte existe (carte ${session.memberNumber}), il reste à régler votre adhésion.` : `Vous êtes déjà membre, connectée avec la carte ${session.memberNumber}.`}
+          </p>
+          <Link href={session.membership === "expired" || session.membership === "pending" ? "/profil#adhesion" : "/profil"} className="mt-4 inline-block font-body text-[14px] text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">{session.membership === "expired" ? "Renouveler mon adhésion" : session.membership === "pending" ? "Finaliser mon adhésion" : "Ouvrir mon espace"}</Link>
         </div>
       ) : (
         <>

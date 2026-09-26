@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { CheckCircle2, Download, FileText, LogOut, QrCode as QrIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberCard } from "@/components/member/MemberCard";
@@ -26,7 +26,89 @@ const linkBtn =
 
 const txStatus = { paid: "Payé", pending: "En attente de paiement", failed: "Échoué", refunded: "Remboursé", cancelled: "Annulé" } as const;
 
-function MemberSpace({ welcome }: { welcome: boolean }) {
+/** Adhésion de la saison : état, renouvellement ou finalisation du paiement (HelloAsso). */
+function AdhesionSection({ season, endsAt, flash }: { season: string; endsAt: string; flash?: string }) {
+  const { session, refresh } = useAuth();
+  const state = session.status === "member" ? session.membership : "none";
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  useEffect(() => {
+    if (flash === "paye") void refresh();
+  }, [flash, refresh]);
+
+  async function start() {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/members/adhesion", { method: "POST" });
+      const out = (await res.json()) as { error?: string; url?: string; state?: string; message?: string };
+      if (!res.ok) return setMessage(out.error ?? "Impossible de lancer le paiement.");
+      if (out.url) {
+        window.location.href = out.url;
+        return;
+      }
+      setMessage(out.message ?? null);
+      await refresh();
+    } catch {
+      setMessage("Impossible de lancer le paiement. Vérifiez votre connexion et réessayez.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const label = state === "expired" ? "Renouveler mon adhésion" : state === "pending" ? "Finaliser mon adhésion" : "Adhérer pour la saison";
+  return (
+    <Section id="adhesion" title="Mon adhésion">
+      {flash === "paye" && <p role="status" className="mb-6 rounded-[12px] border border-emerald-400/30 bg-emerald-400/10 px-5 py-4 font-body text-[14.5px] leading-[1.7] text-emerald-100">Paiement reçu, merci ! Votre adhésion est active.</p>}
+      {flash === "attente" && <p role="status" className="mb-6 rounded-[12px] border border-amber-400/30 bg-amber-400/10 px-5 py-4 font-body text-[14.5px] leading-[1.7] text-amber-100">Votre paiement n’est pas encore confirmé. Il sera enregistré dès réception de la confirmation de HelloAsso.</p>}
+      {flash === "erreur" && <p role="alert" className="mb-6 rounded-[12px] border border-red-400/30 bg-red-400/10 px-5 py-4 font-body text-[14.5px] leading-[1.7] text-red-100">Le paiement n’a pas abouti. Vous pouvez réessayer ci-dessous.</p>}
+      {state === "active" || state === "suspended" ? (
+        <p className="max-w-xl text-mist t-lead">
+          {state === "active" ? `Votre adhésion ${season} est active jusqu’au ${dateFr(endsAt)}.` : "Votre compte est suspendu : contactez l’association."}
+        </p>
+      ) : (
+        <>
+          <p className="max-w-xl text-mist t-lead">
+            {state === "expired" ? `Votre adhésion est terminée depuis le ${dateFr(endsAt)}. Renouvelez-la pour retrouver vos avantages et la priorité sur les inscriptions.` : state === "pending" ? "Votre adhésion est créée : il reste à la régler pour l’activer." : "Vous n’avez pas encore d’adhésion pour la saison en cours."}
+          </p>
+          <div className="mt-6">
+            <Button size="lg" onClick={start} disabled={busy}>{busy ? "Ouverture du paiement…" : label}</Button>
+          </div>
+          {message && <p role="status" className="mt-4 max-w-xl font-body text-[14px] leading-[1.7] text-white">{message}</p>}
+        </>
+      )}
+    </Section>
+  );
+}
+
+/** Préférence : un e-mail à chaque nouvel article, événement ou produit de la boutique. */
+function EmailPreference({ initial }: { initial: boolean }) {
+  const [on, setOn] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  async function toggle(next: boolean) {
+    setBusy(true);
+    setOn(next);
+    try {
+      const res = await fetch("/api/members/preferences", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ emailUpdates: next }) });
+      if (!res.ok) setOn(!next);
+    } catch {
+      setOn(!next);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <label className="flex cursor-pointer items-start gap-4 rounded-[12px] border border-white/10 bg-[#0b1327]/90 p-5 font-body">
+      <input type="checkbox" checked={on} disabled={busy} onChange={(e) => void toggle(e.target.checked)} className="mt-1 size-5 shrink-0 accent-[#d90f2c]" />
+      <span className="min-w-0">
+        <span className="block text-[15px] font-medium text-white">Être prévenue par e-mail des nouveautés</span>
+        <span className="mt-1 block text-[13.5px] leading-[1.6] text-mist">Un message à chaque nouvel article, nouvel événement ou nouveau produit de la boutique. Vous pouvez vous désabonner à tout moment, ici ou depuis n’importe lequel de ces e-mails.</span>
+      </span>
+    </label>
+  );
+}
+
+function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: string }) {
   const data = useMemberData();
   if (!data) return <p className="mt-8 font-body text-mist">Chargement de votre espace…</p>;
   const { member, verifyUrl, transactions: tx, benefits, offers, membership } = data;
@@ -49,6 +131,8 @@ function MemberSpace({ welcome }: { welcome: boolean }) {
           Le QR code de votre carte ouvre la preuve d&rsquo;adhésion, que les administrateurs peuvent vérifier à tout moment.
         </p>
       </section>
+
+      <AdhesionSection season={member.season} endsAt={membership?.endsAt ?? member.validUntil} flash={adhesion} />
 
       <Section id="attestation" title="Mon attestation">
         <p className="max-w-xl text-mist t-lead">
@@ -119,6 +203,10 @@ function MemberSpace({ welcome }: { welcome: boolean }) {
         <p className="mt-5 font-body text-[13px] text-mist">Avantages valables jusqu&rsquo;au {dateFr(membership?.endsAt ?? member.validUntil)}, présentez votre carte pour en bénéficier.</p>
       </Section>
 
+      <Section id="emails" title="Mes e-mails">
+        <EmailPreference initial={member.emailUpdates !== false} />
+      </Section>
+
       <Section id="informations" title="Mes informations">
         <dl className="divide-y divide-white/10 border-y border-white/10 font-body">
           {[
@@ -185,7 +273,7 @@ function PasswordForm() {
   );
 }
 
-export function ProfilClient({ welcome }: { welcome: boolean }) {
+export function ProfilClient({ welcome, adhesion }: { welcome: boolean; adhesion?: string }) {
   const { session, logout } = useAuth();
   return (
     <main className="mx-auto max-w-[860px] px-[var(--gutter)] pb-32 pt-[200px] md:pt-[250px]">
@@ -206,7 +294,7 @@ export function ProfilClient({ welcome }: { welcome: boolean }) {
         </>
       )}
 
-      {session.status === "member" && <MemberSpace welcome={welcome} />}
+      {session.status === "member" && <MemberSpace welcome={welcome} adhesion={adhesion} />}
 
       {session.status === "admin" && (
         <>

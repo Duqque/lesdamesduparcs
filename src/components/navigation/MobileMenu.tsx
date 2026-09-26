@@ -8,6 +8,7 @@ import type { NavItem } from "@/types";
 import { socialIcons } from "@/components/icons/BrandIcons";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
+import { JoinGate, JoinSectionGate } from "@/components/member/JoinGate";
 
 interface Props {
   open: boolean;
@@ -78,11 +79,15 @@ export function MobileMenu({ open, pathname, items, onNavigate }: Props) {
               );
             })}
           </nav>
-          <div className="mt-10">
-            <Button href={joinLink.href} size="lg" icon={IdCard} arrow={false} className="w-full" >
-              {joinLink.label}
-            </Button>
-          </div>
+          <JoinSectionGate>
+            <div className="mt-10">
+              <JoinGate>
+                <Button href={joinLink.href} size="lg" icon={IdCard} arrow={false} className="w-full" >
+                  {joinLink.label}
+                </Button>
+              </JoinGate>
+            </div>
+          </JoinSectionGate>
           <ul className="mt-auto flex gap-2 pt-10">
             {socialLinks.map((s) => {
               const Icon = socialIcons[s.id];

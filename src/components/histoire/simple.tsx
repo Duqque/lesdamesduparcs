@@ -6,6 +6,7 @@ import { CountUp } from "./CountUp";
 import { Timeline } from "./Timeline";
 import { ValueIcon } from "./ValueIcon";
 import { bigc, card, h2c, pullc, wrap } from "./styles";
+import { JoinGate } from "@/components/member/JoinGate";
 
 /** 01 · Lettre d'introduction */
 export function LetterBody() {
@@ -150,7 +151,7 @@ export function BuildBody() {
         })}
       </ul>
       <Reveal className="mt-14 flex flex-col items-start gap-4 sm:flex-row">
-        <Button size="lg" href="/rejoindre-le-groupe/adhesion">Rejoindre la communauté</Button>
+        <JoinGate><Button size="lg" href="/rejoindre-le-groupe/adhesion">Rejoindre la communauté</Button></JoinGate>
         <Button size="lg" variant="outline" href="/evenements" arrow={false}>Voir les événements</Button>
       </Reveal>
     </div>

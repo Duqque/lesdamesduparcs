@@ -51,7 +51,7 @@ export function NotificationBell() {
         {items.length > 0 && <span className={cn("absolute -right-1 -top-1 grid min-w-[18px] place-items-center rounded-full px-1 font-body text-[10.5px] font-bold text-white", urgent ? "bg-psg-red" : "bg-amber-500")}>{items.length}</span>}
       </button>
       {open && (
-        <div className="absolute right-0 top-12 z-40 w-[min(380px,calc(100vw-32px))] overflow-hidden rounded-[12px] border border-white/15 bg-night-900 shadow-2xl">
+        <div className="fixed inset-x-4 top-[76px] z-40 sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[380px] overflow-hidden rounded-[12px] border border-white/15 bg-night-900 shadow-2xl">
           <p className="border-b border-line px-4 py-3 font-body text-[12px] font-semibold uppercase tracking-[0.14em] text-white/70">Notifications</p>
           <ul className="max-h-[60vh] overflow-y-auto">
             {items.length === 0 && <li className="px-4 py-8 text-center font-body text-[13.5px] text-mist">Rien à signaler.</li>}

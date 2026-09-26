@@ -11,6 +11,7 @@ import { emailConfigured, fill, sendTemplate } from "./email";
 import { getAllEventsAdmin } from "./events";
 import { listAllRegistrations, listOrders } from "./store";
 import { plans, setTxStatus } from "./business";
+import { notifyNewContent } from "./notify";
 
 export const SEGMENTS = [
   { key: "all", label: "Toutes les adhérentes actives" },
@@ -95,7 +96,9 @@ export async function runScheduled() {
   const now = new Date();
   await housekeeping().catch(() => undefined);
   await reconcilePending().catch(() => undefined);
-  const result = { campaigns: 0, renewals: 0, reminders: 0, releasedOrders: 0 };
+  const result = { campaigns: 0, renewals: 0, reminders: 0, releasedOrders: 0, announced: 0 };
+  // Publications programmées arrivées à échéance : annonce aux adhérentes (une seule fois par élément).
+  result.announced = (await notifyNewContent().catch(() => ({ announced: 0 }))).announced;
   // Commandes jamais réglées : au bout de 72 h, le stock réservé est remis en vente.
   for (const o of await listOrders()) {
     if (o.status === "awaiting_payment" && o.checkoutId && now.getTime() - new Date(o.createdAt).getTime() > 72 * 3600_000) {
