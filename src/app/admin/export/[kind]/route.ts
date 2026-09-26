@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { redirectTo } from "@/lib/server/http";
 import { eur, fmtDate, fmtDateTime } from "@/lib/admin/format";
 import { pick } from "@/lib/admin/params";
 import { audit, getAdmin, isFresh } from "@/lib/server/admin-auth";
@@ -22,8 +23,8 @@ async function respond<T>(format: string, name: string, title: string, subtitle:
 /** Exports CSV / PDF : ils appliquent les filtres reçus dans l'adresse, et sont réservés aux rôles autorisés. */
 export async function GET(req: Request, ctx: { params: Promise<{ kind: string }> }) {
   const admin = await getAdmin();
-  if (!admin) return NextResponse.redirect(new URL("/admin/connexion", req.url));
-  if (admin && !isFresh(admin)) return NextResponse.redirect(new URL(`/admin/verification-identite?next=${encodeURIComponent(new URL(req.url).pathname + new URL(req.url).search)}`, req.url));
+  if (!admin) return redirectTo("/admin/connexion");
+  if (admin && !isFresh(admin)) return redirectTo(`/admin/verification-identite?next=${encodeURIComponent(new URL(req.url).pathname + new URL(req.url).search)}`);
   const { kind } = await ctx.params;
   const url = new URL(req.url);
   const format = url.searchParams.get("format") === "pdf" ? "pdf" : "csv";

@@ -74,3 +74,12 @@ export async function readJson<T = unknown>(req: Request, maxBytes = 64 * 1024):
     return null;
   }
 }
+
+/**
+ * Redirection vers un chemin du site, en adresse RELATIVE : derrière le relais de l'hébergeur, l'adresse vue par le serveur est
+ * interne (ex. 0.0.0.0:3000) et ne doit jamais apparaître dans une redirection envoyée au navigateur.
+ */
+export function redirectTo(path: string) {
+  const safe = path.startsWith("/") && !path.startsWith("//") ? path : "/";
+  return new Response(null, { status: 307, headers: { Location: safe, "Cache-Control": "no-store" } });
+}
