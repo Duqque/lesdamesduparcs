@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { DATA_DIR, listStore, locked } from "./db";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { MemberPublic } from "@/lib/members";
 import type { Registration } from "@/lib/registration";
@@ -9,30 +10,14 @@ import type { Registration } from "@/lib/registration";
  * Stockage local des inscriptions (fichier JSON dans .data/).
  * À remplacer par une base de données pour la production (le système de fichiers de nombreux hébergeurs est éphémère).
  */
-const dir = path.join(process.cwd(), ".data");
-const file = path.join(dir, "registrations.json");
-let queue: Promise<unknown> = Promise.resolve();
+const dir = DATA_DIR;
+const regs = listStore<Registration>("registrations");
+const ordersStore = listStore<Order>("orders");
+const membersStore = listStore<StoredMember>("members");
 
-async function readAll(): Promise<Registration[]> {
-  try {
-    return JSON.parse(await readFile(file, "utf8")) as Registration[];
-  } catch {
-    return [];
-  }
-}
-
+const readAll = () => regs.read();
 async function writeAll(list: Registration[]) {
-  await mkdir(dir, { recursive: true });
-  const tmp = `${file}.${randomUUID()}.tmp`;
-  await writeFile(tmp, JSON.stringify(list, null, 2), "utf8");
-  await rename(tmp, file);
-}
-
-/** Sérialise les écritures pour éviter les pertes de mise à jour. */
-function locked<T>(fn: () => Promise<T>): Promise<T> {
-  const run = queue.then(fn, fn);
-  queue = run.catch(() => undefined);
-  return run;
+  await regs.write(list, await regs.read());
 }
 
 export const listRegistrations = (eventId: string) => readAll().then((all) => all.filter((r) => r.eventId === eventId));
@@ -71,21 +56,9 @@ export const getRegistration = (id: string) => readAll().then((all) => all.find(
 /* ---------- Commandes de la boutique ---------- */
 import type { Order } from "@/lib/orders";
 
-const ordersFile = path.join(dir, "orders.json");
-
-async function readOrders(): Promise<Order[]> {
-  try {
-    return JSON.parse(await readFile(ordersFile, "utf8")) as Order[];
-  } catch {
-    return [];
-  }
-}
-
+const readOrders = () => ordersStore.read();
 async function writeOrders(list: Order[]) {
-  await mkdir(dir, { recursive: true });
-  const tmp = `${ordersFile}.${randomUUID()}.tmp`;
-  await writeFile(tmp, JSON.stringify(list, null, 2), "utf8");
-  await rename(tmp, ordersFile);
+  await ordersStore.write(list, await ordersStore.read());
 }
 
 export const addOrder = (o: Omit<Order, "id" | "token" | "createdAt">) =>
@@ -111,23 +84,12 @@ export const getOrder = (id: string) => readOrders().then((all) => all.find((o) 
 
 export type StoredMember = MemberPublic & { passwordHash: string };
 
-const membersFile = path.join(dir, "members.json");
 export const uploadsDir = (memberId: string) => path.join(dir, "uploads", memberId);
 export const authorizationPath = (memberId: string, fileId: string) => path.join(uploadsDir(memberId), `${fileId}.pdf`);
 
-async function readMembers(): Promise<StoredMember[]> {
-  try {
-    return JSON.parse(await readFile(membersFile, "utf8")) as StoredMember[];
-  } catch {
-    return [];
-  }
-}
-
+const readMembers = () => membersStore.read();
 async function writeMembers(list: StoredMember[]) {
-  await mkdir(dir, { recursive: true });
-  const tmp = `${membersFile}.${randomUUID()}.tmp`;
-  await writeFile(tmp, JSON.stringify(list, null, 2), "utf8");
-  await rename(tmp, membersFile);
+  await membersStore.write(list, await membersStore.read());
 }
 
 export const toPublic = ({ passwordHash: _p, ...m }: StoredMember): MemberPublic => {

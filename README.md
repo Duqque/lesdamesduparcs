@@ -181,8 +181,9 @@ de l'espace membre : `/admin/connexion`.
 - **Exports** CSV (« Excel » : CSV avec point-virgule qui s'ouvre dans Excel) et PDF, qui respectent les filtres. Journal d'activité avec ancien et nouveau contenu.
 - **Recherche globale** (⌘ K / Ctrl+K) et notifications, limitées aux données que le rôle peut voir.
 
-Stockage : fichiers JSON dans `.data/` (`src/lib/server/db.ts` isole l'accès : passer à une base SQL ne touchera que ce fichier).
-À faire avant l'ouverture au public : base de données, sauvegardes de `.data/`, service d'e-mail, webhook Stripe (le paiement est aujourd'hui
+Stockage : MySQL / MariaDB quand `DATABASE_URL` est défini (table `ddp_docs` créée automatiquement, `src/lib/server/sql.ts`), sinon fichiers JSON dans `.data/`
+(développement). Les pièces déposées (autorisations parentales, médiathèque) restent sur le disque, dans `.data/uploads` et `.data/media`.
+À faire avant l'ouverture au public : sauvegardes de la base et de `.data/`, service d'e-mail, webhook Stripe (le paiement est aujourd'hui
 confirmé au retour sur le site), édition complète du contenu des pages du site.
 
 ## Accueil

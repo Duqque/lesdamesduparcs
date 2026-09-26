@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   images: { unoptimized: process.env.NEXT_IMAGES_UNOPTIMIZED === "1" },
   /** Envoi de fichiers depuis le back-office (médiathèque : 12 Mo par fichier). */
   experimental: { serverActions: { bodySizeLimit: "26mb" } },
+  serverExternalPackages: ["mysql2"],
   async redirects() {
     return [{ source: "/abonnement", destination: "/rejoindre-le-groupe", permanent: true }];
   },

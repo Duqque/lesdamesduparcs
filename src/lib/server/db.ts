@@ -2,15 +2,18 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { sqlAll, sqlDelete, sqlEnabled, sqlGet, sqlMarkSeeded, sqlReplaceAll, sqlSeeded, sqlUpsert } from "./sql";
 
 /**
- * Base de données du back-office : collections JSON dans .data/ (écritures sérialisées, remplacement atomique).
- * Chaque collection expose la même interface : le passage à une vraie base (PostgreSQL, SQLite…) ne touchera que ce fichier.
+ * Données du site. Deux stockages avec la même interface :
+ *  - MySQL / MariaDB quand DATABASE_URL est défini (production) ;
+ *  - fichiers JSON dans .data/ sinon (développement local).
+ * Les écritures sont sérialisées dans le processus (un seul serveur Node).
  */
 export const DATA_DIR = path.join(process.cwd(), ".data");
 
 let queue: Promise<unknown> = Promise.resolve();
-const locked = <T>(fn: () => Promise<T>): Promise<T> => {
+export const locked = <T>(fn: () => Promise<T>): Promise<T> => {
   const run = queue.then(fn, fn);
   queue = run.catch(() => undefined);
   return run;
@@ -25,61 +28,114 @@ export interface Row {
 export const newId = () => randomUUID();
 const nowIso = () => new Date().toISOString();
 
-export function collection<T extends Row>(name: string, seed?: () => Array<Omit<T, "createdAt" | "updatedAt"> & Partial<Row>>) {
+/* ---------- Stockage de listes (fichier ou SQL) ---------- */
+
+async function fileRead<T>(file: string): Promise<T[] | null> {
+  try {
+    return JSON.parse(await readFile(file, "utf8")) as T[];
+  } catch {
+    return null;
+  }
+}
+async function fileWrite<T>(file: string, rows: T[]) {
+  await mkdir(DATA_DIR, { recursive: true });
+  const tmp = `${file}.${randomUUID()}.tmp`;
+  await writeFile(tmp, JSON.stringify(rows, null, 2), "utf8");
+  await rename(tmp, file);
+}
+
+/**
+ * Liste de documents identifiés par `id`, lue et écrite en bloc (utilisée par les anciennes files d'attente
+ * d'adhérentes, d'inscriptions et de commandes). `seed` : jeu de départ inséré une seule fois.
+ */
+export function listStore<T extends { id: string }>(name: string, seed?: () => T[]) {
   const file = path.join(DATA_DIR, `${name}.json`);
-
-  async function read(): Promise<T[]> {
-    try {
-      return JSON.parse(await readFile(file, "utf8")) as T[];
-    } catch {
+  return {
+    async read(): Promise<T[]> {
+      if (sqlEnabled()) {
+        if (seed && !(await sqlSeeded(name))) {
+          const rows = seed();
+          for (const r of rows) await sqlUpsert(name, r.id, r);
+          await sqlMarkSeeded(name);
+          return rows;
+        }
+        return sqlAll<T>(name);
+      }
+      const rows = await fileRead<T>(file);
+      if (rows) return rows;
       if (!seed) return [];
-      const t = nowIso();
-      const rows = seed().map((r) => ({ createdAt: t, updatedAt: t, ...r })) as T[];
-      await write(rows);
-      return rows;
-    }
-  }
-  async function write(rows: T[]) {
-    await mkdir(DATA_DIR, { recursive: true });
-    const tmp = `${file}.${randomUUID()}.tmp`;
-    await writeFile(tmp, JSON.stringify(rows, null, 2), "utf8");
-    await rename(tmp, file);
-  }
+      const fresh = seed();
+      await fileWrite(file, fresh);
+      return fresh;
+    },
+    async write(next: T[], previous: T[]) {
+      if (sqlEnabled()) return sqlReplaceAll(name, previous, next);
+      return fileWrite(file, next);
+    },
+    /** Lecture directe d'un document (SQL : une seule ligne). */
+    async get(id: string): Promise<T | null> {
+      if (sqlEnabled()) {
+        if (seed && !(await sqlSeeded(name))) await this.read();
+        return sqlGet<T>(name, id);
+      }
+      return (await this.read()).find((r) => r.id === id) ?? null;
+    },
+    async upsert(doc: T) {
+      if (sqlEnabled()) return sqlUpsert(name, doc.id, doc);
+      const rows = await this.read();
+      const i = rows.findIndex((r) => r.id === doc.id);
+      await fileWrite(file, i >= 0 ? rows.map((r, j) => (j === i ? doc : r)) : [...rows, doc]);
+    },
+    async remove(id: string) {
+      if (sqlEnabled()) return sqlDelete(name, id);
+      const rows = await this.read();
+      const next = rows.filter((r) => r.id !== id);
+      if (next.length === rows.length) return false;
+      await fileWrite(file, next);
+      return true;
+    },
+  };
+}
 
+export function collection<T extends Row>(name: string, seed?: () => Array<Omit<T, "createdAt" | "updatedAt"> & Partial<Row>>) {
+  const store = listStore<T>(
+    name,
+    seed
+      ? () => {
+          const t = nowIso();
+          return seed().map((r) => ({ createdAt: t, updatedAt: t, ...r })) as T[];
+        }
+      : undefined,
+  );
+  const read = () => store.read();
   return {
     all: () => read(),
-    get: (id: string) => read().then((r) => r.find((x) => x.id === id) ?? null),
+    get: (id: string) => store.get(id),
     find: (pred: (x: T) => boolean) => read().then((r) => r.filter(pred)),
     findOne: (pred: (x: T) => boolean) => read().then((r) => r.find(pred) ?? null),
     insert: (data: Omit<T, keyof Row> & Partial<Row>) =>
       locked(async () => {
         const t = nowIso();
         const row = { id: newId(), createdAt: t, updatedAt: t, ...data } as T;
-        await write([...(await read()), row]);
+        if (sqlEnabled()) await store.get(row.id); // initialise le jeu de départ éventuel
+        await store.upsert(row);
         return row;
       }),
     update: (id: string, patch: Partial<Omit<T, "id" | "createdAt">>) =>
       locked(async () => {
-        const rows = await read();
-        const i = rows.findIndex((x) => x.id === id);
-        if (i < 0) return null;
-        rows[i] = { ...rows[i], ...patch, updatedAt: nowIso() };
-        await write(rows);
-        return rows[i];
+        const cur = await store.get(id);
+        if (!cur) return null;
+        const next = { ...cur, ...patch, updatedAt: nowIso() } as T;
+        await store.upsert(next);
+        return next;
       }),
-    remove: (id: string) =>
-      locked(async () => {
-        const rows = await read();
-        const next = rows.filter((x) => x.id !== id);
-        if (next.length === rows.length) return false;
-        await write(next);
-        return true;
-      }),
+    remove: (id: string) => locked(() => store.remove(id)),
     /** Modification atomique de toute la collection (ex. purge, réordonnancement). */
     mutate: (fn: (rows: T[]) => T[]) =>
       locked(async () => {
-        const next = fn(await read());
-        await write(next);
+        const before = await read();
+        const next = fn(before);
+        await store.write(next, before);
         return next;
       }),
   };
@@ -87,8 +143,16 @@ export function collection<T extends Row>(name: string, seed?: () => Array<Omit<
 
 /** Document unique (paramètres, configuration de l'accueil…). */
 export function singleton<T extends object>(name: string, defaults: T) {
+  const store = listStore<{ id: string }>("__singletons");
   const file = path.join(DATA_DIR, `${name}.json`);
   const read = async (): Promise<T> => {
+    if (sqlEnabled()) {
+      const doc = (await store.get(name)) as (Partial<T> & { id: string }) | null;
+      if (!doc) return { ...defaults };
+      const { id: _id, ...rest } = doc;
+      void _id;
+      return { ...defaults, ...(rest as Partial<T>) };
+    }
     try {
       return { ...defaults, ...(JSON.parse(await readFile(file, "utf8")) as Partial<T>) };
     } catch {
@@ -100,10 +164,13 @@ export function singleton<T extends object>(name: string, defaults: T) {
     set: (patch: Partial<T>) =>
       locked(async () => {
         const next = { ...(await read()), ...patch };
-        await mkdir(DATA_DIR, { recursive: true });
-        const tmp = `${file}.${randomUUID()}.tmp`;
-        await writeFile(tmp, JSON.stringify(next, null, 2), "utf8");
-        await rename(tmp, file);
+        if (sqlEnabled()) await store.upsert({ id: name, ...next });
+        else {
+          await mkdir(DATA_DIR, { recursive: true });
+          const tmp = `${file}.${randomUUID()}.tmp`;
+          await writeFile(tmp, JSON.stringify(next, null, 2), "utf8");
+          await rename(tmp, file);
+        }
         return next;
       }),
   };
