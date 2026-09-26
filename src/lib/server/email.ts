@@ -11,7 +11,7 @@ export const fill = (text: string, vars: Record<string, string | number | undefi
  * Envoi d'un e-mail via Resend (RESEND_API_KEY, adresse d'expédition dans les paramètres). Sans clé, le message est simplement
  * consigné dans le journal comme « non envoyé » : rien ne part tant qu'un service d'e-mail n'est pas configuré.
  */
-export async function sendEmail(opts: { to: string; subject: string; body: string; kind: string }) {
+export async function sendEmail(opts: { to: string; subject: string; body: string; kind: string; replyTo?: string }) {
   const conf = await settings.get();
   const signature = conf.emails.signature ? `\n\n${conf.emails.signature}` : "";
   if (!emailConfigured()) {
@@ -22,7 +22,7 @@ export async function sendEmail(opts: { to: string; subject: string; body: strin
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: `${conf.emails.fromName} <${conf.emails.fromEmail}>`, to: [opts.to], subject: opts.subject, text: opts.body + signature }),
+      body: JSON.stringify({ from: `${conf.emails.fromName} <${conf.emails.fromEmail}>`, to: [opts.to], subject: opts.subject, text: opts.body + signature, ...(opts.replyTo ? { reply_to: opts.replyTo } : {}) }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     await emailLog.insert({ to: opts.to, subject: opts.subject, kind: opts.kind, status: "sent" });

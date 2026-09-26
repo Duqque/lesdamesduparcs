@@ -4,6 +4,7 @@ import { LEGAL_UPDATED } from "@/lib/legal-info";
 import { wrap } from "@/components/histoire/styles";
 
 export const legalLinks = [
+  { href: "/contact", label: "Contact" },
   { href: "/mentions-legales", label: "Mentions légales" },
   { href: "/reglement", label: "Règlement" },
   { href: "/conditions-generales-de-vente", label: "CGV" },

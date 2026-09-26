@@ -184,6 +184,21 @@ export interface EmailLog extends Row {
 }
 export const emailLog = collection<EmailLog>("email_log");
 
+/* ---------- Messages reçus par le formulaire de contact ---------- */
+
+export interface ContactMessage extends Row {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  message: string;
+  status: "new" | "read" | "done";
+  /** Le message a-t-il bien été transmis à la boîte de l'association ? */
+  delivered: boolean;
+  handledBy?: string;
+}
+export const contactMessages = collection<ContactMessage>("contact_messages");
+
 /* ---------- Médiathèque ---------- */
 
 export interface MediaFile extends Row {

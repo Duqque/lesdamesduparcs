@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
-import { ChevronDown, IdCard } from "lucide-react";
+import { ChevronDown, IdCard, Mail } from "lucide-react";
 import { joinLink, leftNav, mainNav, rightNav } from "@/data/navigation";
 import { applyNav, type NavConfig } from "@/lib/nav-config";
 import { useScrolled } from "@/hooks/useScrolled";
@@ -136,6 +136,7 @@ export function Header({ navConfig }: { navConfig?: NavConfig }) {
               <NavLinks items={apply(rightNav)} pathname={pathname} />
             </nav>
             <span className="hidden lg:block lg:flex-1" />
+            <Link href="/contact" aria-label="Contact" className={squareBtn}><Mail aria-hidden className="size-[19px]" strokeWidth={1.7} /></Link>
             <CartButton className={squareBtn} />
             <AccountMenu buttonClassName={squareBtn} />
           </div>

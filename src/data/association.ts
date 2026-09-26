@@ -9,8 +9,8 @@ export const association = {
   postalCode: "75016",
   city: "Paris",
   phone: "01 23 45 67 89",
-  email: "contact@lesdamesduparc.fr",
-  website: "www.lesdamesduparc.fr",
+  email: "contact@lesdamesduparc.com",
+  website: "www.lesdamesduparc.com",
   president: "Camille Fictive",
   presidentTitle: "Présidente",
 } as const;

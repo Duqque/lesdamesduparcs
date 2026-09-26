@@ -106,7 +106,7 @@ export default async function HomePage() {
   };
 
   return (
-    <main className="pt-[calc(72px+48px)] md:pt-[calc(var(--header-h)+64px)] xl:pt-[calc(var(--header-h)+clamp(72px,7vw,132px))]">
+    <main>
       <Hero title={home.heroTitle || undefined} subtitle={home.heroSubtitle || undefined} cta={home.heroCta || undefined} />
       {orderHomeSections(home.sectionOrder, home.hiddenSections).map((k) => (
         <Fragment key={k}>{blocks[k]}</Fragment>

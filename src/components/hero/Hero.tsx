@@ -1,18 +1,63 @@
+"use client";
+
+import { useRef } from "react";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import { HeroBackdrop } from "./HeroBackdrop";
 import { HeroContent } from "./HeroContent";
 
+/**
+ * Première rubrique : exactement la hauteur de l'écran, textes en bas à gauche, menu transparent superposé à la photo.
+ * En descendant, la photo se rapproche et s'assombrit, les textes glissent vers le haut et s'effacent : la page « entre » dans le
+ * manifeste juste en dessous (le bouton en bas de l'écran y mène en douceur).
+ */
 export function Hero({ title, subtitle, cta }: { title?: string; subtitle?: string; cta?: string }) {
+  const ref = useRef<HTMLElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const photoScale = useTransform(scrollYProgress, [0, 1], [1, reduce ? 1 : 1.14]);
+  const veil = useTransform(scrollYProgress, [0, 0.9], [0, 0.92]);
+  const textY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -140]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
+  const cueOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+
+  const goToManifesto = () => document.getElementById("manifeste")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+
   return (
     <section
+      ref={ref}
       aria-labelledby="hero-title"
-      className="grain vignette relative flex min-h-[clamp(580px,82svh,760px)] items-end overflow-hidden bg-night-950 md:min-h-[640px] xl:min-h-[clamp(640px,70vh,840px)] xl:items-start"
+      className="grain vignette relative flex h-[100svh] max-h-[100svh] items-end overflow-hidden bg-night-950"
     >
-      <HeroBackdrop />
+      <motion.div className="absolute inset-0 origin-center" style={{ scale: photoScale }}>
+        <HeroBackdrop />
+      </motion.div>
       <div
         aria-hidden
-        className="absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(3,9,25,0.55)_0%,rgba(3,9,25,0.05)_24%,rgba(3,9,25,0.35)_52%,rgba(3,9,25,0.96)_100%)] xl:bg-[linear-gradient(90deg,#030919_0%,rgba(3,9,25,0.92)_20%,rgba(3,9,25,0.45)_46%,rgba(3,9,25,0)_72%),linear-gradient(180deg,rgba(3,9,25,0.6)_0%,rgba(3,9,25,0)_22%,rgba(3,9,25,0)_78%,rgba(3,9,25,0.55)_100%)]"
+        className="absolute inset-0 z-[1] bg-[linear-gradient(0deg,rgba(3,9,25,0.94)_0%,rgba(3,9,25,0.6)_26%,rgba(3,9,25,0)_58%),linear-gradient(90deg,rgba(3,9,25,0.78)_0%,rgba(3,9,25,0.35)_38%,rgba(3,9,25,0)_70%),linear-gradient(180deg,rgba(3,9,25,0.62)_0%,rgba(3,9,25,0)_20%)]"
       />
-      <HeroContent title={title} subtitle={subtitle} cta={cta} />
+      <motion.div aria-hidden className="absolute inset-0 z-[2] bg-night-950" style={{ opacity: veil }} />
+      <motion.div className="relative z-10 flex w-full items-end" style={{ y: textY, opacity: textOpacity }}>
+        <HeroContent title={title} subtitle={subtitle} cta={cta} />
+      </motion.div>
+
+      <motion.button
+        type="button"
+        onClick={goToManifesto}
+        aria-label="Passer au manifeste"
+        style={{ opacity: cueOpacity }}
+        className="absolute bottom-[104px] right-5 z-10 flex flex-col items-center gap-2 font-body text-[11px] font-medium uppercase tracking-[0.28em] text-white/75 transition-colors hover:text-white lg:bottom-8 lg:left-1/2 lg:right-auto lg:-translate-x-1/2"
+      >
+        <span className="hidden lg:block">Découvrir</span>
+        <motion.span
+          aria-hidden
+          animate={reduce ? undefined : { y: [0, 8, 0] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+          className="grid size-11 place-items-center rounded-full border border-white/25 bg-night-950/40 backdrop-blur-sm"
+        >
+          <ChevronDown className="size-5" strokeWidth={1.7} />
+        </motion.span>
+      </motion.button>
     </section>
   );
 }

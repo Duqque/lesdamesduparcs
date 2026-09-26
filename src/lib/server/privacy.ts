@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { collection, type Row } from "./db";
 import { deleteBlob, authorizationKey } from "./blobs";
 import { memberships, payments, getTransactions } from "./business";
-import { emailLog } from "./content";
+import { contactMessages, emailLog } from "./content";
 import { revokeMemberSessions } from "./session";
 import { getMemberById, listAllRegistrations, listOrders, listStoredMembers, updateMember, updateOrder, updateRegistration, type StoredMember } from "./store";
 
@@ -52,12 +52,13 @@ export async function buildMemberExport(memberId: string) {
   void _p;
   void _t;
   void _r;
-  const [ms, txs, regs, orders, mails] = await Promise.all([
+  const [ms, txs, regs, orders, mails, contacts] = await Promise.all([
     memberships.find((m) => m.memberId === memberId),
     getTransactions(),
     listAllRegistrations(),
     listOrders(),
     emailLog.find((e) => e.to.toLowerCase() === stored.email.toLowerCase()),
+    contactMessages.find((c) => c.email.toLowerCase() === stored.email.toLowerCase()),
   ]);
   const email = stored.email.toLowerCase();
   return {
@@ -71,6 +72,7 @@ export async function buildMemberExport(memberId: string) {
       .filter((o) => o.memberNumber === stored.memberNumber || o.contact.email.toLowerCase() === email)
       .map(({ token: _tk, checkoutId: _c, ...o }) => (void _tk, void _c, o)),
     emailsEnvoyes: mails.map((e) => ({ date: e.createdAt, objet: e.subject, type: e.kind })),
+    messagesDeContact: contacts.map((c) => ({ date: c.createdAt, message: c.message })),
   };
 }
 
@@ -84,6 +86,7 @@ export interface ErasureSummary {
   memberships: number;
   emails: number;
   files: number;
+  contacts: number;
 }
 
 const anon = (id: string) => `anonyme-${id.slice(0, 8)}@anonyme.invalid`;
@@ -99,7 +102,7 @@ export async function eraseMemberData(memberId: string): Promise<ErasureSummary 
   const oldNumber = m.memberNumber;
   const email = m.email.toLowerCase();
   const pseudo = `ANON-${m.id.slice(0, 8).toUpperCase()}`;
-  const summary: ErasureSummary = { member: true, registrations: 0, orders: 0, payments: 0, memberships: 0, emails: 0, files: m.authorizations.length };
+  const summary: ErasureSummary = { member: true, registrations: 0, orders: 0, payments: 0, memberships: 0, emails: 0, files: m.authorizations.length, contacts: 0 };
 
   await revokeMemberSessions(m.id);
   await Promise.all(m.authorizations.map((f) => deleteBlob(authorizationKey(m.id, f.id))));
@@ -126,6 +129,10 @@ export async function eraseMemberData(memberId: string): Promise<ErasureSummary 
     await emailLog.remove(e.id);
     summary.emails++;
   }
+  for (const c of await contactMessages.find((x) => x.email.toLowerCase() === email)) {
+    await contactMessages.remove(c.id);
+    summary.contacts++;
+  }
 
   const erased: StoredMember = {
     ...m,
@@ -151,7 +158,7 @@ export async function eraseMemberData(memberId: string): Promise<ErasureSummary 
 /** Effacement d'une personne sans compte (commande ou inscription « invité ») à partir de son adresse e-mail. */
 export async function eraseByEmail(rawEmail: string): Promise<ErasureSummary> {
   const email = rawEmail.trim().toLowerCase();
-  const summary: ErasureSummary = { member: false, registrations: 0, orders: 0, payments: 0, memberships: 0, emails: 0, files: 0 };
+  const summary: ErasureSummary = { member: false, registrations: 0, orders: 0, payments: 0, memberships: 0, emails: 0, files: 0, contacts: 0 };
   for (const r of await listAllRegistrations()) {
     if (r.email.toLowerCase() !== email) continue;
     await updateRegistration(r.id, { firstName: "Anonyme", lastName: "Anonyme", email: anon(r.id), phone: "", birthDate: undefined, guardian: undefined, emergency: { name: "", phone: "" }, allergies: undefined, comment: undefined });
@@ -170,6 +177,10 @@ export async function eraseByEmail(rawEmail: string): Promise<ErasureSummary> {
     await emailLog.remove(e.id);
     summary.emails++;
   }
+  for (const c of await contactMessages.find((x) => x.email.toLowerCase() === email)) {
+    await contactMessages.remove(c.id);
+    summary.contacts++;
+  }
   return summary;
 }
 
@@ -178,7 +189,7 @@ export async function eraseByEmail(rawEmail: string): Promise<ErasureSummary> {
 export async function findPerson(query: string) {
   const q = query.trim().toLowerCase();
   if (q.length < 3) return null;
-  const [members, regs, orders, pays, mails] = await Promise.all([listStoredMembers(), listAllRegistrations(), listOrders(), payments.all(), emailLog.all()]);
+  const [members, regs, orders, pays, mails, contacts] = await Promise.all([listStoredMembers(), listAllRegistrations(), listOrders(), payments.all(), emailLog.all(), contactMessages.all()]);
   const member = members.find((m) => m.status !== "anonymized" && (m.email.toLowerCase() === q || m.memberNumber.toLowerCase() === q)) ?? null;
   const email = (member?.email ?? q).toLowerCase();
   const number = member?.memberNumber;
@@ -189,6 +200,7 @@ export async function findPerson(query: string) {
     orders: orders.filter((o) => o.contact.email.toLowerCase() === email || (number && o.memberNumber === number)).length,
     payments: pays.filter((p) => (p.email ?? "").toLowerCase() === email || (number && p.memberNumber === number)).length,
     emails: mails.filter((e) => e.to.toLowerCase() === email).length,
+    contacts: contacts.filter((c) => c.email.toLowerCase() === email).length,
   };
 }
 

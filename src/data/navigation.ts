@@ -11,6 +11,7 @@ export const leftNav: NavItem[] = [
 export const rightNav: NavItem[] = [
   { label: "Événements", href: "/evenements" },
   { label: "Boutique", href: "/boutique" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export const joinLink: NavItem = { label: "Rejoindre le groupe", href: "/rejoindre-le-groupe" };
@@ -22,7 +23,5 @@ export const signature = ["Passion", "Partage", "Féminité", "PSG"];
 export const socialLinks = [
   { id: "instagram", label: "Instagram", href: "https://www.instagram.com/lesdamesduparc/" },
   { id: "tiktok", label: "TikTok", href: "https://www.tiktok.com/@lesdamesduparc" },
-  { id: "x", label: "X", href: "https://x.com/" },
   { id: "facebook", label: "Facebook", href: "https://www.facebook.com/p/Dames-Du-Parc-61592989376127/" },
-  { id: "youtube", label: "YouTube", href: "https://www.youtube.com/" },
 ] as const;

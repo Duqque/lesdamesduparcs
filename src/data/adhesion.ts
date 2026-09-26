@@ -111,7 +111,7 @@ export const adhesion = {
       { icon: "Ticket", title: "Événements", text: "Les prochains rendez-vous et, à terme, les inscriptions.", href: "/evenements" },
       { icon: "ShoppingBag", title: "Goodies et boutique", text: "T-shirts, stickers, écharpes et autres produits, à développer progressivement.", href: "/boutique" },
       { icon: "Sparkles", title: "Réseaux sociaux", text: "Instagram, TikTok et les autres plateformes.", href: "/actualites" },
-      { icon: "Mail", title: "Contact", text: "Une adresse e-mail professionnelle pour nous écrire.", href: "mailto:contact@lesdamesduparc.fr" },
+      { icon: "Mail", title: "Contact", text: "Une adresse e-mail professionnelle pour nous écrire.", href: "mailto:contact@lesdamesduparc.com" },
     ],
   },
   goodies: {

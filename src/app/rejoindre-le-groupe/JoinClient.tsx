@@ -15,7 +15,7 @@ export function JoinClient({ season }: { season: string }) {
       since={member ? "" : String(new Date().getFullYear())}
       number={member ? member.memberNumber : "XXXXXX000000-LDDP0000"}
       season={season}
-      qrValue={member && data ? data.verifyUrl : "https://www.lesdamesduparc.fr/rejoindre-le-groupe"}
+      qrValue={member && data ? data.verifyUrl : "https://www.lesdamesduparc.com/rejoindre-le-groupe"}
     />
   );
 }

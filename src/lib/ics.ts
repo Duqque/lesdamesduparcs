@@ -1,6 +1,6 @@
 import type { ClubEvent } from "@/types";
 
-const SITE = "https://www.lesdamesduparc.fr";
+const SITE = "https://www.lesdamesduparc.com";
 
 /** Convertit une date/heure locale de Paris en instant UTC (gère l'heure d'été). */
 function parisToUtc(date: string, time: string) {
@@ -34,7 +34,7 @@ function endInstant(e: ClubEvent) {
 function vevent(e: ClubEvent) {
   return [
     "BEGIN:VEVENT",
-    `UID:${e.id}@lesdamesduparc.fr`,
+    `UID:${e.id}@lesdamesduparc.com`,
     `DTSTAMP:${stamp(new Date())}`,
     `DTSTART:${stamp(parisToUtc(e.date, e.time))}`,
     `DTEND:${stamp(endInstant(e))}`,

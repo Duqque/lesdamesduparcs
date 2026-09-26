@@ -2,12 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { socialLinks } from "@/data/navigation";
 import { FleurDeLisIcon, socialIcons } from "@/components/icons/BrandIcons";
-import { Scribble } from "@/components/ui/Scribble";
 import { settings } from "@/lib/server/admin-store";
 import { legalLinks } from "@/components/legal/LegalPage";
 
 export async function Footer() {
-  const { site, association } = await settings.get();
+  const { association } = await settings.get();
   const links = socialLinks.map((l) => ({ ...l, href: (association[l.id as "instagram"] as string) || l.href }));
   return (
     <footer className="border-t border-white/[0.07] bg-night-950">
@@ -39,11 +38,6 @@ export async function Footer() {
               );
             })}
           </ul>
-          <span aria-hidden className="hidden h-8 w-px bg-white/15 sm:block" />
-          <p className="relative font-script text-[26px] font-medium xl:text-[28px] leading-none text-white">
-            {site.footerText.replace(/ ([!?:;])/g, "\u00a0$1")}
-            <Scribble className="absolute -bottom-2 left-[14%] h-2 w-[62%]" />
-          </p>
         </div>
 
         <div aria-hidden className="hidden items-end gap-5 md:flex md:w-[260px] md:justify-end">

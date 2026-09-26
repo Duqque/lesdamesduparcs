@@ -12,7 +12,7 @@ function back(m: { ok?: string; erreur?: string }, extra = ""): never {
 }
 
 const describe = (x: ErasureSummary) =>
-  `${x.member ? "fiche adhérente, " : ""}${x.registrations} inscription(s), ${x.orders} commande(s), ${x.payments} paiement(s), ${x.emails} e-mail(s) du journal, ${x.files} pièce(s) supprimée(s)`;
+  `${x.member ? "fiche adhérente, " : ""}${x.registrations} inscription(s), ${x.orders} commande(s), ${x.payments} paiement(s), ${x.emails} e-mail(s) du journal, ${x.contacts} message(s) de contact, ${x.files} pièce(s) supprimée(s)`;
 
 export async function setRequestStatusAction(id: string, status: PrivacyStatus, formData: FormData) {
   const ctx = await requireAdmin("privacy.manage");

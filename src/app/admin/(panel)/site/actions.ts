@@ -104,8 +104,6 @@ export async function saveDesignAction(formData: FormData) {
   if (!/^#[0-9a-fA-F]{6}$/.test(accent)) redirect("/admin/site/design?erreur=" + encodeURIComponent("Couleur invalide (format #rrggbb)."));
   const before = (await siteConfig.get()).design;
   await siteConfig.set({ design: { accent, note: s(formData, "note") } });
-  const site = { ...(await settings.get()).site, footerText: s(formData, "footerText") };
-  await settings.set({ site });
   await audit(ctx, "modification", "design", "Design du site modifié", { before: before.accent, after: accent });
   refreshSite();
   done("/admin/site/design", "Design enregistré.");

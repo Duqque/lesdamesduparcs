@@ -50,7 +50,7 @@ prépare l'espace membre.
 
 ## Typographie
 
-Une seule famille (Barlow) sur tout le site : seules la taille, la graisse et la casse varient. L'échelle est définie dans
+Deux familles, auto-hébergées dans `src/fonts` (licences OFL jointes) : **Geomini** (police variable, graisses 200 à 800) pour les sous-titres, les paragraphes et tout le corps de texte, **Special Gothic Expanded One** (graisse unique) pour les titres importants (`--font-display`). L'échelle est définie dans
 `globals.css` (`t-display`, `t-h1`, `t-h2`, `t-h3`, `t-eyebrow`, `t-lead`, `t-small`, `t-caption`) : à utiliser plutôt que des tailles ad hoc.
 
 ## Loader d'entrée : « entrer dans le Parc »

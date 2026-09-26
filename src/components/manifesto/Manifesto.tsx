@@ -24,7 +24,7 @@ export function Manifesto() {
   const typingNow = shown > 0 && shown < total;
 
   return (
-    <section ref={ref} aria-labelledby="manifeste-title" className="mx-auto max-w-[1200px] px-[var(--gutter)] py-28 text-center md:py-44">
+    <section ref={ref} id="manifeste" aria-labelledby="manifeste-title" className="mx-auto max-w-[1200px] px-[var(--gutter)] py-28 text-center md:py-44">
       <div aria-hidden className="h-24 md:h-44" />
 
       <p className="font-body text-[12px] font-medium uppercase tracking-[0.55em] text-white/70">Manifeste</p>

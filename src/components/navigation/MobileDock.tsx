@@ -2,13 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { IdCard, LogIn, LogOut, Menu, User, X } from "lucide-react";
+import { IdCard, LogOut, Menu, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CartButton } from "@/components/shop/CartButton";
 import { cn } from "@/lib/cn";
 
 /** Logo affiché uniquement sur mobile et tablette : remplacer ce fichier suffit à le changer (le logo du site sur ordinateur reste inchangé). */
 export const MOBILE_LOGO = "/logos/dames-du-parc-mobile.webp";
+
+/** Silhouette féminine blanche : icône de connexion / de compte. */
+const Woman = () => <Image src="/icons/femme-blanc.webp" alt="" width={360} height={540} aria-hidden className="h-[32px] w-auto" />;
 
 const square = "relative grid size-[52px] shrink-0 place-items-center rounded-[14px] border text-white transition-[background-color,border-color] duration-300";
 const dark = "border-white/[0.12] bg-[#0d0f13] hover:border-white/30 hover:bg-[#161a20]";
@@ -27,7 +30,7 @@ export function MobileDock({ open, onToggle, onClose }: { open: boolean; onToggl
     >
       {signedIn ? (
         <Link href="/profil" aria-label="Mon espace" onClick={onClose} className={cn(square, "border-psg-red-bright/50 bg-gradient-to-br from-psg-red-bright to-[#8f0a1f] hover:brightness-110")}>
-          <User aria-hidden className="size-[22px]" strokeWidth={1.7} />
+          <Woman />
         </Link>
       ) : (
         <Link href="/rejoindre-le-groupe" aria-label="Devenir membre" onClick={onClose} className={cn(square, "border-psg-red-bright/50 bg-gradient-to-br from-psg-red-bright to-[#8f0a1f] hover:brightness-110")}>
@@ -58,7 +61,7 @@ export function MobileDock({ open, onToggle, onClose }: { open: boolean; onToggl
         </button>
       ) : (
         <Link href="/connexion" aria-label="Se connecter" onClick={onClose} className={cn(square, dark, "text-white/80")}>
-          <LogIn aria-hidden className="size-[22px]" strokeWidth={1.7} />
+          <Woman />
         </Link>
       )}
     </nav>

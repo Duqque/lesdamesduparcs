@@ -86,6 +86,7 @@ export const ADMIN_NAV: NavGroup[] = [
   },
   {
     label: "Communication", icon: "megaphone", perm: "communication.send", children: [
+      { label: "Messages reçus", href: "/admin/communication/messages" },
       { label: "Campagnes", href: "/admin/communication" },
       { label: "Modèles", href: "/admin/communication/modeles" },
       { label: "Automatisations", href: "/admin/communication/automatisations" },

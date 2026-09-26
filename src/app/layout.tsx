@@ -8,6 +8,7 @@ import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/footer/Footer";
 import { INTRO_STORAGE_KEY } from "@/lib/intro-key";
 import { accentOverride, getNavConfig, siteMeta } from "@/lib/server/site";
+import { settings } from "@/lib/server/admin-store";
 import { getPublicCatalog } from "@/lib/server/shop";
 
 /**
@@ -34,7 +35,8 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const nonce = (await headers()).get("x-nonce") ?? undefined;
-  const [navConfig, accent, shop] = await Promise.all([getNavConfig(), accentOverride(), getPublicCatalog()]);
+  const [navConfig, accent, shop, conf] = await Promise.all([getNavConfig(), accentOverride(), getPublicCatalog(), settings.get()]);
+  const contactEmail = conf.association.email || "contact@lesdamesduparc.com";
   return (
     <html lang="fr" className={`${geomini.variable} ${gothic.variable}`} suppressHydrationWarning>
       <head>
@@ -57,7 +59,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           Aller au contenu
         </a>
         <Providers shop={shop}>
-          <SiteFrame header={<Header navConfig={navConfig} />} footer={<Footer />}>
+          <SiteFrame header={<Header navConfig={navConfig} />} footer={<Footer />} contactEmail={contactEmail}>
             {children}
           </SiteFrame>
         </Providers>

@@ -1,4 +1,5 @@
 import { privacyRequests } from "./privacy";
+import { contactMessages } from "./content";
 import "server-only";
 import { ageAt } from "@/lib/registration";
 import { addDays, dayKey, monthKey } from "@/lib/admin/format";
@@ -233,6 +234,10 @@ export async function adminNotifications(ctx: AdminContext): Promise<Alert[]> {
     if (unusual) list.push({ level: "important", text: `${unusual} connexion${unusual > 1 ? "s" : ""} depuis une nouvelle adresse (24 h)`, href: "/admin/configuration/journal" });
     const fails = logins.filter((e) => !e.success).length;
     if (fails >= 3) list.push({ level: "important", text: `${fails} tentatives de connexion échouées (24 h)`, href: "/admin/configuration/journal" });
+  }
+  if (ctx.can("communication.send")) {
+    const fresh = await contactMessages.find((m) => m.status === "new");
+    if (fresh.length) list.push({ level: "important", text: `${fresh.length} nouveau${fresh.length > 1 ? "x" : ""} message${fresh.length > 1 ? "s" : ""} de contact`, href: "/admin/communication/messages" });
   }
   if (ctx.can("privacy.manage")) {
     const open = await privacyRequests.find((r) => r.status === "received" || r.status === "in_progress");

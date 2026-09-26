@@ -2,7 +2,6 @@
 
 import { motion, type Variants } from "framer-motion";
 import { Button } from "@/components/ui/Button";
-import { Scribble } from "@/components/ui/Scribble";
 import { useIntroDone } from "@/lib/intro";
 
 const container: Variants = {
@@ -19,7 +18,7 @@ export function HeroContent({ title = "Les Dames du Parc", subtitle, cta = "Rejo
   const introDone = useIntroDone();
   return (
     <motion.div
-      className="relative z-10 flex w-full max-w-[640px] flex-col px-[var(--gutter)] pb-9 pt-[80px] xl:pb-0 xl:pt-[clamp(72px,7vw,120px)]"
+      className="relative z-10 flex w-full max-w-[640px] flex-col px-[var(--gutter)] pb-12 max-lg:pb-[120px] lg:pb-14"
       variants={container}
       initial="hidden"
       animate={introDone ? "show" : "hidden"}
@@ -30,16 +29,6 @@ export function HeroContent({ title = "Les Dames du Parc", subtitle, cta = "Rejo
           className="font-display text-[clamp(28px,3vw,50px)] uppercase leading-none text-white"
         >
           {title}
-        </motion.span>
-        <motion.span
-          variants={item}
-          className="relative mt-3 block origin-left -rotate-[6deg] font-script text-[clamp(38px,3.85vw,66px)] font-medium leading-[0.9] text-white xl:mt-7"
-        >
-          Plus qu&rsquo;un groupe,
-          <span className="relative ml-[0.55em] block w-fit">
-            une famille.
-            <Scribble className="absolute -bottom-[0.14em] left-[8%] h-[0.28em] w-[92%]" />
-          </span>
         </motion.span>
       </h1>
       <motion.p variants={item} className="mt-8 max-w-[28rem] font-body text-[15px] leading-[1.65] text-white/90 md:text-[16px] xl:mt-9 xl:text-[16px]">
