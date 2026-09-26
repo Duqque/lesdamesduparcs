@@ -6,6 +6,10 @@ import { EventGridCard } from "@/components/events/EventGridCard";
 import { PastEvents } from "@/components/events/PastEvents";
 import { getPublishedEvents } from "@/lib/server/events";
 import { isPast } from "@/data/events";
+import { MatchEventCard } from "@/components/matches/MatchEventCard";
+import { getUpcomingMatchViews } from "@/lib/server/matches";
+import { Button } from "@/components/ui/Button";
+import { formatCompactDate as formatShortDate } from "@/lib/format";
 
 export const revalidate = 3600;
 
@@ -14,8 +18,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function EventsPage() {
-  const all = await getPublishedEvents();
+  const [all, matches] = await Promise.all([getPublishedEvents(), getUpcomingMatchViews(60)]);
   const upcoming = all.filter((e) => !isPast(e)).sort((a, b) => a.date.localeCompare(b.date));
+  // Les événements des Dames priment : en haut, seul le prochain match du PSG accompagne les événements (par date) ; tous les autres sont en fin de page.
+  const [nextMatch, ...otherMatches] = matches;
+  const timeline = [
+    ...upcoming.map((e) => ({ kind: "event" as const, date: e.date, event: e })),
+    ...(nextMatch ? [{ kind: "match" as const, date: nextMatch.date, match: nextMatch }] : []),
+  ].sort((a, b) => (a.kind === b.kind ? a.date.localeCompare(b.date) : a.date.localeCompare(b.date) || (a.kind === "event" ? -1 : 1)));
   const past = all.filter((e) => isPast(e)).sort((a, b) => b.date.localeCompare(a.date));
 
   return (
@@ -35,12 +45,17 @@ export default async function EventsPage() {
           </Link>
         </div>
 
+        <aside aria-label="Adhérer" className="mt-16 flex flex-col items-start gap-5 rounded-[10px] border border-psg-red-bright/40 bg-[linear-gradient(90deg,rgba(217,15,44,0.16),rgba(217,15,44,0.03))] p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
+          <p className="max-w-xl font-body text-[16px] leading-[1.6] text-white">Vivez les matchs et les événements avec Les Dames du Parc : rejoignez le groupe de supportrices du Paris Saint-Germain.</p>
+          <Button size="sm" href="/rejoindre-le-groupe/inscription">Adhérer aux Dames du Parc</Button>
+        </aside>
+
         <section aria-labelledby="upcoming" className="mt-24 md:mt-32">
           <h2 id="upcoming" className="font-body text-[20px] font-medium text-white">Prochains événements</h2>
           <ul className="mt-10 -mx-[var(--gutter)] flex snap-x gap-4 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
-            {upcoming.map((e) => (
-              <li key={e.id} className="contents md:block">
-                <EventGridCard event={e} />
+            {timeline.map((it) => (
+              <li key={it.kind === "event" ? it.event.id : `match-${it.match.id}`} className="contents md:block">
+                {it.kind === "event" ? <EventGridCard event={it.event} /> : <MatchEventCard match={it.match} next />}
               </li>
             ))}
           </ul>
@@ -52,6 +67,50 @@ export default async function EventsPage() {
             <div className="mt-10">
               <PastEvents events={past} />
             </div>
+          </section>
+        )}
+
+        {otherMatches.length > 0 && (
+          <section aria-labelledby="matchs" className="mt-28 md:mt-40">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="t-eyebrow">Paris Saint-Germain</p>
+                <h2 id="matchs" className="mt-3 font-body text-[20px] font-medium text-white">Prochains matchs du PSG</h2>
+              </div>
+              <Link href="/evenements/calendrier.ics" prefetch={false} className="inline-flex min-h-11 items-center gap-2 font-body text-[13px] font-medium text-white/80 hover:text-white">
+                <Download aria-hidden className="size-4" strokeWidth={1.8} /> Ajouter les matchs à mon agenda
+              </Link>
+            </div>
+            <ul className="mt-10 -mx-[var(--gutter)] flex snap-x gap-4 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
+              {otherMatches.slice(0, 4).map((m) => (
+                <li key={m.id} className="contents md:block">
+                  <MatchEventCard match={m} />
+                </li>
+              ))}
+            </ul>
+            {otherMatches.length > 4 && (
+              <details className="group mt-6 rounded-[8px] border border-line bg-night-900/60">
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-5 font-body text-[14px] font-medium text-white [&::-webkit-details-marker]:hidden">
+                  Tout le calendrier ({otherMatches.length - 4} autres matchs)
+                  <span aria-hidden className="text-mist transition-transform duration-300 group-open:rotate-180">⌄</span>
+                </summary>
+                <ul className="divide-y divide-white/10 border-t border-white/10">
+                  {otherMatches.slice(4).map((m) => (
+                    <li key={m.id} className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 px-5 py-3 sm:grid-cols-[150px_1fr_auto]">
+                      <time dateTime={m.date} className="font-body text-[13px] tabular-nums text-white/80">{formatShortDate(m.date)}{m.time ? ` · ${m.time.replace(":", "h")}` : ""}</time>
+                      <span className="min-w-0 font-body text-[14px] text-white">
+                        <span className="font-medium">{m.isHome ? `PSG – ${m.opponent}` : `${m.opponent} – PSG`}</span>
+                        {m.competition && <span className="ml-2 text-[12px] text-mist">{m.competition}</span>}
+                      </span>
+                      <span className="col-span-2 flex flex-wrap items-center gap-3 sm:col-span-1 sm:justify-end">
+                        {m.related && <Link href={`/evenements/${m.related.id}`} className="font-body text-[12.5px] font-medium text-psg-red-bright underline underline-offset-4">Vivre le match avec les Dames</Link>}
+                        <a href={m.ticketHref} target="_blank" rel="noopener noreferrer" className="font-body text-[12.5px] text-white/75 underline underline-offset-4 hover:text-white">Billetterie</a>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
           </section>
         )}
       </div>

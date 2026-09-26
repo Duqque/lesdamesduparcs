@@ -30,6 +30,7 @@ export const ADMIN_NAV: NavGroup[] = [
     label: "Événements", icon: "calendar", perm: "events.view", children: [
       { label: "Tous les événements", href: "/admin/evenements" },
       { label: "Calendrier", href: "/admin/evenements/calendrier" },
+      { label: "Matchs du PSG", href: "/admin/evenements/matchs" },
       { label: "Créer un événement", href: "/admin/evenements/nouveau", perm: "events.edit" },
       { label: "Inscriptions", href: "/admin/evenements/inscriptions", perm: "events.attendance" },
       { label: "Listes d'attente", href: "/admin/evenements/liste-attente", perm: "events.attendance" },

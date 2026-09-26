@@ -1,3 +1,5 @@
+import { psgMatches, toView } from "@/lib/server/matches";
+import { MatchLogo } from "@/components/matches/MatchLogo";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -32,6 +34,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const event = await getEvent(slug);
   if (!event) notFound();
 
+  const linked = (await psgMatches.find((m) => m.relatedEventId === event.id && !m.hidden))[0];
+  const linkedView = linked ? await toView(linked) : null;
   const past = isPast(event) || event.registration.mode === "closed";
   const others = (await getPublishedEvents()).filter((e) => e.id !== event.id && !isPast(e)).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4);
   const jsonLd = {
@@ -87,6 +91,18 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           </div>
         </div>
       </section>
+
+      {linkedView && (
+        <aside aria-label="Match du PSG" className="mx-auto mt-10 flex max-w-[1300px] flex-col gap-5 rounded-[10px] border border-psg-red-bright/40 bg-[linear-gradient(90deg,rgba(217,15,44,0.14),rgba(217,15,44,0.03))] px-[var(--gutter)] py-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <MatchLogo src={linkedView.homeLogo} name={linkedView.homeTeam} className="size-12" />
+            <span aria-hidden className="font-display text-[12px] uppercase text-white/80">vs</span>
+            <MatchLogo src={linkedView.awayLogo} name={linkedView.awayTeam} className="size-12" />
+            <p className="font-body text-[15px] leading-snug text-white">Cet événement accompagne le match <strong>{linkedView.isHome ? `PSG – ${linkedView.opponent}` : `${linkedView.opponent} – PSG`}</strong>{linkedView.competition ? ` (${linkedView.competition})` : ""}.</p>
+          </div>
+          <a href={linkedView.ticketHref} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-[10px] border border-white/25 px-5 font-body text-[14px] font-medium text-white transition-colors hover:border-white/55 hover:bg-white/10">Billetterie officielle du PSG</a>
+        </aside>
+      )}
 
       <div className="mx-auto grid max-w-[1300px] gap-16 px-[var(--gutter)] py-28 md:py-40 lg:grid-cols-[1fr_360px] lg:gap-24">
         <div className="space-y-28">

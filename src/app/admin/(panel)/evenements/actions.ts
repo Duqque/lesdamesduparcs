@@ -1,5 +1,6 @@
 "use server";
 
+import { psgMatches } from "@/lib/server/matches";
 import { safeUrl } from "@/lib/safe-url";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -107,6 +108,7 @@ export async function saveEventAction(formData: FormData) {
     await eventsDb.update(editing, { ...data, origin: before?.origin } as Partial<EventRow>);
     if (before && ctx.can("events.pricing") && (before.registration.priceCents !== data.registration.priceCents || before.registration.paymentMode !== data.registration.paymentMode)) await audit(ctx, "tarification", "événement", `Tarif de « ${title} » : ${(before.registration.priceCents / 100).toFixed(2)} € (${before.registration.paymentMode ?? "online"}) → ${(data.registration.priceCents / 100).toFixed(2)} € (${data.registration.paymentMode})`, { entityId: editing, before: { priceCents: before.registration.priceCents, paymentMode: before.registration.paymentMode }, after: { priceCents: data.registration.priceCents, paymentMode: data.registration.paymentMode } });
     await audit(ctx, "modification", "événement", `Événement modifié : ${title}`, { entityId: editing, before: before && { date: before.date, status: before.status, capacity: before.registration.capacity }, after: { date: data.date, status: data.status, capacity: data.registration.capacity } });
+    await linkMatch(editing, s(formData, "matchId"));
     refresh(editing);
     redirect(`/admin/evenements/${editing}?ok=${encodeURIComponent("Événement enregistré.")}`);
   }
@@ -125,6 +127,7 @@ export async function saveEventAction(formData: FormData) {
     await audit(ctx, "création", "événement", `Événement créé : ${title} (${data.date})`, { entityId: id });
     if (!first) first = id;
   }
+  if (first) await linkMatch(first, s(formData, "matchId"));
   refresh();
   redirect(`/admin/evenements/${first}?ok=${encodeURIComponent(count > 1 ? `${count} événements créés.` : "Événement créé.")}`);
 }
@@ -202,3 +205,9 @@ export async function checkinAction(eventId: string, formData: FormData) {
 }
 
 export type { ClubEvent };
+
+/** Relie l'événement à un match du PSG (un seul match par événement) ; chaîne vide : supprime le lien. */
+async function linkMatch(eventId: string, matchId: string) {
+  for (const m of await psgMatches.find((x) => x.relatedEventId === eventId && x.id !== matchId)) await psgMatches.update(m.id, { relatedEventId: undefined });
+  if (matchId) await psgMatches.update(matchId, { relatedEventId: eventId });
+}

@@ -39,9 +39,9 @@ function vevent(e: ClubEvent) {
     `DTSTART:${stamp(parisToUtc(e.date, e.time))}`,
     `DTEND:${stamp(endInstant(e))}`,
     `SUMMARY:${escape(e.title)}`,
-    `LOCATION:${escape(`${e.venue}, ${e.address}`)}`,
-    `DESCRIPTION:${escape(`${e.summary}\n${SITE}/evenements/${e.id}`)}`,
-    `URL:${SITE}/evenements/${e.id}`,
+    `LOCATION:${escape([e.venue, e.address].filter(Boolean).join(", "))}`,
+    `DESCRIPTION:${escape(`${e.summary}\n${SITE}/evenements${e.id.startsWith("match-") ? "" : `/${e.id}`}`)}`,
+    `URL:${SITE}/evenements${e.id.startsWith("match-") ? "" : `/${e.id}`}`,
     "END:VEVENT",
   ].join("\r\n");
 }

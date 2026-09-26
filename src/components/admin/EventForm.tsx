@@ -8,7 +8,7 @@ const CATS: Record<string, string> = { Matchday: "Match", Déplacement: "Déplac
 const toLocal = (iso?: string) => (iso ? new Date(iso).toISOString().slice(0, 16) : "");
 
 /** Formulaire de création / modification d'un événement, en sept étapes. */
-export function EventForm({ event, canPricing = true }: { event?: EventRow; canPricing?: boolean }) {
+export function EventForm({ event, canPricing = true, matches = [], linkedMatchId = "" }: { event?: EventRow; canPricing?: boolean; matches?: Array<{ id: string; label: string }>; linkedMatchId?: string }) {
   const r = event?.registration;
   const hasTiers = Boolean(r?.tiers?.length);
   return (
@@ -19,6 +19,12 @@ export function EventForm({ event, canPricing = true }: { event?: EventRow; canP
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Titre" className="sm:col-span-2"><input name="title" defaultValue={event?.title} required className={inp} /></Field>
           <Field label="Sous-titre" className="sm:col-span-2"><input name="subtitle" defaultValue={event?.subtitle} className={inp} /></Field>
+          <Field label="Match du PSG relié (co-organisation)" hint="Si cet événement accompagne un match, il apparaît sur la carte du match avec le bouton « Vivre le match avec les Dames ! »." className="sm:col-span-2">
+            <select name="matchId" defaultValue={linkedMatchId} className={inp}>
+              <option value="">Aucun match</option>
+              {matches.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+            </select>
+          </Field>
           <Field label="Catégorie"><select name="tag" defaultValue={event?.tag ?? "Programme"} className={inp}>{TAGS.map((t) => <option key={t} value={t}>{CATS[t]} ({t})</option>)}</select></Field>
           <Field label="Résumé court (carte et partage)"><input name="summary" defaultValue={event?.summary} className={inp} /></Field>
           <Field label="Description (paragraphes séparés par une ligne vide)" className="sm:col-span-2"><textarea name="description" rows={6} defaultValue={event?.description.join("\n\n")} className={area} /></Field>

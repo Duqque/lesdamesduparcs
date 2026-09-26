@@ -9,8 +9,8 @@ import { calendarItems, type CalItem } from "@/lib/server/admin-data";
 
 export const metadata = { title: "Calendrier" };
 
-const COLORS = { event: "bg-violet-500/25 text-violet-200 border-violet-400/30", post: "bg-sky-500/20 text-sky-200 border-sky-400/30", campaign: "bg-emerald-500/20 text-emerald-200 border-emerald-400/30", expiry: "bg-amber-500/20 text-amber-200 border-amber-400/30" } as const;
-const LEGEND = [["event", "Événements"], ["post", "Publications"], ["campaign", "Campagnes"], ["expiry", "Échéances d'adhésion"]] as const;
+const COLORS = { event: "bg-violet-500/25 text-violet-200 border-violet-400/30", post: "bg-sky-500/20 text-sky-200 border-sky-400/30", campaign: "bg-emerald-500/20 text-emerald-200 border-emerald-400/30", expiry: "bg-amber-500/20 text-amber-200 border-amber-400/30", match: "bg-red-500/25 text-red-200 border-red-400/35" } as const;
+const LEGEND = [["event", "Événements"], ["match", "Matchs du PSG"], ["post", "Publications"], ["campaign", "Campagnes"], ["expiry", "Échéances d'adhésion"]] as const;
 const VUES = [["mois", "Mois"], ["semaine", "Semaine"], ["jour", "Jour"], ["liste", "Liste"]] as const;
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);

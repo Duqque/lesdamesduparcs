@@ -14,7 +14,7 @@ import { ChantPlayer } from "@/components/chants/ChantPlayer";
 import { ChantsBanner } from "@/components/chants/ChantsBanner";
 import { PhotoGallery } from "@/components/gallery/PhotoGallery";
 import { Reveal } from "@/components/ui/Reveal";
-import { nextMatch } from "@/data/matches";
+import { getUpcomingMatchViews } from "@/lib/server/matches";
 import { getEvent, getUpcomingEvents } from "@/lib/server/events";
 import { getPublishedNews, siteConfig } from "@/lib/server/content";
 import { community } from "@/data/community";
@@ -31,7 +31,8 @@ const wrap = "mx-auto w-full max-w-[1300px] px-[var(--gutter)]";
  * L'espace membre n'est plus affiché ici : il s'ouvre depuis l'icône de profil du header.
  */
 export default async function HomePage() {
-  const [home, upcoming, allNews] = await Promise.all([siteConfig.get().then((c) => c.home), getUpcomingEvents(), getPublishedNews()]);
+  const [home, upcoming, allNews, matchViews] = await Promise.all([siteConfig.get().then((c) => c.home), getUpcomingEvents(), getPublishedNews(), getUpcomingMatchViews(1)]);
+  const next = matchViews[0];
   const pinned = await Promise.all([...home.featuredEventIds, "soiree-des-dames"].map((id) => getEvent(id)));
   const featuredEvent = pinned.find((e) => e && e.date >= new Date().toISOString().slice(0, 10)) ?? upcoming[0] ?? null;
   const news = [...home.featuredArticleIds.map((id) => allNews.find((n) => n.id === id)).filter((n): n is NonNullable<typeof n> => Boolean(n)), ...allNews.filter((n) => !home.featuredArticleIds.includes(n.id))];
@@ -40,7 +41,7 @@ export default async function HomePage() {
     rendezvous: (
       <section aria-label="Prochains rendez-vous" className={`${wrap} grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8`}>
         <Reveal className="flex md:col-span-3">
-          <MatchCard match={nextMatch} />
+          <MatchCard match={next} />
         </Reveal>
         <Reveal delay={0.08} className="flex">
           {featuredEvent ? <EventCard event={featuredEvent} /> : <CommunityCard community={community} />}

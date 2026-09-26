@@ -12,6 +12,8 @@ export interface Match {
   competition: string;
   image: string;
   ticketHref: string;
+  /** Logo de la compétition (carré) */
+  competitionLogo?: string | null;
 }
 
 export type EventTag = "Programme" | "Matchday" | "Soirée" | "Atelier" | "Membres" | "Déplacement";

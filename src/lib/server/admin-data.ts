@@ -256,7 +256,7 @@ export { monthKey, admins };
 
 export interface CalItem {
   date: string;
-  kind: "event" | "post" | "campaign" | "expiry";
+  kind: "event" | "post" | "campaign" | "expiry" | "match";
   label: string;
   href?: string;
 }
@@ -266,6 +266,8 @@ export async function calendarItems(): Promise<CalItem[]> {
   const [events, arts, camps, rows] = await Promise.all([getAllEventsAdmin(), articlesDb.all(), campaigns.all(), loadMemberRows()]);
   const items: CalItem[] = [];
   for (const e of events) if (e.status !== "archived") items.push({ date: e.date, kind: "event", label: `${e.time} · ${e.title}`, href: `/admin/evenements/${e.id}` });
+  const { psgMatches: matchesDb } = await import("./matches");
+  for (const m of await matchesDb.find((x) => !x.hidden)) items.push({ date: m.date, kind: "match", label: `${m.time || "—"} · Match PSG : ${m.homeTeam === "Paris Saint-Germain" ? "PSG – " + m.awayTeam : m.homeTeam + " – PSG"}`, href: "/admin/evenements/matchs" });
   for (const a of arts) if (a.status !== "archived") items.push({ date: (a.publishAt ?? a.date).slice(0, 10), kind: "post", label: `${a.status === "draft" ? "Brouillon" : a.status === "scheduled" ? "Programmé" : "Publié"} · ${a.title}`, href: `/admin/contenu/${a.id}` });
   for (const c of camps) {
     const d = c.scheduledAt ?? c.sentAt ?? c.createdAt;

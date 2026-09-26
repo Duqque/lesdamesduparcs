@@ -207,6 +207,15 @@ d'audit, et les fichiers (autorisations parentales, médiathèque) dans `ddp_fil
 - **Hors code (à faire chez l'hébergeur)** : sauvegardes chiffrées et testées de la base, CDN/WAF/anti-DDoS, DNS (SPF, DKIM, DMARC), MFA sur GitHub et
   l'hébergeur, tests d'intrusion externes. `security.txt` : `/.well-known/security.txt`.
 
+## Matchs du PSG
+
+Le calendrier de la saison (36 matchs, `src/data/psg-calendar.ts`) est inséré une seule fois dans la base ; ensuite tout se gère dans
+**Administration › Événements › Matchs du PSG** : import d'un fichier ICS ou d'un tableau collé (« 10 oct. 2026 ; 20h45 ; PSG – Le Mans ; Ligue 1 »),
+adresse d'un calendrier ICS relue automatiquement toutes les 6 heures, création manuelle d'un match, adresse de billetterie (par défaut
+`https://billetterie.psg.fr/fr/`), trois logos carrés par match (domicile, extérieur, compétition, mémorisés par club et par compétition) et lien avec un
+événement des Dames (bouton « Vivre le match avec les Dames ! »). Sur `/evenements`, le prochain match accompagne les événements des Dames ; tous les autres
+sont en fin de page. L'accueil affiche la carte « Prochain match ».
+
 ## Accueil
 
 Une seule colonne de rubriques qui apparaissent au fil du scroll : hero, manifeste (grand texte écrit lettre par lettre au scroll,

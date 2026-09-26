@@ -11,12 +11,13 @@ export const leftNav: NavItem[] = [
 export const rightNav: NavItem[] = [
   { label: "Événements", href: "/evenements" },
   { label: "Boutique", href: "/boutique" },
-  { label: "Contact", href: "/contact" },
+  { label: "Adhésion", href: "/rejoindre-le-groupe/inscription" },
 ];
 
 export const joinLink: NavItem = { label: "Rejoindre le groupe", href: "/rejoindre-le-groupe" };
 
-export const mainNav: NavItem[] = [...leftNav, ...rightNav];
+/** Menu mobile et tablette : « Contact » y figure (sur ordinateur, il s'ouvre depuis l'icône courrier). */
+export const mainNav: NavItem[] = [...leftNav, ...rightNav, { label: "Contact", href: "/contact" }];
 
 export const signature = ["Passion", "Partage", "Féminité", "PSG"];
 
