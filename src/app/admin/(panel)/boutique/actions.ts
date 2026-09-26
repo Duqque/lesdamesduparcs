@@ -1,5 +1,6 @@
 "use server";
 
+import { safeUrl } from "@/lib/safe-url";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Fulfilment } from "@/lib/orders";
@@ -30,7 +31,7 @@ export async function saveProductAction(formData: FormData) {
   const name = s(formData, "name");
   if (!name) back("Le nom est requis.");
 
-  const images = lines(s(formData, "images"));
+  const images = lines(s(formData, "images")).map(safeUrl).filter(Boolean);
   for (const f of formData.getAll("imageFiles")) {
     if (!(f instanceof File) || f.size === 0) continue;
     const up = await saveMedia(f);

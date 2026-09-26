@@ -39,7 +39,7 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
           <Field label="Expiration par inactivité (min)"><input name="timeout" type="number" min={5} max={480} defaultValue={security.sessionTimeoutMin} className={inp} /></Field>
           <Field label="Tentatives avant blocage"><input name="attempts" type="number" min={3} max={20} defaultValue={security.maxAttempts} className={inp} /></Field>
           <Field label="Durée du blocage (min)"><input name="lockout" type="number" min={1} max={240} defaultValue={security.lockoutMin} className={inp} /></Field>
-          <label className="flex items-end gap-2 pb-2.5 font-body text-[13px] text-white/85"><input type="checkbox" name="require2fa" defaultChecked={security.require2faForSuper} className="size-4 accent-[#d90f2c]" /> 2FA obligatoire (super admin)</label>
+          <label className="flex items-end gap-2 pb-2.5 font-body text-[13px] text-white/85"><input type="checkbox" name="require2fa" defaultChecked={security.require2fa !== false} className="size-4 accent-[#d90f2c]" /> 2FA obligatoire (toutes les administratrices)</label>
           <div className="sm:col-span-4"><SubmitButton>Enregistrer</SubmitButton></div>
         </form>
       </Panel>

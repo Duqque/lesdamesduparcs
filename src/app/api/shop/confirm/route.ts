@@ -1,32 +1,26 @@
 import { NextResponse } from "next/server";
 import { safeEqual } from "@/lib/server/session";
 import { siteUrl } from "@/lib/server/http";
-import { getOrder, updateOrder } from "@/lib/server/store";
-import { sendTemplate } from "@/lib/server/email";
-import { eur } from "@/lib/admin/format";
-import { retrieveCheckoutSession, stripeConfigured } from "@/lib/server/stripe";
+import { getOrder } from "@/lib/server/store";
+import { reconcile } from "@/lib/server/payments";
+import { paymentConfigured } from "@/lib/server/helloasso";
 
-/** Retour de Stripe Checkout : le paiement est vérifié auprès de Stripe avant de marquer la commande « payée ». */
+/** Retour de la page de paiement : le paiement est relu chez HelloAsso (identifiant enregistré pour cette commande) avant de marquer la commande « payée ». */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const id = url.searchParams.get("order") ?? "";
   const token = url.searchParams.get("t") ?? "";
-  const sessionId = url.searchParams.get("session_id") ?? "";
-  const go = (state: string) => NextResponse.redirect(`${siteUrl(req)}/commande/confirmation?order=${id}&t=${token}&etat=${state}`);
+  const go = (state: string) => NextResponse.redirect(`${siteUrl(req)}/commande/confirmation?order=${encodeURIComponent(id)}&t=${encodeURIComponent(token)}&etat=${state}`);
 
   const order = await getOrder(id);
-  if (!order || !safeEqual(order.token, token) || !stripeConfigured() || order.stripeSessionId !== sessionId) return go("erreur");
+  if (!order || !safeEqual(order.token, token) || !paymentConfigured() || !order.checkoutId) return go("erreur");
+  if (url.searchParams.get("code") === "error") return go("attente");
   try {
-    const checkout = await retrieveCheckoutSession(sessionId);
-    if (checkout.payment_status === "paid" && checkout.metadata?.order === order.id) {
-      if (order.status !== "paid") {
-        await updateOrder(order.id, { status: "paid", fulfilment: order.delivery.mode === "event" ? "ready_for_pickup" : "to_prepare" });
-        await sendTemplate("order_paid", order.contact.email, { prenom: order.contact.firstName, objet: order.id.slice(0, 8).toUpperCase(), montant: eur(order.totalCents) }, "paymentConfirmation");
-      }
-      return go("paye");
-    }
+    const result = await reconcile("order", order.id);
+    if (result === "paid" || result === "already") return go("paye");
+    if (result === "unpaid") return go("attente");
   } catch {
-    return go("erreur");
+    /* HelloAsso injoignable : la commande reste en attente, la notification ou le rattrapage la confirmera */
   }
-  return go("attente");
+  return go("erreur");
 }

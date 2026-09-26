@@ -1,12 +1,13 @@
 import { formatEuros, validateRegistration, type RegistrationInput, type RegistrationStatus } from "@/lib/registration";
 import { sendTemplate } from "@/lib/server/email";
 import { getEvent } from "@/lib/server/events";
-import { json, siteUrl, throttled } from "@/lib/server/http";
+import { json, siteUrl, throttled, readJson } from "@/lib/server/http";
 import { eventUnitPrice } from "@/lib/server/pricing";
 import { getSession } from "@/lib/server/session";
 import { checkPromo, consumePromo } from "@/lib/server/shop";
 import { addRegistration, addWaitlistRegistration, listRegistrations, takenPlaces, updateRegistration } from "@/lib/server/store";
-import { createCheckoutSession, stripeConfigured } from "@/lib/server/stripe";
+import { paymentConfigured } from "@/lib/server/helloasso";
+import { startEventPayment } from "@/lib/server/checkout";
 import { formatLongDate } from "@/lib/format";
 
 type Ctx = { params: Promise<{ slug: string }> };
@@ -27,7 +28,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     capacity: event.registration.capacity,
     remaining: Math.max(event.registration.capacity - takenPlaces(list), 0),
     waitlist: Boolean(event.registration.waitlist),
-    paymentEnabled: stripeConfigured(),
+    paymentEnabled: paymentConfigured(),
     paymentMode: event.registration.paymentMode ?? "online",
     paymentInstructions: event.registration.paymentInstructions ?? "",
     unitCents: price.unitCents,
@@ -45,9 +46,9 @@ export async function POST(req: Request, { params }: Ctx) {
 
   const session = await getSession();
   if (!session || session.role !== "member") return json({ error: "L'inscription est réservée aux membres. Connectez-vous avec votre carte." }, 401);
-  if (throttled(req, `register:${session.memberNumber}`, 20)) return json({ error: "Trop de tentatives." }, 429);
+  if (await throttled(req, "register", 20, 600_000, session.memberNumber)) return json({ error: "Trop de tentatives." }, 429);
 
-  const input = (await req.json().catch(() => null)) as (Partial<RegistrationInput> & { promoCode?: string }) | null;
+  const input = await readJson<(Partial<RegistrationInput> & { promoCode?: string })>(req);
   if (!input) return json({ error: "Requête invalide." }, 400);
 
   const list = await listRegistrations(slug);
@@ -112,15 +113,15 @@ export async function POST(req: Request, { params }: Ctx) {
     return json({ registration: ref, message: `Inscription enregistrée. Montant à régler : ${formatEuros(amountCents)}. ${cfg.paymentInstructions ?? "L'équipe vous précisera comment payer."}`.trim() }, 201);
   }
   if (mode === "optional") {
-    return json({ registration: ref, paymentEnabled: stripeConfigured(), message: `Inscription confirmée. Vous pouvez régler ${formatEuros(amountCents)} en ligne dès maintenant ou plus tard depuis cette page.` }, 201);
+    return json({ registration: ref, paymentEnabled: paymentConfigured(), message: `Inscription confirmée. Vous pouvez régler ${formatEuros(amountCents)} en ligne dès maintenant ou plus tard depuis cette page.` }, 201);
   }
 
-  if (!stripeConfigured()) {
+  if (!paymentConfigured()) {
     return json({ registration: ref, paymentEnabled: false, message: `Inscription enregistrée. Paiement de ${formatEuros(amountCents)} en attente : le paiement en ligne n'est pas encore activé, l'équipe reviendra vers vous.` }, 201);
   }
   try {
-    const checkout = await createCheckoutSession({ registrationId: registration.id, eventId: slug, eventTitle: event.title, totalCents: amountCents, places, customerEmail: clean.email, siteUrl: siteUrl(req) });
-    await updateRegistration(registration.id, { stripeSessionId: checkout.id });
+    const checkout = await startEventPayment(req, { id: registration.id, firstName: clean.firstName, lastName: clean.lastName, email: clean.email, amountCents, places }, slug, event.title);
+    await updateRegistration(registration.id, { checkoutId: checkout.id });
     return json({ registration: ref, paymentEnabled: true, checkoutUrl: checkout.url }, 201);
   } catch {
     return json({ registration: ref, paymentEnabled: false, message: "Inscription enregistrée, mais le paiement n'a pas pu être initialisé. Réessayez depuis cette page." }, 201);

@@ -1,11 +1,8 @@
 import "server-only";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { DATA_DIR } from "./db";
+import { deleteBlob, getBlob, mediaKey, putBlob } from "./blobs";
 import { mediaDb, type MediaFile } from "./content";
 
-const DIR = path.join(DATA_DIR, "media");
 export const MAX_MEDIA_BYTES = 12 * 1024 * 1024;
 
 const TYPES: Record<string, { ext: string; folder: MediaFile["folder"] }> = {
@@ -66,8 +63,7 @@ export async function saveMedia(file: File): Promise<{ ok: true; media: MediaFil
   const mime = sniff(bytes);
   if (!mime || !TYPES[mime]) return { ok: false, error: `« ${file.name} » : type de fichier non accepté (images, vidéos MP4/WebM, PDF).` };
   const id = randomUUID().replace(/-/g, "").slice(0, 16);
-  await mkdir(DIR, { recursive: true });
-  await writeFile(path.join(DIR, `${id}.${TYPES[mime].ext}`), bytes);
+  await putBlob(mediaKey(id), bytes, mime);
   const lower = file.name.toLowerCase();
   const folder = /logo/.test(lower) ? "logos" : /affiche|poster/.test(lower) ? "affiches" : TYPES[mime].folder;
   const media = await mediaDb.insert({ id, name: file.name.slice(0, 120), mime, size: bytes.length, ext: TYPES[mime].ext, folder, ...dimensions(bytes, mime) } as never);
@@ -82,9 +78,7 @@ export async function replaceMedia(id: string, file: File): Promise<{ ok: true }
   const bytes = Buffer.from(await file.arrayBuffer());
   const mime = sniff(bytes);
   if (!mime || !TYPES[mime]) return { ok: false, error: "Type de fichier non accepté." };
-  await mkdir(DIR, { recursive: true });
-  await writeFile(path.join(DIR, `${id}.${TYPES[mime].ext}`), bytes);
-  if (old.ext !== TYPES[mime].ext) await rm(path.join(DIR, `${id}.${old.ext}`), { force: true });
+  await putBlob(mediaKey(id), bytes, mime);
   await mediaDb.update(id, { mime, ext: TYPES[mime].ext, size: bytes.length, width: undefined, height: undefined, ...dimensions(bytes, mime) } as never);
   return { ok: true };
 }
@@ -92,17 +86,14 @@ export async function replaceMedia(id: string, file: File): Promise<{ ok: true }
 export async function readMedia(id: string) {
   const m = await mediaDb.get(id);
   if (!m) return null;
-  try {
-    return { media: m, bytes: await readFile(path.join(DIR, `${m.id}.${m.ext}`)) };
-  } catch {
-    return null;
-  }
+  const file = await getBlob(mediaKey(m.id));
+  return file ? { media: m, bytes: file.bytes } : null;
 }
 
 export async function deleteMedia(id: string) {
   const m = await mediaDb.get(id);
   if (!m) return;
-  await rm(path.join(DIR, `${m.id}.${m.ext}`), { force: true });
+  await deleteBlob(mediaKey(m.id));
   await mediaDb.remove(id);
 }
 

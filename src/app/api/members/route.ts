@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import { json, throttled } from "@/lib/server/http";
+import { json, throttled, tooMany } from "@/lib/server/http";
 import { authConfigured, setSession } from "@/lib/server/session";
 import { getAdmin } from "@/lib/server/admin-auth";
 import { hashPassword } from "@/lib/server/password";
@@ -31,8 +31,8 @@ export async function GET() {
 
 /** Création du compte : valide les données, enregistre l'autorisation parentale (mineures), génère le numéro et ouvre la session. */
 export async function POST(req: Request) {
-  if (!authConfigured()) return json({ error: "L'authentification n'est pas configurée sur ce serveur." }, 503);
-  if (throttled(req, "signup", 8)) return json({ error: "Trop de tentatives. Réessayez dans quelques minutes." }, 429);
+  if (!(await authConfigured())) return json({ error: "L'authentification n'est pas disponible sur ce serveur." }, 503);
+  if (await throttled(req, "signup", 8, 3_600_000)) return tooMany();
   if (Number(req.headers.get("content-length") ?? 0) > MAX_BODY) return json({ error: "Fichiers trop volumineux." }, 413);
 
   const form = await req.formData().catch(() => null);
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
   const id = randomUUID();
   const now = new Date();
   const season = seasonOf(now);
-  const passwordHash = hashPassword(input.password);
+  const passwordHash = await hashPassword(input.password);
   const result = await addMember(
     (taken) => {
       const { password: _pw, ...profile } = input;
@@ -106,6 +106,6 @@ export async function POST(req: Request) {
   const plan = await defaultPlan();
   if (plan) await createMembership(m, plan);
   await sendTemplate("welcome", m.email, { prenom: m.firstName, saison: m.season, numero: m.memberNumber }, "welcome");
-  await setSession({ role: "member", firstName: m.firstName, lastName: m.lastName, email: m.email, memberNumber: m.memberNumber });
+  await setSession(m.id);
   return json({ ok: true, memberNumber: m.memberNumber }, 201);
 }

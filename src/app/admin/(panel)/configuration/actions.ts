@@ -1,11 +1,12 @@
 "use server";
 
+import { safeUrl } from "@/lib/safe-url";
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ROLE_LABELS, type Role } from "@/lib/admin/permissions";
-import { audit, createResetToken, logoutAllSessions, requireAdmin } from "@/lib/server/admin-auth";
+import { audit, createResetToken, logoutAllSessions, requireAdmin, requireFresh } from "@/lib/server/admin-auth";
 import { admins, resetRequests, settings } from "@/lib/server/admin-store";
 import { hashPassword } from "@/lib/server/password";
 
@@ -22,12 +23,13 @@ function back(kind: "ok" | "erreur", msg: string, path = "/admin/configuration/a
 
 export async function createAdminAction(formData: FormData) {
   const ctx = await requireAdmin("admins.manage");
+  await requireFresh(ctx);
   const email = s(formData, "email").toLowerCase();
   const role = s(formData, "role") as Role;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || !ROLES.includes(role) || !s(formData, "firstName")) back("erreur", "Prénom, e-mail et rôle valides requis.");
   if (await admins.findOne((a) => a.email === email)) back("erreur", "Un compte existe déjà avec cette adresse.");
   const temp = randomBytes(9).toString("base64url") + "9a";
-  const row = await admins.insert({ email, firstName: s(formData, "firstName"), lastName: s(formData, "lastName"), role, passwordHash: hashPassword(temp), active: true, totpEnabled: false, knownIps: [], mustChangePassword: true });
+  const row = await admins.insert({ email, firstName: s(formData, "firstName"), lastName: s(formData, "lastName"), role, passwordHash: await hashPassword(temp), active: true, totpEnabled: false, knownIps: [], mustChangePassword: true });
   await audit(ctx, "création", "administratrice", `Compte créé : ${email} (${ROLE_LABELS[role]})`, { entityId: row.id });
   await secretFlash(`Compte créé pour ${email}. Mot de passe provisoire (à transmettre, il ne sera plus affiché) : ${temp}`);
   back("ok", "Compte créé.");
@@ -35,6 +37,7 @@ export async function createAdminAction(formData: FormData) {
 
 export async function updateAdminAction(id: string, formData: FormData) {
   const ctx = await requireAdmin("admins.manage");
+  await requireFresh(ctx);
   const target = await admins.get(id);
   if (!target) back("erreur", "Compte introuvable.");
   const role = s(formData, "role") as Role;
@@ -52,6 +55,7 @@ export async function updateAdminAction(id: string, formData: FormData) {
 
 export async function resetLinkAction(id: string) {
   const ctx = await requireAdmin("admins.manage");
+  await requireFresh(ctx);
   const target = await admins.get(id);
   if (!target) back("erreur", "Compte introuvable.");
   const token = await createResetToken(id);
@@ -63,6 +67,7 @@ export async function resetLinkAction(id: string) {
 
 export async function revokeSessionsAction(id: string) {
   const ctx = await requireAdmin("admins.manage");
+  await requireFresh(ctx);
   await logoutAllSessions(id);
   await audit(ctx, "sécurité", "administratrice", "Toutes les sessions ont été fermées", { entityId: id });
   back("ok", "Toutes les sessions de ce compte sont fermées.");
@@ -70,12 +75,13 @@ export async function revokeSessionsAction(id: string) {
 
 export async function saveSecurityAction(formData: FormData) {
   const ctx = await requireAdmin("admins.manage");
+  await requireFresh(ctx);
   const before = (await settings.get()).security;
   const security = {
     sessionTimeoutMin: Math.min(Math.max(Number(s(formData, "timeout")) || 30, 5), 480),
     maxAttempts: Math.min(Math.max(Number(s(formData, "attempts")) || 5, 3), 20),
     lockoutMin: Math.min(Math.max(Number(s(formData, "lockout")) || 15, 1), 240),
-    require2faForSuper: formData.get("require2fa") === "on",
+    require2fa: formData.get("require2fa") === "on",
   };
   await settings.set({ security });
   await audit(ctx, "modification", "sécurité", "Paramètres de sécurité modifiés", { before, after: security });
@@ -95,7 +101,7 @@ export async function saveSettingsAction(section: "adhesions" | "payments" | "em
   } else {
     const a = cur.association;
     const keys = ["name", "legalName", "form", "siret", "rna", "address", "postalCode", "city", "phone", "email", "website", "president", "presidentTitle", "instagram", "tiktok", "x", "facebook", "youtube"] as const;
-    await settings.set({ association: Object.fromEntries(keys.map((k) => [k, s(formData, k) || (k === "name" || k === "legalName" ? a[k] : "")])) as unknown as typeof a });
+    await settings.set({ association: Object.fromEntries(keys.map((k) => [k, (["website", "instagram", "tiktok", "x", "facebook", "youtube"].includes(k) ? safeUrl(s(formData, k)) : s(formData, k)) || (k === "name" || k === "legalName" ? a[k] : "")])) as unknown as typeof a });
   }
   await audit(ctx, "modification", "paramètres", `Paramètres « ${section} » modifiés`);
   revalidatePath("/", "layout");

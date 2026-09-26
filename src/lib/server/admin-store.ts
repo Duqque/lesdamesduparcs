@@ -14,6 +14,10 @@ export interface AdminUser extends Row {
   active: boolean;
   totpSecret?: string;
   totpEnabled: boolean;
+  /** Dernier pas TOTP accepté : un même code ne peut pas être rejoué. */
+  lastTotpStep?: number;
+  /** Codes de secours à usage unique (empreintes SHA-256). */
+  recoveryCodes?: string[];
   lastLoginAt?: string;
   lastLoginIp?: string;
   knownIps: string[];
@@ -29,6 +33,8 @@ export interface AdminSession extends Row {
   ua: string;
   /** « mfa » : mot de passe validé, code de double authentification attendu */
   stage: "ok" | "mfa";
+  /** Dernière confirmation d'identité (actions sensibles) */
+  reauthAt?: string;
 }
 
 export interface LoginEvent extends Row {
@@ -108,7 +114,7 @@ export const settings = singleton("settings", {
     eventReminderJ1: true,
     waitlistNotify: true,
   },
-  security: { sessionTimeoutMin: 30, maxAttempts: 5, lockoutMin: 15, require2faForSuper: false },
+  security: { sessionTimeoutMin: 30, maxAttempts: 5, lockoutMin: 15, require2fa: true },
   retention: { inactiveMonths: 36 },
 });
 

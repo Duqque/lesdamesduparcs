@@ -1,5 +1,6 @@
 "use server";
 
+import { safeUrl } from "@/lib/safe-url";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { audit, requireAdmin } from "@/lib/server/admin-auth";
@@ -20,7 +21,7 @@ export async function saveArticleAction(formData: FormData) {
   const fail = (m: string) => redirect(`${editing ? `/admin/contenu/${editing}` : "/admin/contenu/nouveau"}?erreur=${encodeURIComponent(m)}`);
   if (!title) fail("Le titre est requis.");
 
-  let image = s(formData, "image");
+  let image = safeUrl(s(formData, "image"));
   const file = formData.get("imageFile");
   if (file instanceof File && file.size > 0) {
     const up = await saveMedia(file);

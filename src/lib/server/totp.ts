@@ -32,17 +32,20 @@ function hotp(secret: string, counter: number) {
   return String(code % 1_000_000).padStart(6, "0");
 }
 
-/** Vérifie un code TOTP à 6 chiffres (fenêtre de ±30 s). */
-export function verifyTotp(secret: string, token: string) {
+/** Vérifie un code TOTP à 6 chiffres (fenêtre de ±30 s) et renvoie le pas de temps correspondant (null si invalide). */
+export function verifyTotpStep(secret: string, token: string): number | null {
   const clean = token.replace(/\s/g, "");
-  if (!/^\d{6}$/.test(clean)) return false;
+  if (!/^\d{6}$/.test(clean)) return null;
   const step = Math.floor(Date.now() / 30_000);
-  return [-1, 0, 1].some((d) => {
+  for (const d of [-1, 0, 1]) {
     const a = Buffer.from(hotp(secret, step + d));
     const b = Buffer.from(clean);
-    return a.length === b.length && timingSafeEqual(a, b);
-  });
+    if (a.length === b.length && timingSafeEqual(a, b)) return step + d;
+  }
+  return null;
 }
+
+export const verifyTotp = (secret: string, token: string) => verifyTotpStep(secret, token) !== null;
 
 export const otpauthUrl = (secret: string, account: string, issuer = "Les Dames du Parc") =>
   `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(account)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;

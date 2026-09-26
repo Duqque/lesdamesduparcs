@@ -313,7 +313,7 @@ export function RegistrationForm({ event, member }: Props) {
             </div>
             <p className="mt-4 flex items-start gap-2.5 text-mist t-caption">
               <Lock aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-              {mode === "online" && <span>Paiement sécurisé par Stripe (carte bancaire, Apple Pay, Google Pay) : vous serez redirigée vers la page de paiement, aucun numéro de carte n&rsquo;est saisi ni conservé sur ce site.{status && !status.paymentEnabled && " Le paiement en ligne n'est pas encore activé : votre inscription sera enregistrée en attente de règlement."}</span>}
+              {mode === "online" && <span>Paiement sécurisé par HelloAsso : vous serez redirigée vers la page de paiement, aucun numéro de carte n&rsquo;est saisi ni conservé sur ce site.{status && !status.paymentEnabled && " Le paiement en ligne n'est pas encore activé : votre inscription sera enregistrée en attente de règlement."}</span>}
               {mode === "optional" && <span>Le paiement en ligne est facultatif : votre inscription est confirmée tout de suite, vous pourrez régler maintenant ou plus tard.</span>}
               {mode === "onsite" && <span>Le règlement se fait sur place, le jour de l&rsquo;événement. Votre inscription est confirmée tout de suite.</span>}
               {mode === "manual" && <span>{status?.paymentInstructions || "Le règlement se fait par virement ou chèque : l'équipe vous indiquera comment procéder."}</span>}

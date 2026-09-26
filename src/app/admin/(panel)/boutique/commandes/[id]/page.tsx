@@ -72,12 +72,13 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
             )}
           </Panel>
           <Panel title="Paiement">
-            <p className="font-body text-[13px] text-mist">{o.stripeSessionId ? "Payé par carte via Stripe : un remboursement est effectué automatiquement chez Stripe." : "Paiement hors ligne : marquez-le payé à réception."}</p>
+            <p className="font-body text-[13px] text-mist">{o.checkoutId ? "Payé en ligne via HelloAsso : un remboursement est demandé automatiquement à HelloAsso." : "Paiement hors ligne : marquez-le payé à réception."}</p>
             {canPay ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 {o.status === "awaiting_payment" && <form action={txStatusAction.bind(null, `order:${id}`, "paid", here)}><SubmitButton>Marquer payée</SubmitButton></form>}
                 {o.status === "awaiting_payment" && <form action={txStatusAction.bind(null, `order:${id}`, "cancelled", here)}><SubmitButton variant="outline" confirm="Annuler la commande ? Le stock est remis en vente.">Annuler</SubmitButton></form>}
                 {o.status === "paid" && <form action={txStatusAction.bind(null, `order:${id}`, "refunded", here)}><SubmitButton variant="danger" confirm="Rembourser cette commande ? Le stock est remis en vente.">Rembourser</SubmitButton></form>}
+                {o.status === "paid" && <form action={txStatusAction.bind(null, `order:${id}`, "refunded", here)}><input type="hidden" name="manual" value="1" /><SubmitButton variant="outline" confirm="Marquer comme remboursée sans lancer de remboursement (déjà fait chez HelloAsso) ? Le stock est remis en vente.">Déjà remboursée</SubmitButton></form>}
               </div>
             ) : <p className="mt-3 font-body text-[12px] text-mist">Le suivi des paiements est réservé aux rôles financiers.</p>}
           </Panel>

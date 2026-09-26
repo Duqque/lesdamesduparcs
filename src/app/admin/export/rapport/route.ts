@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { audit, getAdmin } from "@/lib/server/admin-auth";
+import { audit, getAdmin, isFresh } from "@/lib/server/admin-auth";
 import { buildReport } from "@/lib/server/reports";
 
 const safe = (s: string) => s.replace(/[’‘]/g, "'").replace(/[‐-―]/g, "-").replace(/[  ]/g, " ").replace(/[^\x20-\x7e -ÿ]/g, "?");
@@ -9,6 +9,7 @@ const safe = (s: string) => s.replace(/[’‘]/g, "'").replace(/[‐-―]/g, "-
 export async function GET(req: Request) {
   const admin = await getAdmin();
   if (!admin) return NextResponse.redirect(new URL("/admin/connexion", req.url));
+  if (admin && !isFresh(admin)) return NextResponse.redirect(new URL(`/admin/verification-identite?next=${encodeURIComponent(new URL(req.url).pathname + new URL(req.url).search)}`, req.url));
   if (!admin.can("reports.generate")) return new Response("Accès refusé.", { status: 403 });
   const url = new URL(req.url);
   const month = /^\d{4}-\d{2}$/.test(url.searchParams.get("mois") ?? "") ? url.searchParams.get("mois")! : new Date().toISOString().slice(0, 7);

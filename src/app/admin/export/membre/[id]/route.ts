@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { audit, getAdmin } from "@/lib/server/admin-auth";
+import { audit, getAdmin, isFresh } from "@/lib/server/admin-auth";
 import { getTransactions, membershipsOf } from "@/lib/server/business";
 import { getMemberById, listAllRegistrations } from "@/lib/server/store";
 
@@ -7,6 +7,7 @@ import { getMemberById, listAllRegistrations } from "@/lib/server/store";
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const admin = await getAdmin();
   if (!admin) return NextResponse.redirect(new URL("/admin/connexion", req.url));
+  if (admin && !isFresh(admin)) return NextResponse.redirect(new URL(`/admin/verification-identite?next=${encodeURIComponent(new URL(req.url).pathname + new URL(req.url).search)}`, req.url));
   if (!admin.can("members.export") || !admin.can("members.pii")) return new Response("Accès refusé.", { status: 403 });
   const { id } = await ctx.params;
   const stored = await getMemberById(id);

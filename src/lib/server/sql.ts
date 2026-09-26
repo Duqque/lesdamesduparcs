@@ -29,7 +29,7 @@ export function getPool(): Pool {
   return pool;
 }
 
-/** Crée la table au premier usage. */
+/** Crée les tables au premier usage (documents, fichiers, compteurs de limitation). */
 export function ensureSchema(): Promise<void> {
   ready ??= getPool()
     .query(
@@ -41,6 +41,28 @@ export function ensureSchema(): Promise<void> {
         PRIMARY KEY (coll, id),
         UNIQUE KEY uq_seq (seq)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`,
+    )
+    .then(() =>
+      getPool().query(
+        `CREATE TABLE IF NOT EXISTS ddp_files (
+          id VARCHAR(191) NOT NULL,
+          mime VARCHAR(100) NOT NULL,
+          size INT NOT NULL,
+          data LONGBLOB NOT NULL,
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`,
+      ),
+    )
+    .then(() =>
+      getPool().query(
+        `CREATE TABLE IF NOT EXISTS ddp_rate (
+          k VARCHAR(191) NOT NULL,
+          reset_at BIGINT NOT NULL,
+          n INT NOT NULL,
+          PRIMARY KEY (k)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin`,
+      ),
     )
     .then(() => undefined);
   ready.catch(() => {
@@ -100,3 +122,76 @@ export async function sqlSeeded(coll: string): Promise<boolean> {
   return (await sqlGet("__seeded", coll)) !== null;
 }
 export const sqlMarkSeeded = (coll: string) => sqlUpsert("__seeded", coll, { id: coll });
+
+/* ---------- Fichiers (pièces déposées, médiathèque) ---------- */
+
+export async function sqlPutFile(id: string, mime: string, bytes: Buffer) {
+  await ensureSchema();
+  await getPool().query("INSERT INTO ddp_files (id, mime, size, data) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE mime = VALUES(mime), size = VALUES(size), data = VALUES(data)", [id, mime, bytes.length, bytes]);
+}
+
+export async function sqlGetFile(id: string): Promise<{ mime: string; bytes: Buffer } | null> {
+  await ensureSchema();
+  const [rows] = await getPool().query("SELECT mime, data FROM ddp_files WHERE id = ?", [id]);
+  const r = (rows as Array<{ mime: string; data: Buffer }>)[0];
+  return r ? { mime: r.mime, bytes: Buffer.from(r.data) } : null;
+}
+
+export async function sqlDeleteFile(id: string) {
+  await ensureSchema();
+  await getPool().query("DELETE FROM ddp_files WHERE id = ?", [id]);
+}
+
+/* ---------- Compteurs de limitation (partagés entre processus) ---------- */
+
+/** Incrémente atomiquement le compteur `key` (fenêtre glissante fixe) et renvoie sa valeur. */
+export async function sqlHit(key: string, windowMs: number): Promise<number> {
+  await ensureSchema();
+  const now = Date.now();
+  const conn = await getPool().getConnection();
+  try {
+    await conn.query(
+      "INSERT INTO ddp_rate (k, reset_at, n) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE n = IF(reset_at < ?, 1, n + 1), reset_at = IF(reset_at < ?, ?, reset_at)",
+      [key, now + windowMs, now, now, now + windowMs],
+    );
+    const [rows] = await conn.query("SELECT n FROM ddp_rate WHERE k = ?", [key]);
+    return Number((rows as Array<{ n: number }>)[0]?.n ?? 1);
+  } finally {
+    conn.release();
+  }
+}
+
+export async function sqlPurgeRate() {
+  await ensureSchema();
+  await getPool().query("DELETE FROM ddp_rate WHERE reset_at < ?", [Date.now()]);
+}
+
+/** Verrou d'écriture global (GET_LOCK) : sérialise les modifications même avec plusieurs processus Node. */
+export async function withSqlLock<T>(fn: () => Promise<T>): Promise<T> {
+  await ensureSchema();
+  const conn = await getPool().getConnection();
+  try {
+    const [rows] = await conn.query("SELECT GET_LOCK('ddp_write', 30) AS ok");
+    if (Number((rows as Array<{ ok: number | null }>)[0]?.ok) !== 1) throw new Error("Base de données occupée, réessayez.");
+    try {
+      return await fn();
+    } finally {
+      await conn.query("SELECT RELEASE_LOCK('ddp_write')").catch(() => undefined);
+    }
+  } finally {
+    conn.release();
+  }
+}
+
+/** État de la base pour l'écran de sécurité de l'administration. */
+export async function sqlStats() {
+  await ensureSchema();
+  const [rows] = await getPool().query("SELECT coll, COUNT(*) AS n FROM ddp_docs WHERE coll NOT LIKE '\\_\\_%' GROUP BY coll ORDER BY coll");
+  const [files] = await getPool().query("SELECT COUNT(*) AS n, COALESCE(SUM(size),0) AS bytes FROM ddp_files");
+  const [ver] = await getPool().query("SELECT VERSION() AS v");
+  return {
+    version: String((ver as Array<{ v: string }>)[0]?.v ?? ""),
+    collections: (rows as Array<{ coll: string; n: number }>).map((r) => ({ name: r.coll, count: Number(r.n) })),
+    files: { count: Number((files as Array<{ n: number }>)[0]?.n ?? 0), bytes: Number((files as Array<{ bytes: number }>)[0]?.bytes ?? 0) },
+  };
+}

@@ -42,7 +42,7 @@ export default async function NewMemberPage({ searchParams }: { searchParams: Pr
         <Panel title="Adhésion et paiement">
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Formule"><select name="planId" className={inp}>{list.map((p) => <option key={p.id} value={p.id}>{p.name} · {eur(p.promoPriceCents ?? p.priceCents)}</option>)}</select></Field>
-            <Field label="Mode de paiement"><select name="method" className={inp}><option value="manual">À définir</option><option value="virement">Virement</option><option value="cash">Espèces</option><option value="cheque">Chèque</option><option value="stripe">Carte</option><option value="autre">Autre</option></select></Field>
+            <Field label="Mode de paiement"><select name="method" className={inp}><option value="manual">À définir</option><option value="virement">Virement</option><option value="cash">Espèces</option><option value="cheque">Chèque</option><option value="online">Carte</option><option value="autre">Autre</option></select></Field>
             <label className="flex items-end gap-2 pb-2.5 font-body text-[13.5px] text-white/85"><input type="checkbox" name="paid" value="1" className="size-4 accent-[#d90f2c]" /> Adhésion déjà réglée</label>
           </div>
         </Panel>

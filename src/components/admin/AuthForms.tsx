@@ -52,8 +52,8 @@ export function MfaForm() {
   return (
     <form action={action} className="space-y-5">
       <div>
-        <label htmlFor="code" className={lbl}>Code à 6 chiffres</label>
-        <input id="code" name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]{6,7}" required autoFocus className={cn(inp, "mt-1.5 h-12 text-center text-[20px] tracking-[0.5em]")} />
+        <label htmlFor="code" className={lbl}>Code à 6 chiffres ou code de secours</label>
+        <input id="code" name="code" autoComplete="one-time-code" maxLength={16} required autoFocus className={cn(inp, "mt-1.5 h-12 text-center text-[20px] tracking-[0.3em]")} />
       </div>
       <Feedback state={state} />
       <button type="submit" disabled={pending} className={cn(btn.primary, "h-11 w-full")}>{pending ? "Vérification…" : "Valider"}</button>

@@ -76,7 +76,8 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                           {t.status !== "paid" && t.status !== "cancelled" && t.status !== "refunded" && <form action={txStatusAction.bind(null, t.id, "paid", here)}><SubmitButton variant="small">Marquer payé</SubmitButton></form>}
                           {(t.status === "pending" || t.status === "failed") && t.email && <form action={remindAction.bind(null, t.id, here)}><SubmitButton variant="small">Relancer</SubmitButton></form>}
                           {(t.status === "pending" || t.status === "failed") && <form action={txStatusAction.bind(null, t.id, "cancelled", here)}><SubmitButton variant="small" confirm="Annuler cette transaction ?">Annuler</SubmitButton></form>}
-                          {t.status === "paid" && <form action={txStatusAction.bind(null, t.id, "refunded", here)}><SubmitButton variant="small" confirm="Marquer comme remboursée ? Si le paiement a été fait par carte via Stripe, le remboursement est effectué automatiquement chez Stripe.">Rembourser</SubmitButton></form>}
+                          {t.status === "paid" && <form action={txStatusAction.bind(null, t.id, "refunded", here)}><SubmitButton variant="small" confirm="Marquer comme remboursée ? Si le paiement a été fait en ligne, le remboursement est demandé automatiquement à HelloAsso.">Rembourser</SubmitButton></form>}
+                          {t.status === "paid" && <form action={txStatusAction.bind(null, t.id, "refunded", here)}><input type="hidden" name="manual" value="1" /><SubmitButton variant="small" confirm="Marquer comme remboursée SANS lancer de remboursement (déjà effectué depuis votre espace HelloAsso ou hors ligne) ?">Déjà remboursé</SubmitButton></form>}
                         </div>
                       </Td>
                     )}

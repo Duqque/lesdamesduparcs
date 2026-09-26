@@ -13,7 +13,7 @@ export function ConfirmationClient() {
   const id = params.get("order") ?? "";
   const token = params.get("t") ?? "";
   const etat = params.get("etat") ?? "";
-  const [order, setOrder] = useState<Omit<Order, "token" | "stripeSessionId"> | null | undefined>(undefined);
+  const [order, setOrder] = useState<Omit<Order, "token" | "checkoutId"> | null | undefined>(undefined);
 
   useEffect(() => {
     if (etat === "paye") clearCart();

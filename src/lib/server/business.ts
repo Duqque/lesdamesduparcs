@@ -8,7 +8,7 @@ import type { Order } from "@/lib/orders";
 import { collection, type Row } from "./db";
 import { listAllRegistrations, listOrders, listStoredMembers, updateOrder, updateRegistration } from "./store";
 import { releaseStock } from "./shop";
-import { refundCheckoutSession, stripeConfigured } from "./stripe";
+import { paymentConfigured, refundCheckout } from "./helloasso";
 import { getAllEventsAdmin } from "./events";
 
 /* ---------- Formules d'adhésion ---------- */
@@ -71,7 +71,7 @@ export interface Membership extends Row {
 }
 
 export type TxStatus = "paid" | "pending" | "failed" | "refunded" | "cancelled";
-export type PayMethod = "stripe" | "cash" | "virement" | "cheque" | "manual" | "autre";
+export type PayMethod = "online" | "cash" | "virement" | "cheque" | "manual" | "autre";
 
 export interface Payment extends Row {
   memberNumber?: string;
@@ -183,31 +183,31 @@ export async function getTransactions(): Promise<Tx[]> {
     if (!st || r.amountCents <= 0) continue;
     out.push({
       id: `registration:${r.id}`, source: "registration", rowId: r.id, at: r.createdAt, name: `${r.firstName} ${r.lastName}`, email: r.email, memberNumber: r.memberNumber,
-      type: "Événement", label: title(r.eventId), eventId: r.eventId, amountCents: r.amountCents, method: r.stripeSessionId ? "Carte (Stripe)" : "À définir", status: st, reference: r.stripeSessionId?.slice(-10) ?? r.id.slice(0, 8).toUpperCase(),
+      type: "Événement", label: title(r.eventId), eventId: r.eventId, amountCents: r.amountCents, method: r.checkoutId ? "Carte (HelloAsso)" : "À définir", status: st, reference: r.checkoutId?.slice(-10) ?? r.id.slice(0, 8).toUpperCase(),
     });
   }
   for (const o of orders)
     out.push({
       id: `order:${o.id}`, source: "order", rowId: o.id, at: o.createdAt, name: `${o.contact.firstName} ${o.contact.lastName}`, email: o.contact.email, memberNumber: o.memberNumber,
-      type: "Boutique", label: o.lines.map((l) => `${l.qty} × ${l.name}`).join(", "), amountCents: o.totalCents, method: o.stripeSessionId ? "Carte (Stripe)" : "À définir", status: orderStatusToTx(o.status), reference: o.id.slice(0, 8).toUpperCase(),
+      type: "Boutique", label: o.lines.map((l) => `${l.qty} × ${l.name}`).join(", "), amountCents: o.totalCents, method: o.checkoutId ? "Carte (HelloAsso)" : "À définir", status: orderStatusToTx(o.status), reference: o.id.slice(0, 8).toUpperCase(),
     });
   return out.sort((a, b) => b.at.localeCompare(a.at));
 }
 
-export const methodLabel = (m: PayMethod) => ({ stripe: "Carte (Stripe)", cash: "Espèces", virement: "Virement", cheque: "Chèque", manual: "À définir", autre: "Autre" })[m];
+export const methodLabel = (m: PayMethod) => ({ online: "Carte (HelloAsso)", cash: "Espèces", virement: "Virement", cheque: "Chèque", manual: "À définir", autre: "Autre" })[m];
 
 export const TX_STATUS_LABEL: Record<TxStatus, string> = { paid: "Payé", pending: "En attente", failed: "Échoué", refunded: "Remboursé", cancelled: "Annulé" };
 
-/** Change le statut d'une transaction, quel que soit son système d'origine. Un remboursement passe par Stripe quand le paiement vient de Stripe. */
-export async function setTxStatus(txId: string, status: TxStatus, opts?: { method?: PayMethod; note?: string }): Promise<{ ok: true } | { ok: false; error: string }> {
+/** Change le statut d'une transaction, quel que soit son système d'origine. Un remboursement passe par HelloAsso quand le paiement a été fait en ligne. */
+export async function setTxStatus(txId: string, status: TxStatus, opts?: { method?: PayMethod; note?: string; skipRefund?: boolean }): Promise<{ ok: true } | { ok: false; error: string }> {
   const [source, rowId] = txId.split(":");
-  const refund = async (sessionId?: string) => {
-    if (status !== "refunded" || !sessionId || !stripeConfigured()) return null;
+  const refund = async (checkoutId?: string) => {
+    if (status !== "refunded" || !checkoutId || !paymentConfigured() || opts?.skipRefund) return null;
     try {
-      await refundCheckoutSession(sessionId);
+      await refundCheckout(checkoutId);
       return null;
     } catch (e) {
-      return e instanceof Error ? e.message : "Remboursement Stripe impossible.";
+      return e instanceof Error ? e.message : "Remboursement impossible.";
     }
   };
   if (source === "payment") {
@@ -216,16 +216,16 @@ export async function setTxStatus(txId: string, status: TxStatus, opts?: { metho
   }
   if (source === "registration") {
     const reg = (await listAllRegistrations()).find((r) => r.id === rowId);
-    const err = reg?.status === "paid" ? await refund(reg.stripeSessionId) : null;
-    if (err) return { ok: false, error: `Remboursement refusé par Stripe : ${err}` };
+    const err = reg?.status === "paid" ? await refund(reg.checkoutId) : null;
+    if (err) return { ok: false, error: `Remboursement HelloAsso impossible : ${err}. Effectuez-le depuis votre espace HelloAsso, puis marquez la transaction comme remboursée.` };
     const map: Record<TxStatus, RegistrationStatus> = { paid: "paid", pending: "awaiting_payment", failed: "awaiting_payment", refunded: "refunded", cancelled: "cancelled" };
     await updateRegistration(rowId, { status: map[status] });
     return { ok: true };
   }
   if (source === "order") {
     const order = (await listOrders()).find((o) => o.id === rowId);
-    const err = order?.status === "paid" ? await refund(order.stripeSessionId) : null;
-    if (err) return { ok: false, error: `Remboursement refusé par Stripe : ${err}` };
+    const err = order?.status === "paid" ? await refund(order.checkoutId) : null;
+    if (err) return { ok: false, error: `Remboursement HelloAsso impossible : ${err}. Effectuez-le depuis votre espace HelloAsso, puis marquez la transaction comme remboursée.` };
     const map: Record<TxStatus, Order["status"]> = { paid: "paid", pending: "awaiting_payment", failed: "awaiting_payment", refunded: "refunded", cancelled: "cancelled" };
     const next = map[status];
     const wasOut = order?.status === "cancelled" || order?.status === "refunded";

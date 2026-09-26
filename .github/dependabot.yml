@@ -1,0 +1,11 @@
+# Mises à jour de sécurité automatiques des dépendances (npm) : une demande de fusion par semaine.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { CheckCircle2, Download, FileText, LogOut, QrCode as QrIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberCard } from "@/components/member/MemberCard";
@@ -137,7 +137,48 @@ function MemberSpace({ welcome }: { welcome: boolean }) {
           ))}
         </dl>
       </Section>
+
+      <Section id="securite" title="Sécurité du compte">
+        <PasswordForm />
+        <button
+          type="button"
+          onClick={async () => {
+            await fetch("/api/auth/logout-all", { method: "POST" });
+            window.location.href = "/connexion";
+          }}
+          className="mt-8 font-body text-[14px] text-mist underline underline-offset-4 hover:text-white"
+        >
+          Me déconnecter de tous mes appareils
+        </button>
+      </Section>
     </div>
+  );
+}
+
+function PasswordForm() {
+  const [state, setState] = useState<{ ok?: boolean; msg?: string; busy?: boolean }>({});
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const f = new FormData(form);
+    if (f.get("next") !== f.get("confirm")) return setState({ msg: "Les mots de passe ne correspondent pas." });
+    setState({ busy: true });
+    const res = await fetch("/api/members/password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ current: f.get("current"), next: f.get("next") }) });
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
+    if (res.ok) {
+      form.reset();
+      setState({ ok: true, msg: "Mot de passe modifié. Vos autres appareils ont été déconnectés." });
+    } else setState({ msg: data.error ?? "Modification impossible." });
+  }
+  const field = "mt-1.5 h-12 w-full rounded-[10px] border border-white/[0.14] bg-white/[0.04] px-4 font-body text-[15px] text-white outline-none focus:border-white/40";
+  return (
+    <form onSubmit={submit} className="mt-6 grid max-w-md gap-4 font-body">
+      <label className="text-[13px] text-mist">Mot de passe actuel<input name="current" type="password" required autoComplete="current-password" className={field} /></label>
+      <label className="text-[13px] text-mist">Nouveau mot de passe (10 caractères minimum, lettres et chiffres)<input name="next" type="password" required minLength={10} autoComplete="new-password" className={field} /></label>
+      <label className="text-[13px] text-mist">Confirmer<input name="confirm" type="password" required autoComplete="new-password" className={field} /></label>
+      {state.msg && <p role="status" className={state.ok ? "text-[14px] text-emerald-300" : "text-[14px] text-psg-red-bright"}>{state.msg}</p>}
+      <div><button type="submit" disabled={state.busy} className="inline-flex h-12 items-center rounded-[10px] border border-white/[0.14] px-6 text-[14.5px] font-medium text-white hover:border-white/35 disabled:opacity-60">Changer le mot de passe</button></div>
+    </form>
   );
 }
 

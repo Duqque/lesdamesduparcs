@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import { cookies } from "next/headers";
 import { SubmitButton } from "@/components/admin/SubmitButton";
 import { Badge, Field, Flash, PageHeader, Panel, TableWrap, Td, Th, inp } from "@/components/admin/ui";
 import { fmtDateTime } from "@/lib/admin/format";
@@ -7,22 +8,29 @@ import { ROLE_LABELS } from "@/lib/admin/permissions";
 import { requireAdmin } from "@/lib/server/admin-auth";
 import { adminSessions, settings } from "@/lib/server/admin-store";
 import { otpauthUrl } from "@/lib/server/totp";
-import { changePasswordAction, disableTotpAction, enableTotpAction, logoutAllAction, startTotpAction } from "./actions";
+import { changePasswordAction, disableTotpAction, enableTotpAction, logoutAllAction, regenerateCodesAction, startTotpAction } from "./actions";
 
 export const metadata = { title: "Mon compte et sécurité" };
 
 export default async function AccountPage({ searchParams }: { searchParams: Promise<SP> }) {
-  const ctx = await requireAdmin();
+  const ctx = await requireAdmin(undefined, { allowLimited: true });
   const sp = await searchParams;
   const a = ctx.admin;
   const [sessions, { security }] = await Promise.all([adminSessions.find((x) => x.adminId === a.id), settings.get()]);
+  const codes = ((await cookies()).get("ddp_admin_codes")?.value ?? "").split(" ").filter((c) => /^[a-f0-9]{5}-[a-f0-9]{5}$/.test(c));
   const pending = a.totpSecret && !a.totpEnabled;
   const svg = pending ? await QRCode.toString(otpauthUrl(a.totpSecret!, a.email), { type: "svg", margin: 1, color: { dark: "#050b18", light: "#ffffff" } }) : "";
   return (
     <>
       <PageHeader title="Mon compte et sécurité" subtitle={`${a.firstName} ${a.lastName} · ${ROLE_LABELS[a.role]} · ${a.email}`} />
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
-      {security.require2faForSuper && a.role === "super" && !a.totpEnabled && <p className="mb-6 rounded-[10px] border border-amber-400/40 bg-amber-400/10 px-4 py-3 font-body text-[13.5px] text-amber-100">La double authentification est obligatoire pour la super administratrice : activez-la ci-dessous.</p>}
+      {ctx.limited && <p className="mb-6 rounded-[10px] border border-amber-400/40 bg-amber-400/10 px-4 py-3 font-body text-[13.5px] text-amber-100">La double authentification est obligatoire : configurez-la ci-dessous pour accéder à l&rsquo;administration.</p>}
+      {codes.length > 0 && (
+        <Panel className="mb-6" title="Codes de secours : notez-les maintenant">
+          <p className="mb-3 font-body text-[13.5px] text-mist">Ils ne seront plus affichés après une minute. Conservez-les dans un endroit sûr (gestionnaire de mots de passe). Chaque code ne fonctionne qu&rsquo;une fois et remplace le code de l&rsquo;application si vous perdez votre téléphone.</p>
+          <ul className="grid gap-2 font-mono text-[14px] text-white sm:grid-cols-2">{codes.map((c) => <li key={c} className="rounded-[8px] border border-line bg-white/[0.03] px-3 py-2 tabular-nums">{c}</li>)}</ul>
+        </Panel>
+      )}
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Mot de passe">
           <form action={changePasswordAction} className="grid gap-4">
@@ -35,9 +43,19 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <Panel title="Double authentification (2FA)" action={a.totpEnabled ? <Badge tone="green">Activée</Badge> : <Badge>Désactivée</Badge>}>
           {a.totpEnabled ? (
             <form action={disableTotpAction} className="grid gap-4">
-              <p className="font-body text-[13.5px] text-mist">Un code à 6 chiffres est demandé à chaque connexion.</p>
-              <Field label="Mot de passe (pour désactiver)"><input type="password" name="password" required className={inp} /></Field>
-              <div><SubmitButton variant="danger" confirm="Désactiver la double authentification ?">Désactiver</SubmitButton></div>
+              <p className="font-body text-[13.5px] text-mist">Un code à 6 chiffres est demandé à chaque connexion. Codes de secours restants : {a.recoveryCodes?.length ?? 0}.</p>
+              {!security.require2fa && (
+                <>
+                  <Field label="Mot de passe (pour désactiver)"><input type="password" name="password" required className={inp} /></Field>
+                  <div><SubmitButton variant="danger" confirm="Désactiver la double authentification ?">Désactiver</SubmitButton></div>
+                </>
+              )}
+            </form>
+          ) : null}
+          {a.totpEnabled ? (
+            <form action={regenerateCodesAction} className="mt-5 grid gap-3 border-t border-line pt-5">
+              <Field label="Mot de passe (pour régénérer les codes de secours)"><input type="password" name="password" required autoComplete="current-password" className={inp} /></Field>
+              <div><SubmitButton variant="outline" confirm="Les anciens codes de secours ne fonctionneront plus. Continuer ?">Régénérer les codes de secours</SubmitButton></div>
             </form>
           ) : pending ? (
             <div className="grid gap-4">

@@ -8,9 +8,6 @@ import { Tone } from "@/components/news/NewsCard";
 
 const monthName = (iso: string) => new Intl.DateTimeFormat("fr-FR", { month: "long", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
 
-/** Découpe décorative du mois sur trois lignes : « octobre » devient Oct / ob / re. */
-const chunk = (m: string) => [m.slice(0, 3), m.slice(3, 5), m.slice(5)].filter(Boolean);
-
 /** Carte d'événement : titre, date en grand, visuel et barre d'actions (S'inscrire | Plus d'infos). */
 export function EventGridCard({ event, className }: { event: ClubEvent; className?: string }) {
   const past = isPast(event);
@@ -23,11 +20,7 @@ export function EventGridCard({ event, className }: { event: ClubEvent; classNam
         <h3 className="min-h-[3.9em] font-body text-[13.5px] font-medium leading-[1.45] text-[#0b1a3f]/85">{event.title}</h3>
         <p className="mt-4 flex items-end gap-2.5">
           <span aria-hidden className="font-display text-[clamp(56px,5.6vw,80px)] font-medium leading-[0.85] tracking-[0.01em] tabular-nums">{formatDay(event.date).replace(/^0/, "")}</span>
-          <span aria-hidden className="flex flex-col font-body text-[12px] font-medium leading-[1.15] text-[#0b1a3f]/85">
-            {chunk(month).map((c, i) => (
-              <span key={i} className="capitalize">{c}</span>
-            ))}
-          </span>
+          <span aria-hidden className="whitespace-nowrap pb-1 font-body text-[clamp(15px,1.3vw,18px)] font-medium capitalize leading-none text-[#0b1a3f]/85">{month}</span>
           <time className="sr-only" dateTime={event.date}>{formatDay(event.date)} {month}</time>
         </p>
       </div>

@@ -1,3 +1,5 @@
+import { housekeeping } from "./maintenance";
+import { reconcilePending } from "./payments";
 import "server-only";
 import { formatLongDate } from "@/lib/format";
 import { eur } from "@/lib/admin/format";
@@ -91,10 +93,12 @@ const once = async (key: string) => {
 /** Traite ce qui est dû : campagnes programmées, rappels de renouvellement (J-30, J-7), rappels d'événements (J-7, J-1). */
 export async function runScheduled() {
   const now = new Date();
+  await housekeeping().catch(() => undefined);
+  await reconcilePending().catch(() => undefined);
   const result = { campaigns: 0, renewals: 0, reminders: 0, releasedOrders: 0 };
   // Commandes jamais réglées : au bout de 72 h, le stock réservé est remis en vente.
   for (const o of await listOrders()) {
-    if (o.status === "awaiting_payment" && o.stripeSessionId && now.getTime() - new Date(o.createdAt).getTime() > 72 * 3600_000) {
+    if (o.status === "awaiting_payment" && o.checkoutId && now.getTime() - new Date(o.createdAt).getTime() > 72 * 3600_000) {
       await setTxStatus(`order:${o.id}`, "cancelled");
       result.releasedOrders++;
     }

@@ -37,7 +37,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <main className="mx-auto max-w-[1300px] px-[var(--gutter)] pb-40 pt-[170px] md:pt-[220px]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <Link href="/boutique" className="group inline-flex min-h-11 items-center gap-2 font-body text-[13px] font-medium text-white/75 hover:text-white">
         <ArrowLeft aria-hidden className="size-4 transition-transform duration-300 group-hover:-translate-x-1" /> La boutique
       </Link>

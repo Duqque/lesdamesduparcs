@@ -29,7 +29,8 @@ export interface Order {
   contact: { email: string; firstName: string; lastName: string; phone?: string };
   delivery: { mode: "home" | "event"; address?: Address };
   memberNumber?: string;
-  stripeSessionId?: string;
+  /** Identifiant du paiement en ligne (HelloAsso) */
+  checkoutId?: string;
   /** Suivi de préparation et d'expédition (back-office) */
   fulfilment?: Fulfilment;
   tracking?: string;

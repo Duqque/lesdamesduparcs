@@ -1,17 +1,18 @@
 import { validateCheckout, type CheckoutInput, type OrderLine } from "@/lib/orders";
-import { json, siteUrl, throttled } from "@/lib/server/http";
+import { json, siteUrl, throttled, readJson } from "@/lib/server/http";
 import { getSession } from "@/lib/server/session";
 import { checkPromo, consumePromo, productsDb, reserveStock, shopConfig } from "@/lib/server/shop";
 import { addOrder, updateOrder } from "@/lib/server/store";
-import { createShopCheckoutSession, stripeConfigured } from "@/lib/server/stripe";
+import { paymentConfigured } from "@/lib/server/helloasso";
+import { startShopPayment } from "@/lib/server/checkout";
 
 /**
  * Création de commande : accessible aux invités comme aux membres connectées (achat rapide).
  * Prix, stocks, livraison et réductions sont TOUJOURS recalculés ici à partir de la base, jamais depuis le navigateur.
  */
 export async function POST(req: Request) {
-  if (throttled(req, "checkout", 20)) return json({ error: "Trop de tentatives. Réessayez dans quelques minutes." }, 429);
-  const input = (await req.json().catch(() => null)) as Partial<CheckoutInput> | null;
+  if (await throttled(req, "checkout", 20)) return json({ error: "Trop de tentatives. Réessayez dans quelques minutes." }, 429);
+  const input = await readJson<Partial<CheckoutInput>>(req);
   if (!input || !Array.isArray(input.items) || input.items.length === 0 || input.items.length > 30) return json({ error: "Panier vide ou invalide." }, 400);
 
   const errors = validateCheckout(input);
@@ -57,15 +58,13 @@ export async function POST(req: Request) {
   });
   if (promo?.ok) await consumePromo(promo.promo);
 
-  if (!stripeConfigured()) {
+  if (!paymentConfigured()) {
     return json({ orderId: order.id, token: order.token, paymentEnabled: false, message: "Commande enregistrée. Le paiement en ligne n'est pas encore activé : elle reste en attente de règlement." }, 201);
   }
 
   try {
-    const stripeLines = lines.map((l) => ({ name: l.size ? `${l.name} (${l.size})` : l.name, unitAmountCents: l.unitCents, quantity: l.qty }));
-    if (shippingCents > 0) stripeLines.push({ name: "Livraison standard", unitAmountCents: shippingCents, quantity: 1 });
-    const checkout = await createShopCheckoutSession({ orderId: order.id, token: order.token, lines: stripeLines, discountCents, discountLabel: promo?.ok ? promo.promo.code : undefined, customerEmail: order.contact.email, siteUrl: siteUrl(req) });
-    await updateOrder(order.id, { stripeSessionId: checkout.id });
+    const checkout = await startShopPayment(req, order);
+    await updateOrder(order.id, { checkoutId: checkout.id });
     return json({ orderId: order.id, token: order.token, paymentEnabled: true, checkoutUrl: checkout.url }, 201);
   } catch {
     // Le paiement n'a pas pu démarrer : la commande reste en attente, le stock reste réservé jusqu'à son annulation ou son expiration.

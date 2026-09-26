@@ -109,6 +109,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { label: "Paiements", href: "/admin/configuration/paiements", perm: "settings.edit" },
       { label: "E-mails", href: "/admin/configuration/emails", perm: "settings.edit" },
       { label: "Données de l'association", href: "/admin/configuration/association", perm: "settings.edit" },
+      { label: "Sécurité et base de données", href: "/admin/configuration/securite", perm: "admins.manage" },
       { label: "Journal d'activité", href: "/admin/configuration/journal", perm: "audit.view" },
       { label: "Mon compte et sécurité", href: "/admin/compte" },
     ],

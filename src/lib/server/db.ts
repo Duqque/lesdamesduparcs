@@ -2,19 +2,20 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { sqlAll, sqlDelete, sqlEnabled, sqlGet, sqlMarkSeeded, sqlReplaceAll, sqlSeeded, sqlUpsert } from "./sql";
+import { sqlAll, sqlDelete, sqlEnabled, sqlGet, sqlMarkSeeded, sqlReplaceAll, sqlSeeded, sqlUpsert, withSqlLock } from "./sql";
 
 /**
  * Données du site. Deux stockages avec la même interface :
  *  - MySQL / MariaDB quand DATABASE_URL est défini (production) ;
  *  - fichiers JSON dans .data/ sinon (développement local).
- * Les écritures sont sérialisées dans le processus (un seul serveur Node).
+ * Les écritures sont sérialisées : file d'attente dans le processus + verrou MySQL (GET_LOCK) entre processus.
  */
 export const DATA_DIR = path.join(process.cwd(), ".data");
 
 let queue: Promise<unknown> = Promise.resolve();
+const guarded = <T>(fn: () => Promise<T>) => (sqlEnabled() ? withSqlLock(fn) : fn());
 export const locked = <T>(fn: () => Promise<T>): Promise<T> => {
-  const run = queue.then(fn, fn);
+  const run = queue.then(() => guarded(fn), () => guarded(fn));
   queue = run.catch(() => undefined);
   return run;
 };

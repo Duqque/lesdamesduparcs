@@ -1,0 +1,4 @@
+Contact: mailto:contact@quentinduquenne.fr
+Expires: 2027-09-01T00:00:00.000Z
+Preferred-Languages: fr, en
+Policy: Merci de signaler toute vulnérabilité de façon confidentielle avant toute divulgation publique. Ne pas accéder aux données d'autrui, ne pas perturber le service.

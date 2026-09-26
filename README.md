@@ -141,12 +141,11 @@ pointent vers le domaine public. Le paiement de la cotisation n'est pas encore b
 - **Inscription** (`RegistrationForm.tsx`) : réservée aux membres connectées ; contrôlée côté serveur (`/api/events/[slug]/register`,
   validation partagée dans `src/lib/registration.ts`, âge et responsable légal pour les mineures, capacité, doublons).
 - **Administrateur** (`AdminRegistrations.tsx`) : inscriptions, places prises, encaissé, export CSV.
-- **Stockage** : fichier local `.data/registrations.json` (ignoré par Git), à remplacer par une base de données en production.
-- **Paiement** : Stripe Checkout (page hébergée par Stripe, aucun numéro de carte n'est saisi sur le site). Renseigner
-  `STRIPE_SECRET_KEY` et `NEXT_PUBLIC_SITE_URL`. Le retour est vérifié auprès de Stripe avant de marquer l'inscription « payée ».
-  Sans clé, l'inscription est enregistrée « en attente de paiement ».
-- À prévoir avant la mise en production : HTTPS, limitation de débit partagée (celle fournie est en mémoire), e-mails de
-  confirmation, webhooks Stripe, mentions RGPD.
+- **Stockage** : base de données MySQL / MariaDB (`DATABASE_URL`) ; en local seulement, fichiers dans `.data/`.
+- **Paiement** : HelloAsso (page de paiement hébergée par HelloAsso, aucun numéro de carte n'est saisi sur le site). Renseigner
+  `HELLOASSO_CLIENT_ID`, `HELLOASSO_CLIENT_SECRET`, `HELLOASSO_ORG_SLUG` et `NEXT_PUBLIC_SITE_URL`. Le paiement est **toujours relu chez
+  HelloAsso** (retour du visiteur, notification, contrôle planifié) avant de marquer l'inscription « payée » : montant, référence et état sont revérifiés.
+  Sans identifiants, l'inscription est enregistrée « en attente de paiement ».
 
 ## Back-office (`/admin`)
 
@@ -165,10 +164,10 @@ de l'espace membre : `/admin/connexion`.
 - **Événements** : création en sept étapes (avec répétition), publication planifiée, inscriptions, liste d'attente automatique (une place
   libérée est proposée à la première personne), présences avec pointage par numéro ou QR code (caméra), calendrier global.
 - **Finances** : transactions unifiées (adhésions, événements, boutique), recettes, paiements en attente ou échoués, marquage payé,
-  annulation, remboursement (suivi comptable : le remboursement effectif se fait chez le prestataire), relances.
+  annulation, remboursement (demandé à HelloAsso ; « Déjà remboursé » si vous l'avez fait dans votre espace HelloAsso), relances.
 - **Événements payants** : tarif de base, tarifs selon la formule d'adhésion (reconnue automatiquement), codes promotionnels, quatre modes de
-  paiement (en ligne obligatoire, en ligne facultatif, sur place, manuel avec consignes), liste d'attente, paiement Stripe, remboursement réel chez
-  Stripe depuis le back-office. Les tarifs ne sont modifiables qu'avec la permission `events.pricing` (super, administratrice, trésorière).
+  paiement (en ligne obligatoire, en ligne facultatif, sur place, manuel avec consignes), liste d'attente, paiement HelloAsso, remboursement demandé à
+  HelloAsso depuis le back-office. Les tarifs ne sont modifiables qu'avec la permission `events.pricing` (super, administratrice, trésorière).
 - **Boutique** : produits, photos, tailles, prix, stocks (réservés à la commande, remis en vente en cas d'annulation ou d'expiration), commandes avec
   suivi de préparation et d'expédition (numéro de suivi, e-mail à la cliente), livraison et seuil de gratuité, codes promotionnels appliqués au paiement.
   Permissions séparées : `shop.edit` (fiches, photos), `shop.pricing` (prix, livraison), `shop.stock`, `shop.orders`.
@@ -181,10 +180,32 @@ de l'espace membre : `/admin/connexion`.
 - **Exports** CSV (« Excel » : CSV avec point-virgule qui s'ouvre dans Excel) et PDF, qui respectent les filtres. Journal d'activité avec ancien et nouveau contenu.
 - **Recherche globale** (⌘ K / Ctrl+K) et notifications, limitées aux données que le rôle peut voir.
 
-Stockage : MySQL / MariaDB quand `DATABASE_URL` est défini (table `ddp_docs` créée automatiquement, `src/lib/server/sql.ts`), sinon fichiers JSON dans `.data/`
-(développement). Les pièces déposées (autorisations parentales, médiathèque) restent sur le disque, dans `.data/uploads` et `.data/media`.
-À faire avant l'ouverture au public : sauvegardes de la base et de `.data/`, service d'e-mail, webhook Stripe (le paiement est aujourd'hui
-confirmé au retour sur le site), édition complète du contenu des pages du site.
+Stockage : MySQL / MariaDB quand `DATABASE_URL` est défini (tables `ddp_docs`, `ddp_files`, `ddp_rate` créées automatiquement, `src/lib/server/sql.ts`), sinon
+fichiers JSON dans `.data/` (développement local uniquement). Tout est en base : inscriptions, commandes, articles, boutique, comptes, sessions, journal
+d'audit, et les fichiers (autorisations parentales, médiathèque) dans `ddp_files`. Les écritures sont sérialisées par un verrou MySQL (`GET_LOCK`).
+À faire avant l'ouverture au public : sauvegardes de la base (à activer chez l'hébergeur), service d'e-mail, notification HelloAsso, édition complète du contenu des pages du site.
+
+## Sécurité (résumé)
+
+- **En-têtes** (`src/proxy.ts`) : Content-Security-Policy stricte avec nonce par requête (`strict-dynamic`, pas de script en ligne), HSTS, anti-framing,
+  nosniff, Referrer-Policy, Permissions-Policy, COOP/CORP ; aucune mise en cache des pages d'administration, du profil et des API.
+- **CSRF** : cookies `SameSite` + contrôle d'origine de toute requête `POST/PUT/DELETE` vers `/api` ; les server actions sont contrôlées par Next.
+- **Sessions** : adhérentes et administratrices ont des sessions **côté serveur** (base de données, empreinte SHA-256 de l'identifiant), cookies
+  `HttpOnly`, `Secure`, préfixe `__Host-` en production, expiration par inactivité et absolue, nouvelle session à chaque connexion, fermeture de toutes
+  les sessions au changement de mot de passe.
+- **Mots de passe** : scrypt (N=2¹⁵, r=8, p=3), sel unique, paramètres stockés, calcul asynchrone, ré-hachage automatique des anciens hachages.
+- **Administration** : double authentification obligatoire (TOTP, rejeu refusé, 8 codes de secours), confirmation d'identité (mot de passe + code, valable
+  10 min) pour les exports, comptes administrateurs, remboursements, anonymisations et réglages de sécurité, verrouillage progressif, journal d'audit non modifiable.
+- **Limitation de débit** : compteurs partagés en base (`ddp_rate`), par adresse ET par compte ; l'adresse IP est lue depuis la droite de
+  `X-Forwarded-For` (`TRUSTED_PROXY_HOPS`).
+- **Paiement** : le serveur recalcule TOUS les montants ; le paiement est toujours relu chez HelloAsso (identifiant enregistré côté serveur, montant,
+  référence, état) avant de marquer « payé » ; notification protégée par jeton secret + signature HMAC facultative ; traitement idempotent.
+- **Fichiers** : contrôle du contenu réel (pas de l'extension), taille limitée, stockage en base (`ddp_files`), aucun accès public aux pièces personnelles,
+  SVG servis avec une CSP « sandbox ».
+- **Données** : requêtes toujours paramétrées ; liens saisis en administration filtrés (`src/lib/safe-url.ts`) ; JSON-LD échappé.
+- **Écran de contrôle** : `/admin/configuration/securite` (état de la base, HTTPS, 2FA, HelloAsso, e-mails…). Supervision : `/api/health`.
+- **Hors code (à faire chez l'hébergeur)** : sauvegardes chiffrées et testées de la base, CDN/WAF/anti-DDoS, DNS (SPF, DKIM, DMARC), MFA sur GitHub et
+  l'hébergeur, tests d'intrusion externes. `security.txt` : `/.well-known/security.txt`.
 
 ## Accueil
 
@@ -198,8 +219,8 @@ plus affiché sur la page : il s'ouvre uniquement depuis l'icône de profil du h
 **achat rapide** sans compte), panier persistant (`src/lib/cart.ts`, localStorage) avec tiroir latéral, `/panier`, `/commande`
 (invité ou membre connectée, préremplie) et `/commande/confirmation`. Le catalogue est dans `src/data/shop.ts` (fictif, photos
 provisoires). Le serveur (`/api/shop/checkout`) **recalcule toujours les prix** depuis le catalogue, enregistre la commande
-(`.data/orders.json`, ignoré par Git) et crée une session Stripe Checkout ; le retour est vérifié auprès de Stripe avant de marquer
-« payée ». Sans `STRIPE_SECRET_KEY`, la commande reste « en attente de paiement ».
+(base de données) et crée un paiement HelloAsso ; le paiement est relu chez HelloAsso avant de marquer
+« payée ». Sans identifiants HelloAsso, la commande reste « en attente de paiement ».
 
 ## Musique de fond
 

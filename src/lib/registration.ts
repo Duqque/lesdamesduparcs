@@ -22,7 +22,8 @@ export interface Registration extends RegistrationInput {
   memberNumber: string;
   amountCents: number;
   status: RegistrationStatus;
-  stripeSessionId?: string;
+  /** Identifiant du paiement en ligne (HelloAsso) */
+  checkoutId?: string;
   /** Présence relevée après l'événement (null : non renseignée) */
   unitCents?: number;
   promoCode?: string;

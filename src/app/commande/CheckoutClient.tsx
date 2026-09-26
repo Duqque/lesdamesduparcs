@@ -203,7 +203,7 @@ export function CheckoutClient() {
           <Section n={3} title="Paiement">
             <p className="flex items-start gap-3 text-mist t-small">
               <Lock aria-hidden className="mt-1 size-4 shrink-0" />
-              Paiement sécurisé par Stripe (carte bancaire, Apple Pay, Google Pay) sur une page hébergée par Stripe. Aucun numéro de carte n&rsquo;est saisi ni conservé sur ce site.
+              Paiement sécurisé par HelloAsso sur une page hébergée par HelloAsso. Aucun numéro de carte n&rsquo;est saisi ni conservé sur ce site.
             </p>
             <div className="mt-6">
               <Check id="c-terms" checked={terms} onChange={setTerms} error={errors.acceptTerms}>

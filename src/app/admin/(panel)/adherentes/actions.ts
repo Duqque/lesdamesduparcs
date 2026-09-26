@@ -1,11 +1,12 @@
 "use server";
 
+import { safeUrl } from "@/lib/safe-url";
 import { randomBytes, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { generateMemberNumber, validateMember, type MemberInput } from "@/lib/members";
 import { seasonOf } from "@/lib/season";
-import { audit, requireAdmin } from "@/lib/server/admin-auth";
+import { audit, requireAdmin, requireFresh } from "@/lib/server/admin-auth";
 import { addMemberRaw, anonymizeMember, getMemberById, takenMemberNumbers, toPublic, updateMember, type StoredMember } from "@/lib/server/store";
 import { createMembership, currentMembership, memberships, plans, setTxStatus, addManualPayment, type PayMethod, type TxStatus } from "@/lib/server/business";
 import { hashPassword } from "@/lib/server/password";
@@ -46,7 +47,7 @@ export async function createMemberAction(formData: FormData) {
     authorizations: [],
     joinedAt: new Date().toISOString(),
     validUntil: season.validUntil,
-    passwordHash: hashPassword(password),
+    passwordHash: await hashPassword(password),
   };
   const res = await addMemberRaw(member);
   if (!res.ok) redirect("/admin/adherentes/nouvelle?erreur=Cette+adresse+e-mail+est+d%C3%A9j%C3%A0+utilis%C3%A9e.");
@@ -107,6 +108,7 @@ export async function renewMemberAction(id: string, formData: FormData) {
 
 export async function anonymizeMemberAction(id: string) {
   const ctx = await requireAdmin("members.delete");
+  await requireFresh(ctx);
   const m = await getMemberById(id);
   if (!m) redirect("/admin/adherentes");
   await anonymizeMember(id);
@@ -131,7 +133,8 @@ export async function sendMemberEmailAction(id: string, formData: FormData) {
 
 export async function memberPaymentAction(id: string, txId: string, status: TxStatus, formData: FormData) {
   const ctx = await requireAdmin("finance.edit");
-  const res = await setTxStatus(txId, status, { method: (String(formData.get("method") ?? "") || undefined) as PayMethod | undefined });
+  if (status === "refunded") await requireFresh(ctx);
+  const res = await setTxStatus(txId, status, { method: (String(formData.get("method") ?? "") || undefined) as PayMethod | undefined, skipRefund: formData.get("manual") === "1" });
   if (!res.ok) back(id, { erreur: res.error });
   await audit(ctx, "paiement", "transaction", `Paiement ${txId} passé à « ${status} »`, { entityId: txId });
   revalidatePath("/admin/finances");
@@ -162,7 +165,7 @@ export async function savePlanAction(formData: FormData) {
     priceCents: Number.isFinite(price) ? price : 0,
     promoPriceCents: promo ? Math.round(parseFloat(promo.replace(",", ".")) * 100) : undefined,
     durationMonths: Number(s(formData, "duration")) || 0,
-    image: s(formData, "image") || undefined,
+    image: safeUrl(s(formData, "image")) || undefined,
     benefits: s(formData, "benefits").split("\n").map((x) => x.trim()).filter(Boolean),
     conditions: s(formData, "conditions"),
     visible: formData.get("visible") === "on",
@@ -220,6 +223,7 @@ const norm = (h: string) => h.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCa
 /** Colonnes attendues : prenom, nom, email, telephone, naissance (AAAA-MM-JJ ou JJ/MM/AAAA), adresse, codepostal, ville, pays, formule. */
 export async function importMembersAction(formData: FormData) {
   const ctx = await requireAdmin("members.edit");
+  await requireFresh(ctx);
   await requireAdmin("members.export");
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) redirect("/admin/adherentes/import-export?erreur=" + encodeURIComponent("Choisissez un fichier CSV."));
@@ -250,7 +254,7 @@ export async function importMembersAction(formData: FormData) {
     taken.add(number);
     const { password: _pw, ...profile } = input;
     void _pw;
-    const member: StoredMember = { ...profile, id: randomUUID(), memberNumber: number, token: randomBytes(18).toString("base64url"), season: season.label, authorizations: [], joinedAt: new Date().toISOString(), validUntil: season.validUntil, passwordHash: hashPassword(randomBytes(12).toString("base64url")) };
+    const member: StoredMember = { ...profile, id: randomUUID(), memberNumber: number, token: randomBytes(18).toString("base64url"), season: season.label, authorizations: [], joinedAt: new Date().toISOString(), validUntil: season.validUntil, passwordHash: await hashPassword(randomBytes(12).toString("base64url")) };
     const res = await addMemberRaw(member);
     if (!res.ok) { skipped.push(`ligne ${n + 2} (e-mail déjà utilisé)`); continue; }
     if (plan) await createMembership(toPublic(member), plan, { paid: true, method: "autre" });

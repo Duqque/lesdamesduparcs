@@ -1,9 +1,10 @@
 "use server";
 
+import { safeUrl } from "@/lib/safe-url";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ClubEvent, EventStatus, EventTag } from "@/types";
-import { audit, requireAdmin } from "@/lib/server/admin-auth";
+import { audit, requireAdmin, requireFresh } from "@/lib/server/admin-auth";
 import { slugify } from "@/lib/server/content";
 import { sendTemplate } from "@/lib/server/email";
 import { promoteWaitlist } from "@/lib/server/event-ops";
@@ -46,7 +47,7 @@ function parseEvent(f: FormData, id: string): Omit<EventRow, "createdAt" | "upda
     city: s(f, "city") || undefined,
     gps: s(f, "gps") || undefined,
     mapUrl: s(f, "mapUrl") || undefined,
-    image: s(f, "image") || "/images/parc-pelouse-tribunes.webp",
+    image: safeUrl(s(f, "image")) || "/images/parc-pelouse-tribunes.webp",
     imageAlt: s(f, "imageAlt") || title,
     gallery: lines(s(f, "gallery")),
     variant: "photo",
@@ -77,7 +78,7 @@ function parseEvent(f: FormData, id: string): Omit<EventRow, "createdAt" | "upda
       const [label, ...rest] = l.split("|").map((x) => x.trim());
       return { label: label ?? "", value: rest.join(" | ") };
     }),
-    href: mode === "external" ? s(f, "ticketUrl") || "/billetterie" : `/evenements/${id}`,
+    href: mode === "external" ? safeUrl(s(f, "ticketUrl")) || "/billetterie" : `/evenements/${id}`,
     status: (s(f, "status") || "draft") as EventStatus,
     publishAt: s(f, "publishAt") ? new Date(s(f, "publishAt")).toISOString() : undefined,
   } as Omit<EventRow, "createdAt" | "updatedAt">;
@@ -160,6 +161,7 @@ type RegOp = "confirm" | "cancel" | "refund" | "paid" | "waitlist" | "promote" |
 export async function registrationAction(eventId: string, regId: string, op: RegOp, returnToRaw: string) {
   const returnTo = safeReturn(returnToRaw, "/admin/evenements");
   const ctx = await requireAdmin(op === "paid" || op === "refund" ? "finance.edit" : "events.attendance");
+  if (op === "refund") await requireFresh(ctx);
   const reg = (await listAllRegistrations()).find((r) => r.id === regId);
   if (!reg) redirect(returnTo);
   const map = { confirm: reg.amountCents > 0 ? "awaiting_payment" : "confirmed", cancel: "cancelled", refund: "refunded", paid: "paid", waitlist: "waitlist", promote: reg.amountCents > 0 ? "awaiting_payment" : "confirmed", unpaid: "awaiting_payment" } as const;

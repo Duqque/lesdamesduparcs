@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { eur, fmtDate, fmtDateTime } from "@/lib/admin/format";
 import { pick } from "@/lib/admin/params";
-import { audit, getAdmin } from "@/lib/server/admin-auth";
+import { audit, getAdmin, isFresh } from "@/lib/server/admin-auth";
 import { filterMembers, loadMemberRows, type MemberFilters } from "@/lib/server/admin-data";
 import { TX_STATUS_LABEL, getTransactions, type Tx } from "@/lib/server/business";
 import { getAllEventsAdmin } from "@/lib/server/events";
@@ -23,6 +23,7 @@ async function respond<T>(format: string, name: string, title: string, subtitle:
 export async function GET(req: Request, ctx: { params: Promise<{ kind: string }> }) {
   const admin = await getAdmin();
   if (!admin) return NextResponse.redirect(new URL("/admin/connexion", req.url));
+  if (admin && !isFresh(admin)) return NextResponse.redirect(new URL(`/admin/verification-identite?next=${encodeURIComponent(new URL(req.url).pathname + new URL(req.url).search)}`, req.url));
   const { kind } = await ctx.params;
   const url = new URL(req.url);
   const format = url.searchParams.get("format") === "pdf" ? "pdf" : "csv";
