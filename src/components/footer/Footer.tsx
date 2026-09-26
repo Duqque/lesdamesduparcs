@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { socialLinks } from "@/data/navigation";
-import { FleurDeLisIcon, socialIcons } from "@/components/icons/BrandIcons";
+import { socialIcons } from "@/components/icons/BrandIcons";
 import { settings } from "@/lib/server/admin-store";
 import { legalLinks } from "@/components/legal/LegalPage";
 
@@ -40,13 +40,15 @@ export async function Footer() {
           </ul>
         </div>
 
-        <div aria-hidden className="hidden items-end gap-5 md:flex md:w-[260px] md:justify-end">
-          <FleurDeLisIcon className="size-8 text-white/25" />
-          <div className="flex items-end gap-[6px]">
-            <span className="h-10 w-[5px] bg-psg-blue" />
-            <span className="h-14 w-[5px] bg-psg-red" />
-            <span className="h-[46px] w-[5px] bg-white" />
-          </div>
+        {/* Lys rouge de l'association, et signature de la réalisation du site */}
+        <div className="flex flex-col items-center gap-2.5 md:w-[260px] md:items-end">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logos/lys-rouge.svg" alt="" width={34} height={41} className="h-[42px] w-auto" />
+          <p className="whitespace-nowrap font-body text-[10px] leading-[1.6] text-white/55">
+            Réalisation par{" "}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logos/duqque-gris.svg" alt="duqque" width={45} height={11} className="inline-block h-[1.15em] w-auto [vertical-align:-0.26em]" />
+          </p>
         </div>
       </div>
       <nav aria-label="Informations légales" className="border-t border-white/[0.07]">

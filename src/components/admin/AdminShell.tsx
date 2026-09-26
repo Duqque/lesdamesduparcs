@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
-import { LogOut, UserRound } from "lucide-react";
+import { ExternalLink, Eye, LogOut, UserRound } from "lucide-react";
 import { logoutAction } from "@/app/admin/connexion/actions";
 import { ROLE_LABELS } from "@/lib/admin/permissions";
 import type { AdminContext } from "@/lib/server/admin-auth";
@@ -27,6 +27,17 @@ export function AdminShell({ ctx, children }: { ctx: AdminContext; children: Rea
           <AdminNav groups={visibleNav(ctx)} roleLabel={ROLE_LABELS[ctx.admin.role]} name={name} />
         </Suspense>
         <div className="ml-auto flex items-center gap-2 lg:ml-0 lg:flex-1 lg:justify-end">
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener"
+            aria-label="Prévisualiser le site (nouvel onglet)"
+            className="inline-flex h-10 items-center gap-2 rounded-[8px] border border-line px-3 font-body text-[13px] font-medium text-white/85 hover:border-white/30 hover:text-white"
+          >
+            <Eye aria-hidden className="size-[18px]" strokeWidth={1.7} />
+            <span className="hidden sm:inline">Prévisualiser le site</span>
+            <ExternalLink aria-hidden className="hidden size-3.5 opacity-60 sm:block" />
+          </a>
           <CommandPalette />
           <NotificationBell />
           <details className="group/acc relative">
@@ -39,7 +50,7 @@ export function AdminShell({ ctx, children }: { ctx: AdminContext; children: Rea
                 <p className="truncate font-body text-[12px] text-mist">{ctx.admin.email}</p>
               </div>
               <Link href="/admin/compte" className="block px-4 py-2.5 font-body text-[13.5px] text-white/85 hover:bg-white/[0.05]">Mon compte et sécurité</Link>
-              <Link href="/" className="block px-4 py-2.5 font-body text-[13.5px] text-white/85 hover:bg-white/[0.05]">Voir le site</Link>
+              <Link href="/" className="block px-4 py-2.5 font-body text-[13.5px] text-white/85 hover:bg-white/[0.05]">Prévisualiser le site</Link>
               <form action={logoutAction}>
                 <button type="submit" className="flex w-full items-center gap-2 border-t border-line px-4 py-2.5 text-left font-body text-[13.5px] text-[#ff9aa8] hover:bg-white/[0.05]">
                   <LogOut aria-hidden className="size-4" /> Se déconnecter
