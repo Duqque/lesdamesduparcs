@@ -14,7 +14,8 @@ export function Tone({ className }: { className?: string }) {
   );
 }
 
-export function NewsCard({ item, className }: { item: NewsItem; className?: string }) {
+/** `dense` : version compacte sur mobile (deux colonnes côte à côte). */
+export function NewsCard({ item, className, dense }: { item: NewsItem; className?: string; dense?: boolean }) {
   return (
     <Link
       href={item.href}
@@ -24,24 +25,24 @@ export function NewsCard({ item, className }: { item: NewsItem; className?: stri
         className,
       )}
     >
-      <div className="relative aspect-[16/11] overflow-hidden">
+      <div className={cn("relative overflow-hidden", dense ? "aspect-[4/3] sm:aspect-[16/11]" : "aspect-[16/11]")}>
         <Image
           src={item.image}
           alt={item.imageAlt}
           fill
-          sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
+          sizes={dense ? "(min-width: 1024px) 30vw, 50vw" : "(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"}
           className="object-cover saturate-[0.85] transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
         />
         <Tone />
       </div>
-      <div className="flex flex-1 flex-col p-7">
-        <p className="flex items-center gap-2.5 font-body text-[12.5px] text-mist">
+      <div className={cn("flex flex-1 flex-col", dense ? "p-3.5 sm:p-7" : "p-7")}>
+        <p className={cn("flex flex-wrap items-center gap-x-2.5 gap-y-0.5 font-body text-mist", dense ? "text-[11px] sm:text-[12.5px]" : "text-[12.5px]")}>
           <span className="font-medium text-[#ff7a8c]">{item.category}</span>
-          <span aria-hidden className="size-1 rounded-full bg-white/30" />
+          <span aria-hidden className={cn("size-1 rounded-full bg-white/30", dense && "hidden sm:block")} />
           <time dateTime={item.date}>{formatShortDate(item.date)}</time>
         </p>
-        <h3 className="mt-4 font-body text-[21px] font-medium leading-[1.25] tracking-[-0.01em] text-white">{item.title}</h3>
-        <p className="mt-3 line-clamp-3 text-mist t-small">{item.excerpt}</p>
+        <h3 className={cn("font-body font-medium tracking-[-0.01em] text-white", dense ? "mt-2 text-[15px] leading-[1.25] sm:mt-4 sm:text-[21px]" : "mt-4 text-[21px] leading-[1.25]")}>{item.title}</h3>
+        <p className={cn("text-mist", dense ? "t-caption mt-2 line-clamp-2 sm:t-small sm:mt-3 sm:line-clamp-3" : "t-small mt-3 line-clamp-3")}>{item.excerpt}</p>
       </div>
     </Link>
   );

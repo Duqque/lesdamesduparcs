@@ -47,11 +47,11 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
           <p className="font-body text-[16px] text-mist">Aucun article pour ce tag pour le moment.</p>
         )}
 
-        <ul className="mt-20 grid gap-8 pb-24 sm:grid-cols-2 md:mt-28 lg:grid-cols-3 lg:gap-10 md:pb-32">
+        <ul className="mt-20 grid grid-cols-2 gap-3.5 pb-24 sm:gap-8 md:mt-28 lg:grid-cols-3 lg:gap-10 md:pb-32">
           {rest.map((item, i) => (
             <li key={item.id}>
               <Reveal delay={(i % 3) * 0.06} className="h-full">
-                <NewsCard item={item} />
+                <NewsCard item={item} dense />
               </Reveal>
             </li>
           ))}
