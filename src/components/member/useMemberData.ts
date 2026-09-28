@@ -7,6 +7,8 @@ import type { MemberPublic } from "@/lib/members";
 export interface MemberSpace {
   member: Omit<MemberPublic, "authorizations"> & { authorizations: Array<{ id: string; name: string }> };
   verifyUrl: string;
+  /** Invitation Discord : renvoyée uniquement quand l'adhésion est valide. */
+  discordUrl?: string;
   membership: { planName: string; season: string; startsAt: string; endsAt: string; status: string } | null;
   transactions: Array<{ id: string; at: string; type: string; label: string; amountCents: number; status: "paid" | "pending" | "failed" | "refunded" | "cancelled"; method: string; invoiceId?: string }>;
   orders: Array<{ id: string; number: string; at: string; status: string; totalCents: number; discountCents: number; promoCode?: string; shippingCents: number; lines: Array<{ name: string; size?: string; qty: number; unitCents: number }>; membership?: { planName: string; amountCents: number }; invoiceId?: string; tracking?: string; fulfilment?: string; resumeToken?: string }>;

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { CheckCircle2, Download, FileText, LogOut, QrCode as QrIcon } from "lucide-react";
+import { CheckCircle2, Download, FileText, LogOut, MessagesSquare, QrCode as QrIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberCard } from "@/components/member/MemberCard";
 import { useMemberData } from "@/components/member/useMemberData";
@@ -114,7 +114,7 @@ function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: strin
   const { session } = useAuth();
   const validated = session.status === "member" && session.membership === "active";
   if (!data) return <p className="mt-8 font-body text-mist">Chargement de votre espace…</p>;
-  const { member, verifyUrl, transactions: tx, benefits, offers, membership, orders } = data;
+  const { member, verifyUrl, discordUrl, transactions: tx, benefits, offers, membership, orders } = data;
   const minor = isMinor(member.birthDate, member.joinedAt.slice(0, 10));
   return (
     <div className="mt-12 space-y-16">
@@ -136,6 +136,18 @@ function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: strin
       </section>
 
       <AdhesionSection season={member.season} endsAt={membership?.endsAt ?? member.validUntil} flash={adhesion} />
+
+      <Section id="discord" title="Communauté Discord">
+        <p className="max-w-xl text-mist t-lead">Rejoignez le serveur Discord des Dames du Parc pour échanger avec les autres membres, organiser les déplacements et suivre les annonces du groupe.</p>
+        {discordUrl ? (
+          <a href={discordUrl} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex h-[52px] items-center justify-center gap-3 rounded-[10px] border border-[#8f9bff]/50 bg-[linear-gradient(180deg,#5865f2_0%,#4752c4_100%)] px-6 font-body text-[14.5px] font-medium text-white hover:brightness-110">
+            <MessagesSquare aria-hidden className="size-[20px]" strokeWidth={1.8} /> Rejoindre le Discord
+          </a>
+        ) : (
+          <p className="mt-4 max-w-xl font-body text-[14px] leading-[1.7] text-amber-100">Le lien d&rsquo;invitation sera disponible dès la validation de votre adhésion.</p>
+        )}
+        <p className="mt-4 max-w-xl font-body text-[13px] leading-[1.7] text-mist">Ce lien est réservé aux membres : merci de ne pas le partager.</p>
+      </Section>
 
       <Section id="attestation" title="Mon attestation">
         <p className="max-w-xl text-mist t-lead">
