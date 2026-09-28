@@ -75,7 +75,7 @@ export const auditLog = collection<AuditEntry>("audit_log");
 export interface AssociationInfo {
   name: string; legalName: string; form: string; siret: string; rna: string; address: string; postalCode: string; city: string;
   phone: string; email: string; website: string; president: string; presidentTitle: string;
-  instagram: string; tiktok: string; facebook: string;
+  instagram: string; tiktok: string;
 }
 
 export const DEFAULT_AUTOMATIONS = {
@@ -114,7 +114,6 @@ const settingsStore = singleton("settings", {
     presidentTitle: assoDefaults.presidentTitle,
     instagram: "https://www.instagram.com/lesdamesduparc/",
     tiktok: "https://www.tiktok.com/@lesdamesduparc",
-    facebook: "https://www.facebook.com/p/Dames-Du-Parc-61592989376127/",
   },
   site: { title: "Les Dames du Parc", description: "Plus qu'un groupe, une famille.", footerText: "Paris toujours, ensemble !", favicon: "" },
   emails: { fromName: "Les Dames du Parc", fromEmail: assoDefaults.email as string, signature: "Avec toute notre passion,\nLes Dames du Parc" },

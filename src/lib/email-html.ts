@@ -11,7 +11,6 @@ export interface EmailBrand {
   email?: string;
   instagram?: string;
   tiktok?: string;
-  facebook?: string;
   signature?: string;
 }
 
@@ -94,7 +93,6 @@ export function renderEmail(opts: {
   const social = [
     brand.instagram && ["Instagram", brand.instagram],
     brand.tiktok && ["TikTok", brand.tiktok],
-    brand.facebook && ["Facebook", brand.facebook],
   ]
     .filter((x): x is string[] => Array.isArray(x))
     .map(([label, url]) => `<a href="${esc(url)}" style="color:#c3ccdc;text-decoration:none;font-weight:600;">${label}</a>`)

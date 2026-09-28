@@ -24,5 +24,4 @@ export const signature = ["Passion", "Partage", "Féminité", "PSG"];
 export const socialLinks = [
   { id: "instagram", label: "Instagram", href: "https://www.instagram.com/lesdamesduparc/" },
   { id: "tiktok", label: "TikTok", href: "https://www.tiktok.com/@lesdamesduparc" },
-  { id: "facebook", label: "Facebook", href: "https://www.facebook.com/p/Dames-Du-Parc-61592989376127/" },
 ] as const;

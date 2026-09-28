@@ -11,7 +11,7 @@ const FIELDS: Array<[string, string]> = [
   ["name", "Nom"], ["legalName", "Dénomination légale"], ["form", "Forme juridique"], ["siret", "SIRET"], ["rna", "Numéro RNA"],
   ["address", "Adresse"], ["postalCode", "Code postal"], ["city", "Ville"], ["phone", "Téléphone"], ["email", "E-mail de contact"],
   ["website", "Site internet"], ["president", "Présidente"], ["presidentTitle", "Fonction de la signataire"],
-  ["instagram", "Instagram (adresse)"], ["tiktok", "TikTok (adresse)"], ["facebook", "Facebook (adresse)"],
+  ["instagram", "Instagram (adresse)"], ["tiktok", "TikTok (adresse)"],
 ];
 
 export default async function AssociationPage({ searchParams }: { searchParams: Promise<SP> }) {

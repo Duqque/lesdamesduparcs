@@ -15,12 +15,6 @@ export const TikTokIcon = (p: P) => (
   </svg>
 );
 
-export const FacebookIcon = (p: P) => (
-  <svg {...common} {...p}>
-    <path d="M13.5 22v-8.2h2.8l.5-3.3h-3.3V8.4c0-.9.4-1.7 1.8-1.7h1.6V3.9S15.6 3.6 14.4 3.6c-2.6 0-4.2 1.5-4.2 4.3v2.6H7.5v3.3h2.7V22h3.3Z" />
-  </svg>
-);
-
 export const SpotifyIcon = (p: P) => (
   <svg {...common} {...p}>
     <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.6 14.4a.75.75 0 0 1-1 .25c-2.8-1.7-6.3-2.1-10.4-1.1a.75.75 0 1 1-.35-1.46c4.5-1.1 8.4-.6 11.5 1.3.35.2.45.7.25 1.01Zm1.3-2.9a.94.94 0 0 1-1.29.31c-3.2-2-8.1-2.5-11.9-1.4a.94.94 0 1 1-.54-1.8c4.3-1.3 9.7-.7 13.4 1.6.44.27.58.85.33 1.29Zm.1-3.05C14.2 8.2 7.9 8 4.3 9.1a1.13 1.13 0 1 1-.65-2.16c4.2-1.3 11.1-1 15.4 1.6a1.13 1.13 0 1 1-1.15 1.94Z" />
@@ -40,5 +34,4 @@ export const FleurDeLisIcon = (p: P) => (
 export const socialIcons = {
   instagram: InstagramIcon,
   tiktok: TikTokIcon,
-  facebook: FacebookIcon,
 } as const;

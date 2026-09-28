@@ -14,7 +14,7 @@ export function QuickAdd({ product }: { product: ShopProduct }) {
       type="button"
       aria-label={product.sizes ? `Choisir la taille de ${product.name}` : `Ajouter ${product.name} au panier`}
       onClick={() => (product.sizes ? router.push(`/boutique/${product.id}`) : addToCart({ productId: product.id, qty: 1 }))}
-      className="grid size-11 shrink-0 place-items-center rounded-full border border-white/20 text-white transition-colors hover:border-white hover:bg-white hover:text-night-950"
+      className="grid size-10 shrink-0 sm:size-11 place-items-center rounded-full border border-white/20 text-white transition-colors hover:border-white hover:bg-white hover:text-night-950"
     >
       {product.sizes ? <Plus aria-hidden className="size-5" strokeWidth={1.7} /> : <ShoppingBag aria-hidden className="size-[18px]" strokeWidth={1.7} />}
     </button>

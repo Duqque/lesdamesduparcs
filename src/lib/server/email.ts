@@ -22,7 +22,7 @@ async function brandOf() {
     /* hors requête (tâche planifiée) : adresse configurée */
   }
   const a = conf.association;
-  return { conf, origin, brand: { origin, name: a.name || "Les Dames du Parc", address: [a.address, [a.postalCode, a.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || undefined, email: a.email || undefined, instagram: a.instagram, tiktok: a.tiktok, facebook: a.facebook, signature: conf.emails.signature } };
+  return { conf, origin, brand: { origin, name: a.name || "Les Dames du Parc", address: [a.address, [a.postalCode, a.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || undefined, email: a.email || undefined, instagram: a.instagram, tiktok: a.tiktok, signature: conf.emails.signature } };
 }
 
 export async function sendEmail(opts: { to: string; subject: string; body: string; kind: string; replyTo?: string; attachments?: Array<{ filename: string; content: Buffer }> }) {

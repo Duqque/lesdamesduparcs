@@ -30,10 +30,10 @@ export default async function ShopPage() {
           <h2 id="nouveautes" className={h2}>Nouveautés</h2>
           <p className="mt-6 max-w-lg text-mist t-lead">Affichez vos couleurs avec nos dernières pièces. Séries limitées : une fois épuisées, elles ne reviennent pas.</p>
         </Reveal>
-        <ul className="mt-14 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-14 grid grid-cols-2 gap-x-3.5 gap-y-10 sm:gap-x-8 sm:gap-y-16 lg:grid-cols-3">
           {fresh.map((p, i) => (
             <li key={p.id}>
-              <Reveal delay={i * 0.08}>
+              <Reveal delay={i * 0.08} className="h-full">
                 <ProductCard product={p} priority={i === 0} />
               </Reveal>
             </li>

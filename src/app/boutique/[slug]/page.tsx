@@ -25,7 +25,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const [product, catalog] = await Promise.all([getProductPublic(slug), getPublicCatalog()]);
   if (!product) notFound();
   const shipping = catalog.rules;
-  const related = catalog.products.filter((p) => p.id !== product.id).slice(0, 3);
+  const related = catalog.products.filter((p) => p.id !== product.id).slice(0, 4);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -49,7 +49,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <div className="lg:pt-6">
           <p className="t-eyebrow">{product.category}</p>
           <h1 className="mt-4 t-h1">{product.name}</h1>
-          <Price product={product} className="mt-5 text-[30px]" />
+          <Price product={product} className="mt-5 text-[30px] sm:text-[30px]" />
           <p className="mt-2 font-body text-[12.5px] text-mist">TTC, hors frais de livraison</p>
           <p className="mt-8 text-white/80 t-lead">{product.description}</p>
 
@@ -80,9 +80,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       <section aria-labelledby="related" className="pt-32 md:pt-44">
         <h2 id="related" className="t-h2">Vous aimerez aussi</h2>
-        <ul className="mt-12 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
-          {related.map((p) => (
-            <li key={p.id}>
+        <ul className="mt-12 grid grid-cols-2 gap-x-3.5 gap-y-10 sm:gap-x-8 sm:gap-y-16 lg:grid-cols-3">
+          {related.map((p, i) => (
+            <li key={p.id} className={i === 3 ? "lg:hidden" : undefined}>
               <ProductCard product={p} />
             </li>
           ))}

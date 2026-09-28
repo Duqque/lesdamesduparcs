@@ -37,7 +37,7 @@ export function Catalog() {
           </select>
         </label>
       </div>
-      <ul className="mt-12 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-12 grid grid-cols-2 gap-x-3.5 gap-y-10 sm:gap-x-8 sm:gap-y-16 lg:grid-cols-3">
         {list.map((p) => (
           <li key={p.id}>
             <ProductCard product={p} />
