@@ -6,6 +6,7 @@ import { adhesion as a } from "@/data/adhesion";
 import { histoire as h } from "@/data/histoire";
 import { membership } from "@/data/membership";
 import { CountUp } from "./CountUp";
+import { HorizontalSteps } from "./HorizontalSteps";
 import { MatchdayRoute } from "./MatchdayRoute";
 import { MemberCard } from "./MemberCard";
 import { StoryTimeline } from "./StoryTimeline";
@@ -392,12 +393,19 @@ export function AdhesionBody() {
         </Reveal>
       </section>
 
-      <section aria-labelledby="ad-devenir" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
-        <Reveal className="min-w-0">
-          <h2 id="ad-devenir" className={h2c}>Comment devient-on membre ?</h2>
-          <div className="mt-10 hidden md:block"><MemberCard season={membership.season} /></div>
+      <section aria-labelledby="ad-devenir">
+        <Reveal>
+          <h2 id="ad-devenir" className={`${h2c} max-w-[28ch]`}>Comment devient-on membre ?</h2>
         </Reveal>
-        <Timeline items={a.steps} label="Les quatre étapes pour devenir membre" />
+        <Reveal delay={0.06} className="mx-auto mt-12 max-w-[460px]">
+          <MemberCard season={membership.season} />
+        </Reveal>
+        <div className="mt-16 lg:hidden">
+          <Timeline items={a.steps} label="Les quatre étapes pour devenir membre" />
+        </div>
+        <div className="mt-16">
+          <HorizontalSteps items={a.steps} label="Les quatre étapes pour devenir membre" />
+        </div>
       </section>
 
       <section aria-labelledby="ad-espace" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
