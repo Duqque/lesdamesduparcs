@@ -39,6 +39,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           <span className="font-medium text-[#ff7a8c]">{item.category}</span>
           <span aria-hidden className="size-1 rounded-full bg-white/30" />
           <time dateTime={item.date}>{formatShortDate(item.date)}</time>
+          {item.authorName && (<><span aria-hidden className="size-1 rounded-full bg-white/30" /><span>Par {item.authorName}</span></>)}
         </p>
         <h1 className="mt-5 t-h1">{item.title}</h1>
         <p className="mt-7 text-white/80 t-lead">{item.excerpt}</p>
@@ -51,6 +52,20 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <p key={p}>{p}</p>
           ))}
         </div>
+        {item.tags && item.tags.length > 0 && (
+          <div className="mt-14 border-t border-white/10 pt-8">
+            <p className="font-body text-[12px] font-semibold uppercase tracking-[0.2em] text-mist">Tags</p>
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {item.tags.map((t) => (
+                <li key={t}>
+                  <Link href={`/actualites?tag=${encodeURIComponent(t)}`} className="inline-flex min-h-11 items-center rounded-full border border-white/[0.16] px-4 font-body text-[13.5px] text-white/85 transition-colors hover:border-psg-red-bright hover:text-white">
+                    #{t}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <DiscreetLinks className="mt-24" />
       </article>
 

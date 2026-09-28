@@ -18,6 +18,8 @@ export interface Product extends Row {
   priceCents: number;
   compareAtCents?: number;
   images: string[];
+  /** Vidéos du produit (MP4, WebM) */
+  videos?: string[];
   sizes: string[];
   /** Quantités par taille (« _ » sans taille) ; utilisé seulement si trackStock */
   stock: Record<string, number>;
@@ -69,6 +71,7 @@ export const toPublic = (p: Product): ShopProduct => ({
   priceCents: p.priceCents,
   compareAtCents: p.compareAtCents,
   images: p.images.length ? p.images : ["/images/produit-echarpe.webp"],
+  videos: p.videos?.length ? p.videos : undefined,
   sizes: p.sizes.length ? p.sizes : undefined,
   isNew: p.isNew,
   stock: p.trackStock ? Object.fromEntries((p.sizes.length ? p.sizes : [NO_SIZE]).map((s) => [s, Math.max(p.stock[s] ?? 0, 0)])) : undefined,

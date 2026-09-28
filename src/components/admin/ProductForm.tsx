@@ -2,6 +2,7 @@ import { saveProductAction } from "@/app/admin/(panel)/boutique/actions";
 import { NO_SIZE } from "@/lib/shop";
 import type { Product } from "@/lib/server/shop";
 import { SubmitButton } from "./SubmitButton";
+import { MediaPicker } from "./MediaPicker";
 import { Field, Panel, area, inp } from "./ui";
 
 interface Props {
@@ -29,10 +30,10 @@ export function ProductForm({ product: p, categories, can }: Props) {
           <Field label="Ordre d'affichage"><input name="order" type="number" defaultValue={p?.order} disabled={!can.edit} className={inp} /></Field>
         </div>
       </Panel>
-      <Panel title="Photos">
-        <div className="grid gap-4">
-          <Field label="Adresses des images (une par ligne, la première est l'image principale)"><textarea name="images" rows={3} defaultValue={p?.images.join("\n")} disabled={!can.edit} className={area} /></Field>
-          <Field label="Ou envoyer des photos" hint="Ajoutées à la médiathèque et à la fiche"><input type="file" name="imageFiles" accept="image/*" multiple disabled={!can.edit} className="block w-full font-body text-[13px] text-white/80 file:mr-3 file:rounded-[7px] file:border file:border-white/20 file:bg-white/[0.05] file:px-3 file:py-2 file:text-white" /></Field>
+      <Panel title="Photos et vidéos">
+        <div className="grid gap-6">
+          <Field label="Photos du produit" hint="La première est l'image principale. Chaque photo s'affiche dès qu'elle est choisie ; le bouton corbeille la retire."><MediaPicker name="imageFiles" existingName="images" existing={p?.images ?? []} multiple only="image" minWidth={900} minHeight={1200} label="Ajouter des photos" disabled={!can.edit} /></Field>
+          <Field label="Vidéos du produit (facultatif)"><MediaPicker name="videoFiles" existingName="videos" existing={p?.videos ?? []} multiple only="video" minWidth={1280} minHeight={720} label="Ajouter des vidéos" disabled={!can.edit} /></Field>
         </div>
       </Panel>
       <Panel title="Prix" action={!can.pricing && <span className="font-body text-[12px] text-mist">Lecture seule pour votre rôle</span>}>

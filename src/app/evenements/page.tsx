@@ -1,5 +1,6 @@
 import { JoinGate, JoinSectionGate, JoinText } from "@/components/member/JoinGate";
 import type { Metadata } from "next";
+import { getCms } from "@/lib/server/cms";
 import { seoFor } from "@/lib/server/site";
 import Link from "next/link";
 import { Download } from "lucide-react";
@@ -20,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function EventsPage() {
-  const [all, matches] = await Promise.all([getPublishedEvents(), getUpcomingMatchViews(60)]);
+  const [all, matches, cms] = await Promise.all([getPublishedEvents(), getUpcomingMatchViews(60), getCms()]);
   const upcoming = all.filter((e) => !isPast(e)).sort((a, b) => a.date.localeCompare(b.date));
   // Les événements des Dames priment : en haut, seul le prochain match du PSG accompagne les événements (par date) ; tous les autres sont en fin de page.
   const [nextMatch, ...otherMatches] = matches;
@@ -40,9 +41,9 @@ export default async function EventsPage() {
           <nav aria-label="Fil d'Ariane" className="font-body text-[13px] text-mist">
             <Link href="/" className="hover:text-white">Accueil</Link> / <span className="text-white/80">Événements</span>
           </nav>
-          <h1 className="mt-10 md:mt-16 t-display">Événements</h1>
+          <h1 className="mt-10 md:mt-16 t-display">{cms.t("evenements.titre", "Événements")}</h1>
           <p className="mt-8 max-w-md text-white/75 t-lead">
-            Matchs au Parc, soirées, ateliers et déplacements : les rendez-vous des Dames du Parc se succèdent tout au long de la saison.
+            {cms.t("evenements.intro", "Matchs au Parc, soirées, ateliers et déplacements : les rendez-vous des Dames du Parc se succèdent tout au long de la saison.")}
           </p>
           <Link href="/evenements/calendrier.ics" prefetch={false} className="mt-6 inline-flex min-h-11 items-center gap-2 font-body text-[13px] font-medium text-white/80 hover:text-white">
             <Download aria-hidden className="size-4" strokeWidth={1.8} /> Ajouter à mon agenda
@@ -57,7 +58,7 @@ export default async function EventsPage() {
         </JoinSectionGate>
 
         <section aria-labelledby="upcoming" className="mt-24 md:mt-32">
-          <h2 id="upcoming" className="font-body text-[20px] font-medium text-white">Prochains événements</h2>
+          <h2 id="upcoming" className="font-body text-[20px] font-medium text-white">{cms.t("evenements.prochains", "Prochains événements")}</h2>
           <ul className="mt-10 -mx-[var(--gutter)] flex snap-x gap-4 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
             {timeline.map((it) => (
               <li key={it.kind === "event" ? it.event.id : `${it.kind}-${it.match.id}`} className={it.kind === "merged" ? "contents md:col-span-2 md:block lg:col-span-2" : "contents md:block"}>

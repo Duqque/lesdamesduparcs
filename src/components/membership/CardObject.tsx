@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { motion, type MotionStyle, type MotionValue } from "framer-motion";
-import { QrCode } from "./QrCode";
 
 const EDGE_LAYERS = [-1.65, -1.1, -0.55, 0, 0.55, 1.1, 1.65];
 
@@ -20,11 +19,21 @@ interface Props {
   name: string;
   season: string;
   number: string;
-  qrValue: string;
+  /** Conservé pour compatibilité : le QR code n'est plus dessiné sur la carte */
+  qrValue?: string;
 }
 
-/** Carte membre en CSS 3D : faces, épaisseur, couches de profondeur et reflets. Le mouvement vient de l'extérieur. */
-export function CardObject({ motion: m, name, season, number, qrValue }: Props) {
+/**
+ * Taille du nom (en unités de la largeur de la carte) : les noms longs rétrécissent pour rester sur la carte, sans jamais empiéter
+ * sur d'autres éléments. Estimation : capitales à 0,78 em par lettre, interlettrage compris, sur 86 % de la largeur.
+ */
+export const nameSize = (name: string) => Math.max(Math.min(5.6, 86 / (Math.max(name.length, 1) * 0.78)), 2.4);
+
+/**
+ * Carte membre en CSS 3D : faces, épaisseur, couches de profondeur et reflets. Le mouvement vient de l'extérieur.
+ * Le QR code n'est plus imprimé sur la carte : il s'affiche juste en dessous, sur la page (voir MemberCard).
+ */
+export function CardObject({ motion: m, name, season, number }: Props) {
   return (
     <div className="relative aspect-[1.6] w-[var(--cw)] [container-type:inline-size] [perspective:1300px]">
       <div
@@ -82,13 +91,10 @@ export function CardObject({ motion: m, name, season, number, qrValue }: Props) 
           />
 
           {/* Identité imprimée sur la carte */}
-          <motion.div style={{ opacity: m.identity, z: 10 }} className="absolute bottom-[7%] left-[6%]">
+          <motion.div style={{ opacity: m.identity, z: 10 }} className="absolute bottom-[7%] left-[6%] right-[6%]">
             <p className="font-body text-[1.9cqw] font-light uppercase tracking-[0.34em] text-white/70">Membre {season}</p>
-            <p className="mt-[1.2cqw] font-body text-[5.6cqw] font-semibold uppercase leading-none tracking-[0.1em] text-white">{name}</p>
+            <p className="mt-[1.2cqw] whitespace-nowrap font-body font-semibold uppercase leading-none tracking-[0.1em] text-white" style={{ fontSize: `${nameSize(name)}cqw` }}>{name}</p>
             <p className="mt-[1.2cqw] font-body text-[2.1cqw] font-light tabular-nums tracking-[0.3em] text-white/80">{number}</p>
-          </motion.div>
-          <motion.div style={{ opacity: m.qr, z: 14 }} className="absolute bottom-[7%] right-[5.5%] w-[15cqw] rounded-[1cqw] shadow-[0_1.4cqw_2.4cqw_rgba(0,0,0,0.5)]">
-            <QrCode value={qrValue} className="block w-full" />
           </motion.div>
         </div>
 

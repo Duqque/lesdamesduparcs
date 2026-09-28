@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Download, FileText } from "lucide-react";
 import { SubmitButton } from "@/components/admin/SubmitButton";
 import { PAY_TONE, STATUS_LABEL, STATUS_TONE } from "@/components/admin/status";
-import { Badge, Field, Flash, Kpi, PageHeader, Panel, TableWrap, Td, Th, area, btn, inp } from "@/components/admin/ui";
+import { Badge, Field, Flash, Kpi, PageHeader, Panel, TableWrap, Td, Th, area, btn, inp, lbl } from "@/components/admin/ui";
 import { eur, fmtDate, fmtDateLong } from "@/lib/admin/format";
 import { first, type SP } from "@/lib/admin/params";
 import { guardianRelations } from "@/lib/members";
@@ -18,7 +18,7 @@ import { invoices } from "@/lib/server/invoice";
 import { BirthDateInput } from "@/components/forms/BirthDateInput";
 import { LocalityGroup } from "@/components/forms/LocalityGroup";
 import { PhoneInput } from "@/components/forms/PhoneInput";
-import { addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
+import { addManualLineAction, deleteProfileAction, sendMemberResetEmailAction, setMembershipDatesAction, validateMemberCardAction, addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
 
 export const metadata = { title: "Fiche adhérente" };
 
@@ -60,7 +60,18 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
         }
       />
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
-      {inviteLink.startsWith("http") && (
+
+      {!anonymized && m.status !== "expelled" && row.kind === "profil" && (
+        <Panel className="mb-4" title="Carte de membre en cours de création">
+          <p className="font-body text-[13.5px] leading-[1.7] text-amber-100">Ce profil n&rsquo;a pas de carte payée : son QR code affiche « Adhésion invalide ». Dès que vous avez reçu le règlement (espèces, chèque, virement…), validez la carte : elle devient valide et la personne en est informée par e-mail.{row.member.email ? "" : ""}</p>
+          {ctx.can("finance.edit") && (
+            <form action={validateMemberCardAction.bind(null, id)} className="mt-4 flex flex-wrap items-end gap-3">
+              <label><span className={lbl}>Mode de règlement reçu</span><select name="method" className={inp + " mt-1.5"}>{METHODS.filter(([v]) => v !== "manual").map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
+              <SubmitButton confirm="Valider la carte de membre de cette personne ? Le paiement sera enregistré comme reçu et la carte deviendra valide.">Valider la carte (paiement reçu)</SubmitButton>
+            </form>
+          )}
+        </Panel>
+      )}      {inviteLink.startsWith("http") && (
         <Panel className="mb-4" title="Lien de première connexion (à transmettre à l'adhérente)">
           <p className="mb-2 font-body text-[12.5px] text-mist">Valable 7 jours, à usage unique. Il ne sera plus affiché après une minute.</p>
           <input readOnly value={inviteLink} className={inp} />
@@ -121,6 +132,16 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
                 <SubmitButton variant="outline">Renouveler</SubmitButton>
               </form>
             )}
+            {ctx.can("members.edit") && !anonymized && history[0] && (
+              <form action={setMembershipDatesAction.bind(null, id)} className="mt-5 grid gap-3 border-t border-line pt-4">
+                <p className="font-body text-[12px] font-semibold uppercase tracking-[0.12em] text-mist">Dates exactes de l&rsquo;adhésion en cours</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <label><span className={lbl}>Début</span><input type="date" name="start" required defaultValue={history[0].startsAt.slice(0, 10)} className={inp + " mt-1.5"} /></label>
+                  <label><span className={lbl}>Fin</span><input type="date" name="end" required defaultValue={history[0].endsAt.slice(0, 10)} className={inp + " mt-1.5"} /></label>
+                </div>
+                <SubmitButton variant="outline">Enregistrer les dates</SubmitButton>
+              </form>
+            )}
           </Panel>
 
           {pii && m.guardian && (
@@ -166,11 +187,17 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
             </tbody>
           </TableWrap>
           {ctx.can("finance.edit") && !anonymized && (
-            <form action={addPaymentAction.bind(null, id)} className="grid gap-3 border-t border-line p-5 sm:grid-cols-[2fr_1fr_1fr_auto]">
-              <input name="label" placeholder="Objet (ex. Cotisation, goodies)" className={inp} />
-              <input name="amount" placeholder="Montant en €" inputMode="decimal" className={inp} required />
-              <select name="method" className={inp}>{METHODS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
-              <SubmitButton variant="outline">Enregistrer un paiement</SubmitButton>
+            <form action={addManualLineAction.bind(null, id)} className="grid gap-3 border-t border-line p-5 sm:grid-cols-2 lg:grid-cols-4">
+              <p className="font-body text-[12px] font-semibold uppercase tracking-[0.12em] text-mist sm:col-span-2 lg:col-span-4">Ajouter une ligne manuelle (test, régularisation, vente sur place)</p>
+              <label><span className={lbl}>Type</span><select name="type" className={inp + " mt-1.5"}><option value="autre">Autre paiement</option><option value="boutique">Achat boutique</option><option value="evenement">Événement</option><option value="adhesion">Adhésion</option></select></label>
+              <label className="lg:col-span-2"><span className={lbl}>Objet</span><input name="label" placeholder="ex. Cotisation, écharpe, goodies" className={inp + " mt-1.5"} /></label>
+              <label><span className={lbl}>Montant (€)</span><input name="amount" placeholder="12" inputMode="decimal" className={inp + " mt-1.5"} /></label>
+              <label><span className={lbl}>Mode de paiement</span><select name="method" className={inp + " mt-1.5"}>{METHODS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
+              <label><span className={lbl}>Statut</span><select name="status" className={inp + " mt-1.5"}><option value="paid">Payé (validé)</option><option value="pending">En attente</option></select></label>
+              <label><span className={lbl}>Adhésion : début</span><input type="date" name="start" className={inp + " mt-1.5"} /></label>
+              <label><span className={lbl}>Adhésion : fin</span><input type="date" name="end" className={inp + " mt-1.5"} /></label>
+              <p className="font-body text-[12px] leading-[1.6] text-mist sm:col-span-2 lg:col-span-4">Pour une ligne « Adhésion », le montant est celui de la formule par défaut ; les dates exactes de début et de fin sont facultatives. Une ligne payée génère sa facture ; une adhésion payée valide la carte.</p>
+              <div className="sm:col-span-2 lg:col-span-4"><SubmitButton variant="outline">Enregistrer la ligne</SubmitButton></div>
             </form>
           )}
         </Panel>
@@ -207,6 +234,8 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
             {ctx.can("members.edit") && !anonymized && m.status === "suspended" && (
               <form action={setMemberStatusAction.bind(null, id, "active")}><SubmitButton variant="outline">Lever la suspension maintenant</SubmitButton></form>
             )}
+            {ctx.can("members.edit") && !anonymized && m.status !== "expelled" && <form action={sendMemberResetEmailAction.bind(null, id)}><SubmitButton variant="outline" confirm="Envoyer à cette personne, par e-mail, un lien de reconnexion et de changement de mot de passe ?">Envoyer un lien de réinitialisation du mot de passe</SubmitButton></form>}
+            {ctx.can("members.delete") && !anonymized && row.kind === "profil" && <form action={deleteProfileAction.bind(null, id)}><SubmitButton variant="danger" confirm="Supprimer définitivement ce profil (fiche, adhésions et paiements non réglés) ? Cette action est irréversible.">Supprimer ce profil</SubmitButton></form>}
             {ctx.can("members.edit") && !anonymized && <form action={memberInviteLinkAction.bind(null, id)}><SubmitButton variant="outline">Générer un lien de connexion</SubmitButton></form>}
             {ctx.can("members.export") && !anonymized && <a href={`/admin/export/membre/${id}`} className={btn.outline}><Download aria-hidden className="size-4" /> Exporter ses données</a>}
             {(ctx.can("members.delete") || ctx.can("privacy.manage")) && !anonymized && (

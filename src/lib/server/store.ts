@@ -185,3 +185,16 @@ export const addWaitlistRegistration = (r: Omit<Registration, "id" | "createdAt"
     await regs.upsert(created);
     return created;
   });
+
+/**
+ * Suppression définitive d'un PROFIL (compte créé sans carte payée) : fiche, pièces jointes, adhésions et paiements non réglés.
+ * Les profils dont la carte est payée passent par l'effacement RGPD (les pièces comptables sont alors conservées).
+ */
+export const deleteMemberHard = (id: string) =>
+  locked(async () => {
+    const m = await membersStore.get(id);
+    if (!m) return false;
+    await Promise.all(m.authorizations.map((f) => deleteBlob(authorizationKey(m.id, f.id))));
+    await membersStore.remove(id);
+    return true;
+  });

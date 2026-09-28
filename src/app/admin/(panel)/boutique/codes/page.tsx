@@ -4,6 +4,8 @@ import { eur, fmtDateLong } from "@/lib/admin/format";
 import { first, type SP } from "@/lib/admin/params";
 import { requireAdmin } from "@/lib/server/admin-auth";
 import { promoCodes } from "@/lib/server/content";
+import { payments } from "@/lib/server/business";
+import { listOrders } from "@/lib/server/store";
 import { deleteShopCodeAction, saveShopCodeAction, toggleShopCodeAction } from "../actions";
 
 export const metadata = { title: "Codes de réduction" };
@@ -13,7 +15,11 @@ const today = () => new Date().toISOString().slice(0, 10);
 export default async function ShopCodesPage({ searchParams }: { searchParams: Promise<SP> }) {
   await requireAdmin("shop.pricing");
   const sp = await searchParams;
-  const rows = (await promoCodes.find((p) => p.scope === "shop" || p.scope === "all")).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const [rows, orders, allPays] = await Promise.all([promoCodes.all().then((r) => r.sort((a, b) => b.createdAt.localeCompare(a.createdAt))), listOrders(), payments.all()]);
+  const usage = [
+    ...orders.filter((o) => o.promoCode && o.status !== "cancelled").map((o) => ({ code: o.promoCode!, at: o.createdAt, who: `${o.contact.firstName} ${o.contact.lastName}`, email: o.contact.email, memberNumber: o.memberNumber, what: [...o.lines.map((l) => `${l.qty} × ${l.name}${l.size ? ` (${l.size})` : ""}`), ...(o.membership ? ["Adhésion"] : [])].join(", "), discount: o.discountCents ?? 0, status: o.status, href: `/admin/boutique/commandes/${o.id}` })),
+    ...allPays.filter((p) => p.kind === "adhesion" && p.promoCode).map((p) => ({ code: p.promoCode!, at: p.createdAt, who: p.name, email: p.email ?? "", memberNumber: p.memberNumber, what: `Adhésion : ${p.label}`, discount: p.discountCents ?? 0, status: p.status === "paid" ? "paid" : "awaiting_payment", href: p.memberNumber ? `/admin/adherentes?q=${encodeURIComponent(p.memberNumber)}` : "" })),
+  ].sort((a, b) => b.at.localeCompare(a.at));
   const editId = first(sp.edit);
   const editing = rows.find((r) => r.id === editId);
   const status = (p: (typeof rows)[number]) => {
@@ -32,6 +38,9 @@ export default async function ShopCodesPage({ searchParams }: { searchParams: Pr
           <input type="hidden" name="id" value={editing?.id ?? ""} />
           <Field label="Code" hint="Laissez vide pour en générer un automatiquement."><input name="code" defaultValue={editing?.code} placeholder="ex. BIENVENUE10" maxLength={24} className={inp + " uppercase"} /></Field>
           <Field label="Libellé (interne)"><input name="label" defaultValue={editing?.label} className={inp} /></Field>
+          <Field label="S'applique à">
+            <select name="scope" defaultValue={editing?.scope ?? "shop"} className={inp}><option value="shop">La boutique</option><option value="adhesion">L&rsquo;adhésion et la carte de membre</option><option value="event">Les événements</option><option value="all">Tout (boutique, adhésion, événements)</option></select>
+          </Field>
           <Field label="Type de réduction">
             <select name="type" defaultValue={editing?.type ?? "percent"} className={inp}><option value="percent">Pourcentage (%)</option><option value="amount">Montant fixe (€)</option></select>
           </Field>
@@ -66,7 +75,7 @@ export default async function ShopCodesPage({ searchParams }: { searchParams: Pr
                     {p.minCents ? `Dès ${eur(p.minCents)} d'achats` : "Sans minimum"}
                     <br />
                     {p.startsAt || p.endsAt ? `${p.startsAt ? `du ${fmtDateLong(p.startsAt)}` : ""} ${p.endsAt ? `au ${fmtDateLong(p.endsAt)}` : ""}`.trim() : "Sans limite de date"}
-                    {p.scope === "all" && <><br />Aussi valable hors boutique</>}
+                    <br />{({ shop: "Boutique", adhesion: "Adhésion et carte de membre", event: "Événements", all: "Boutique, adhésion et événements" } as const)[p.scope]}
                     {p.maxDiscountCents ? <><br />Réduction plafonnée à {eur(p.maxDiscountCents)}</> : null}
                     {p.perUserLimit ? <><br />{p.perUserLimit} utilisation(s) par compte</> : null}
                     {p.categories?.length || p.productIds?.length ? <><br />Limité : {[...(p.categories ?? []), ...(p.productIds ?? [])].join(", ")}</> : null}
@@ -82,6 +91,25 @@ export default async function ShopCodesPage({ searchParams }: { searchParams: Pr
                       <form action={deleteShopCodeAction.bind(null, p.id)}><SubmitButton variant="danger" confirm={`Supprimer définitivement le code ${p.code} ?`}>Supprimer</SubmitButton></form>
                     </div>
                   </Td>
+                </tr>
+              ))}
+            </tbody>
+          </TableWrap>
+        )}
+      </Panel>
+      <Panel className="mt-4" title={`Qui a utilisé les codes (${usage.length})`} flush>
+        {usage.length === 0 ? <Empty>Aucun code n&rsquo;a encore été utilisé.</Empty> : (
+          <TableWrap>
+            <thead><tr><Th>Date</Th><Th>Code</Th><Th>Cliente</Th><Th>Produits ou adhésion</Th><Th>Réduction</Th><Th>Commande</Th></tr></thead>
+            <tbody>
+              {usage.slice(0, 200).map((u, i) => (
+                <tr key={i} className="align-top">
+                  <Td className="tabular-nums">{fmtDateLong(u.at)}</Td>
+                  <Td><span className="font-mono text-[13px] text-white">{u.code}</span></Td>
+                  <Td>{u.who}<span className="block text-[12px] text-mist">{u.email}{u.memberNumber ? ` · membre ${u.memberNumber}` : " · sans compte"}</span></Td>
+                  <Td className="max-w-[320px]">{u.what}</Td>
+                  <Td className="tabular-nums">−{eur(u.discount)}</Td>
+                  <Td>{u.href ? <a href={u.href} className="text-white underline decoration-white/25 underline-offset-4 hover:decoration-white">{u.status === "paid" ? "Payée" : u.status === "awaiting_payment" ? "En attente" : u.status}</a> : u.status}</Td>
                 </tr>
               ))}
             </tbody>

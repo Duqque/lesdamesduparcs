@@ -63,6 +63,14 @@ function text(c: Ctx, t: string, x: number, top: number, size: number, opts: { f
   return w;
 }
 
+/** Taille de police réduite pour qu'un texte tienne dans la largeur donnée (jamais tronqué). */
+function fitSize(font: PDFFont, s: string, size: number, maxW: number, min = 4.5) {
+  const t = safe(font, s);
+  let n = size;
+  while (n > min && font.widthOfTextAtSize(t, n) > maxW) n -= 0.25;
+  return n;
+}
+
 type Run = { t: string; bold?: boolean };
 
 /** Paragraphe justifié à gauche avec passages en gras. Retourne la position (top) après le bloc. */
@@ -151,7 +159,8 @@ export async function buildAttestation(m: MemberPublic, verifyUrl: string, asso:
   let top = 168;
   for (const [label, value, strong] of rows) {
     const w = text(c, `${label} : `, 65, top, 11);
-    text(c, value, 65 + w, top, 11, { font: strong ? c.bold : c.reg });
+    const vf = strong ? c.bold : c.reg;
+    text(c, value, 65 + w, top, fitSize(vf, value, 11, 362 - 65 - w, 6.5), { font: vf });
     top += 19;
   }
 
@@ -162,10 +171,15 @@ export async function buildAttestation(m: MemberPublic, verifyUrl: string, asso:
   c.page.drawImage(logoColor, { x: cx + 10, y: y(cy + 44), width: 34, height: 34 });
   text(c, "LES DAMES DU PARC", cx + 52, cy + 14, 7.5, { font: c.bold, color: WHITE });
   text(c, `MEMBRE ${m.season}`, cx + 52, cy + 26, 6.5, { color: rgb(0.7, 0.76, 0.88) });
-  text(c, fullName.length > 24 ? fullName.slice(0, 23) + "." : fullName, cx + 10, cy + 68, 8.5, { font: c.bold, color: WHITE });
-  text(c, `N° ${m.memberNumber}`, cx + 10, cy + 82, 7, { color: rgb(0.8, 0.84, 0.92) });
-  qr(c, verifyUrl, cx + 178 - 52 - 8, cy + 108 - 52 - 8, 52, 2.5);
-  text(c, m.memberNumber, cx + 89, cy + 118, 8, { align: "center", color: INK });
+  // Le nom s'adapte à la largeur de la carte (jamais tronqué ni débordant) ; le QR code est sous la carte, non dessus.
+  const nameFont = c.bold;
+  let nameSize = 8.5;
+  const nameSafe = safe(nameFont, fullName);
+  while (nameSize > 4.5 && nameFont.widthOfTextAtSize(nameSafe, nameSize) > 178 - 20) nameSize -= 0.25;
+  text(c, fullName, cx + 10, cy + 68, nameSize, { font: nameFont, color: WHITE });
+  text(c, `N° ${m.memberNumber}`, cx + 10, cy + 84, 7, { color: rgb(0.8, 0.84, 0.92) });
+  qr(c, verifyUrl, cx + 89 - 22, cy + 108 + 5, 44, 2.5);
+  text(c, "Scannez pour vérifier", cx + 89, cy + 108 + 5 + 46, 5.5, { align: "center", color: GREY });
 
   // Corps
   const presenter = `${asso.legalName}, ${asso.form} déclarée sous le numéro ${asso.rna}, dont le siège est situé ${asso.address}, ${asso.postalCode} ${asso.city}, représentée par sa ${asso.presidentTitle} `;
@@ -185,7 +199,7 @@ export async function buildAttestation(m: MemberPublic, verifyUrl: string, asso:
       { t: "." },
     ],
     40,
-    300,
+    326,
     W - 80,
     11,
     15.5,
@@ -244,8 +258,10 @@ export async function buildAttestation(m: MemberPublic, verifyUrl: string, asso:
   roundRect(c, rx + 132, bt + 8, 108, 40, 3, { stroke: rgb(0.7, 0.72, 0.78), lineWidth: 0.6 });
   text(c, "Signature de l'adhérent(e)", rx + 136, bt + 12, 5.8, { color: GREY });
   text(c, m.memberNumber, rx + 8, bt + 78, 8, { font: c.bold });
-  text(c, `${m.lastName.toUpperCase()} ${m.firstName}`.slice(0, 30), rx + 8, bt + 90, 8);
-  text(c, `${m.address.postalCode} ${m.address.city}`.toUpperCase().slice(0, 30), rx + 8, bt + 102, 8);
+  const backName = `${m.lastName.toUpperCase()} ${m.firstName}`;
+  text(c, backName, rx + 8, bt + 90, fitSize(c.reg, backName, 8, 160), {});
+  const backCity = `${m.address.postalCode} ${m.address.city}`.toUpperCase();
+  text(c, backCity, rx + 8, bt + 102, fitSize(c.reg, backCity, 8, 160), {});
   text(c, "Adhésion valide", rx + 8, bt + 124, 8, { font: c.bold, color: rgb(0.05, 0.5, 0.25) });
   text(c, `jusqu'au ${fmtDate(m.validUntil)}`, rx + 8, bt + 135, 7.5, { color: GREY });
   qr(c, verifyUrl, rx + 249 - 66 - 8, bt + 172 - 66 - 8, 66, 3);

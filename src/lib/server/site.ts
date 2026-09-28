@@ -10,7 +10,9 @@ export type { NavConfig };
 
 export async function getNavConfig(): Promise<NavConfig> {
   const { navigation } = await siteConfig.get();
-  return { hidden: navigation.hidden, labels: navigation.labels };
+  // Les pages « masquées » disparaissent aussi du menu : il se réorganise automatiquement.
+  const { hiddenPagePaths } = await import("./page-gate");
+  return { hidden: [...new Set([...navigation.hidden, ...(await hiddenPagePaths())])], labels: navigation.labels };
 }
 
 /** Titre et description d'une page, avec les surcharges SEO saisies dans le back-office. */

@@ -12,6 +12,8 @@ export const setContactOpen = (v: boolean) => {
   emit();
 };
 export const openContact = () => setContactOpen(true);
+/** Un second clic sur l'icône (ou le lien) qui a ouvert la fenêtre la referme. */
+export const toggleContact = () => setContactOpen(!open);
 
 export const useContactOpen = () =>
   useSyncExternalStore(

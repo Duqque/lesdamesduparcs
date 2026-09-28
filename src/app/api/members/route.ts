@@ -6,9 +6,7 @@ import { hashPassword } from "@/lib/server/password";
 import { addMember, listMembers, type StoredMember } from "@/lib/server/store";
 import { MAX_AUTH_FILE_BYTES, generateMemberNumber, MAX_AUTH_FILES, isMinor, validateMember, type Guardian, type MemberInput } from "@/lib/members";
 import { seasonOf } from "@/lib/season";
-import { createMembership, defaultPlan, paymentOfMembership, payments } from "@/lib/server/business";
-import { paymentConfigured } from "@/lib/server/helloasso";
-import { startMembershipPayment } from "@/lib/server/checkout";
+import { createMembership, defaultPlan } from "@/lib/server/business";
 import { sendTemplate } from "@/lib/server/email";
 
 const MAX_BODY = MAX_AUTH_FILES * MAX_AUTH_FILE_BYTES + 256 * 1024;
@@ -106,20 +104,9 @@ export async function POST(req: Request) {
 
   const m = result.member;
   const plan = await defaultPlan();
-  const ms = plan ? await createMembership(m, plan) : null;
+  if (plan) await createMembership(m, plan);
   await sendTemplate("welcome", m.email, { prenom: m.firstName, saison: m.season, numero: m.memberNumber }, "welcome");
   await setSession(m.id);
-  // Paiement en ligne de l'adhésion (HelloAsso) : si indisponible, l'adhésion reste « à régler » et se finalise depuis l'espace membre.
-  let checkoutUrl: string | undefined;
-  const pay = ms ? await paymentOfMembership(ms.id) : null;
-  if (pay && pay.status === "pending" && paymentConfigured()) {
-    try {
-      const checkout = await startMembershipPayment(req, pay, m);
-      await payments.update(pay.id, { checkoutId: checkout.id, method: "online" });
-      checkoutUrl = checkout.url;
-    } catch {
-      checkoutUrl = undefined;
-    }
-  }
-  return json({ ok: true, memberNumber: m.memberNumber, checkoutUrl }, 201);
+  // Le compte est créé et connecté : la page suivante propose le paiement de l'adhésion (en ligne, ou plus tard par espèces / chèque).
+  return json({ ok: true, memberNumber: m.memberNumber, next: "/rejoindre-le-groupe/paiement" }, 201);
 }

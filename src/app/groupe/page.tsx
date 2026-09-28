@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { getGroupPhotos } from "@/lib/server/site";
+import { getCms } from "@/lib/server/cms";
 import { GroupHero } from "@/components/group/GroupHero";
 import { wrap } from "@/components/histoire/styles";
 import { Button } from "@/components/ui/Button";
@@ -16,10 +17,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function GroupPage() {
-  const photos = await getGroupPhotos();
+  const [photos, cms] = await Promise.all([getGroupPhotos(), getCms()]);
   return (
     <main className="overflow-x-clip">
-      <GroupHero />
+      <GroupHero title={cms.t("groupe.titre", "Les Dames\ndu Parc")} intro={cms.t("groupe.intro", "Une communauté de supportrices réunies par la même passion : le Paris Saint-Germain.")} button={cms.t("groupe.bouton", "Lire notre histoire")} />
 
       <section aria-labelledby="chapitres" className={`${wrap} py-24 md:py-32`}>
         <Reveal className="mb-14 max-w-2xl">

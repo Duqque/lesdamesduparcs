@@ -205,3 +205,58 @@ async function imageFromForm(formData: FormData, prefix: "hero" | "cta", current
   }
   return safeUrl(s(formData, `${prefix}ImageUrl`)) || safeUrl(s(formData, `${prefix}ImagePick`)) || current;
 }
+
+
+/** État de chaque page : en ligne, masquée (retirée des menus), en maintenance ou « bientôt disponible », avec un message facultatif. */
+export async function savePageStatesAction(formData: FormData) {
+  const ctx = await requireAdmin("site.content");
+  const { SITE_PAGES } = await import("@/lib/admin/site-pages");
+  const pageStates: Record<string, { state: "live" | "hidden" | "maintenance" | "soon"; message?: string }> = {};
+  for (const p of SITE_PAGES) {
+    const state = s(formData, `state:${p.path}`);
+    if (!["hidden", "maintenance", "soon"].includes(state)) continue;
+    pageStates[p.path] = { state: state as "hidden" | "maintenance" | "soon", message: s(formData, `message:${p.path}`).slice(0, 300) || undefined };
+  }
+  await siteConfig.set({ pageStates });
+  await audit(ctx, "modification", "pages du site", `États des pages modifiés : ${Object.entries(pageStates).map(([k, v]) => `${k} ${v.state}`).join(", ") || "toutes en ligne"}`);
+  refreshSite();
+  done("/admin/site/pages", "États des pages enregistrés : les menus se sont réorganisés automatiquement.");
+}
+
+/** Textes des pages modifiés dans « Contenus des pages » (vide = texte d'origine). */
+export async function saveCmsAction(page: string, formData: FormData) {
+  const ctx = await requireAdmin("site.content");
+  const { CMS_FIELDS } = await import("@/data/cms-fields");
+  const cur = (await siteConfig.get()).cms ?? {};
+  const next = { ...cur };
+  for (const f of CMS_FIELDS.filter((x) => x.page === page)) {
+    const v = s(formData, f.key);
+    if (v && v !== f.default) next[f.key] = v.slice(0, 2000);
+    else delete next[f.key];
+  }
+  await siteConfig.set({ cms: next });
+  await audit(ctx, "modification", "contenus", `Textes de la page ${page} modifiés`);
+  refreshSite();
+  done(`/admin/site/contenus?page=${encodeURIComponent(page)}`, "Textes enregistrés.");
+}
+
+/** Photo de chaque page d'erreur : envoi d'une nouvelle photo ou retour à la photo d'origine. */
+export async function saveErrorPhotosAction(formData: FormData) {
+  const ctx = await requireAdmin("site.content");
+  const { ERROR_PAGES } = await import("@/data/errors");
+  const cur = { ...((await settings.get()).errorPhotos ?? {}) };
+  for (const e of ERROR_PAGES) {
+    if (formData.get(`reset:${e.slug}`) === "on") delete cur[e.slug];
+    const file = formData.get(`photo:${e.slug}`);
+    if (file instanceof File && file.size > 0) {
+      const up = await saveMedia(file);
+      if (!up.ok) redirect(`/admin/site/erreurs?erreur=${encodeURIComponent(up.error)}`);
+      if (!up.media.mime.startsWith("image/")) redirect(`/admin/site/erreurs?erreur=${encodeURIComponent("Choisissez une image (JPEG, PNG ou WebP).")}`);
+      cur[e.slug] = mediaUrl(up.media);
+    }
+  }
+  await settings.set({ errorPhotos: cur });
+  await audit(ctx, "modification", "pages d'erreur", "Photos des pages d'erreur modifiées");
+  refreshSite();
+  done("/admin/site/erreurs", "Photos des pages d'erreur enregistrées.");
+}

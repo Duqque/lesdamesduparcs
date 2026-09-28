@@ -1,6 +1,6 @@
 import { json, siteUrl } from "@/lib/server/http";
 import { getSession } from "@/lib/server/session";
-import { getMemberByNumber, toPublic } from "@/lib/server/store";
+import { getMemberByNumber, listOrdersByMember, toPublic } from "@/lib/server/store";
 import { getTransactions, membershipsOf, syncMemberships } from "@/lib/server/business";
 import { invoices } from "@/lib/server/invoice";
 import { benefitsDb, offersDb, partnersDb } from "@/lib/server/content";
@@ -19,6 +19,7 @@ export async function GET(req: Request) {
   return json({
     member: { ...member, authorizations: member.authorizations.map((f) => ({ id: f.id, name: f.name })) },
     verifyUrl: `${siteUrl(req)}/verification/${member.token}`,
+    orders: (await listOrdersByMember(member.memberNumber)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((o) => ({ id: o.id, number: o.orderNumber ?? o.id.slice(0, 8).toUpperCase(), at: o.createdAt, status: o.status, totalCents: o.totalCents, discountCents: o.discountCents ?? 0, promoCode: o.promoCode, shippingCents: o.shippingCents, lines: o.lines.map((l) => ({ name: l.name, size: l.size, qty: l.qty, unitCents: l.unitCents })), membership: o.membership ? { planName: o.membership.planName, amountCents: o.membership.amountCents } : undefined, invoiceId: invs.find((i) => i.txId === `order:${o.id}`)?.id, tracking: o.tracking, fulfilment: o.fulfilment, resumeToken: o.status === "awaiting_payment" || o.status === "failed" ? o.token : undefined })),
     membership: ms[0] ? { planName: ms[0].planName, season: ms[0].season, startsAt: ms[0].startsAt, endsAt: ms[0].endsAt, status: ms[0].status } : null,
     transactions: txs.filter((t) => t.memberNumber === member.memberNumber).map((t) => ({ id: t.id, at: t.at, type: t.type, label: t.label, amountCents: t.amountCents, status: t.status, method: t.method, invoiceId: invs.find((i) => i.txId === t.id)?.id })),
     benefits: benefits.filter((b) => b.visible).sort((a, b) => a.order - b.order).map((b) => ({ id: b.id, title: b.title, text: b.text })),

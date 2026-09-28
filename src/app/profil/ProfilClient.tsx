@@ -9,6 +9,7 @@ import { useMemberData } from "@/components/member/useMemberData";
 import { Button } from "@/components/ui/Button";
 import { formatEuros } from "@/lib/money";
 import { guardianRelations, isMinor } from "@/lib/members";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 const dateFr = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
@@ -72,7 +73,7 @@ function AdhesionSection({ season, endsAt, flash }: { season: string; endsAt: st
             {state === "expired" ? `Votre adhésion est terminée depuis le ${dateFr(endsAt)}. Renouvelez-la pour retrouver vos avantages et la priorité sur les inscriptions.` : state === "pending" ? "Votre adhésion est créée : il reste à la régler pour l’activer." : "Vous n’avez pas encore d’adhésion pour la saison en cours."}
           </p>
           <div className="mt-6">
-            <Button size="lg" onClick={start} disabled={busy}>{busy ? "Ouverture du paiement…" : label}</Button>
+            <Button size="lg" href="/rejoindre-le-groupe/paiement">{label}</Button>
           </div>
           {message && <p role="status" className="mt-4 max-w-xl font-body text-[14px] leading-[1.7] text-white">{message}</p>}
         </>
@@ -113,7 +114,7 @@ function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: strin
   const { session } = useAuth();
   const validated = session.status === "member" && session.membership === "active";
   if (!data) return <p className="mt-8 font-body text-mist">Chargement de votre espace…</p>;
-  const { member, verifyUrl, transactions: tx, benefits, offers, membership } = data;
+  const { member, verifyUrl, transactions: tx, benefits, offers, membership, orders } = data;
   const minor = isMinor(member.birthDate, member.joinedAt.slice(0, 10));
   return (
     <div className="mt-12 space-y-16">
@@ -162,6 +163,35 @@ function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: strin
               ))}
             </ul>
           </div>
+        )}
+      </Section>
+
+      <Section id="commandes" title="Mes commandes">
+        {orders.length === 0 ? (
+          <p className="text-mist t-lead">Aucune commande pour le moment. Vos achats de la <Link href="/boutique" className="text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">boutique</Link> apparaîtront ici avec leur confirmation et leur reçu.</p>
+        ) : (
+          <ul className="grid gap-4">
+            {orders.map((o) => (
+              <li key={o.id} className="rounded-[14px] border border-white/10 bg-[#0b1327]/90 p-5 font-body">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[15px] font-medium text-white">Commande {o.number}</p>
+                    <p className="mt-1 text-[12.5px] text-mist">{dateFr(o.at)} · {({ paid: "Payée, confirmée", awaiting_payment: "Paiement en attente", failed: "Paiement échoué", cancelled: "Annulée", refunded: "Remboursée", partially_refunded: "Remboursée en partie" } as Record<string, string>)[o.status] ?? o.status}{o.tracking ? ` · suivi ${o.tracking}` : ""}</p>
+                  </div>
+                  <p className="text-[16px] tabular-nums text-white">{formatEuros(o.totalCents)}</p>
+                </div>
+                <ul className="mt-3 divide-y divide-white/10 border-t border-white/10 text-[13.5px] text-white/85">
+                  {o.lines.map((l) => <li key={`${l.name}-${l.size ?? ""}`} className="flex justify-between gap-4 py-2"><span>{l.qty} × {l.name}{l.size ? ` (${l.size})` : ""}</span><span className="tabular-nums">{formatEuros(l.unitCents * l.qty)}</span></li>)}
+                  {o.membership && <li className="flex justify-between gap-4 py-2"><span>{o.membership.planName}</span><span className="tabular-nums">{formatEuros(o.membership.amountCents)}</span></li>}
+                  {o.discountCents > 0 && <li className="flex justify-between gap-4 py-2 text-emerald-300"><span>Code {o.promoCode}</span><span className="tabular-nums">−{formatEuros(o.discountCents)}</span></li>}
+                </ul>
+                <div className="mt-3 flex flex-wrap items-center gap-4">
+                  {o.invoiceId && <a href={`/api/factures/${o.invoiceId}`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 text-[13.5px] text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"><FileText aria-hidden className="size-4" strokeWidth={1.7} /> Reçu et facture (PDF)</a>}
+                  {o.resumeToken && <Link href={`/paiement/retour?order=${o.id}&t=${o.resumeToken}`} className="inline-flex min-h-11 items-center text-[13.5px] font-medium text-white underline decoration-psg-red-bright underline-offset-4">Reprendre le paiement</Link>}
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </Section>
 
@@ -270,9 +300,9 @@ function PasswordForm() {
   const field = "mt-1.5 h-12 w-full rounded-[10px] border border-white/[0.14] bg-white/[0.04] px-4 font-body text-[15px] text-white outline-none focus:border-white/40";
   return (
     <form onSubmit={submit} className="mt-6 grid max-w-md gap-4 font-body">
-      <label className="text-[13px] text-mist">Mot de passe actuel<input name="current" type="password" required autoComplete="current-password" className={field} /></label>
-      <label className="text-[13px] text-mist">Nouveau mot de passe (10 caractères minimum, lettres et chiffres)<input name="next" type="password" required minLength={10} autoComplete="new-password" className={field} /></label>
-      <label className="text-[13px] text-mist">Confirmer<input name="confirm" type="password" required autoComplete="new-password" className={field} /></label>
+      <label className="text-[13px] text-mist">Mot de passe actuel<PasswordInput name="current" required autoComplete="current-password" className={field} /></label>
+      <label className="text-[13px] text-mist">Nouveau mot de passe (10 caractères minimum, lettres et chiffres)<PasswordInput name="next" required minLength={10} autoComplete="new-password" className={field} /></label>
+      <label className="text-[13px] text-mist">Confirmer<PasswordInput name="confirm" required autoComplete="new-password" className={field} /></label>
       {state.msg && <p role="status" className={state.ok ? "text-[14px] text-emerald-300" : "text-[14px] text-psg-red-bright"}>{state.msg}</p>}
       <div><button type="submit" disabled={state.busy} className="inline-flex h-12 items-center rounded-[10px] border border-white/[0.14] px-6 text-[14.5px] font-medium text-white hover:border-white/35 disabled:opacity-60">Changer le mot de passe</button></div>
     </form>

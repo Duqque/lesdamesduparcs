@@ -7,8 +7,8 @@ import { redirect } from "next/navigation";
 import { generateMemberNumber, validateMember, type MemberInput } from "@/lib/members";
 import { seasonOf } from "@/lib/season";
 import { audit, requireAdmin, requireFresh } from "@/lib/server/admin-auth";
-import { addMemberRaw, anonymizeMember, getMemberById, takenMemberNumbers, toPublic, updateMember, type StoredMember } from "@/lib/server/store";
-import { createMembership, currentMembership, memberships, plans, setTxStatus, addManualPayment, type PayMethod, type TxStatus } from "@/lib/server/business";
+import { addMemberRaw, anonymizeMember, deleteMemberHard, getMemberById, takenMemberNumbers, toPublic, updateMember, type StoredMember } from "@/lib/server/store";
+import { createMembership, currentMembership, defaultPlan, effectiveStatus, memberships, paymentOfMembership, payments, plans, setTxStatus, addManualPayment, type PayMethod, type TxStatus } from "@/lib/server/business";
 import { hashPassword } from "@/lib/server/password";
 import { sendEmail, sendTemplate } from "@/lib/server/email";
 import { eraseMemberData } from "@/lib/server/privacy";
@@ -333,4 +333,109 @@ export async function memberInviteLinkAction(id: string) {
   await cookies().then((jar) => jar.set("ddp_admin_link", link, { httpOnly: true, sameSite: "strict", path: "/admin/adherentes", maxAge: 60, secure: process.env.NODE_ENV === "production" && process.env.SESSION_INSECURE_COOKIE !== "1" }));
   await audit(ctx, "sécurité", "adhérente", `Lien de définition du mot de passe généré : fiche ${id.slice(0, 8)}`, { entityId: id });
   back(id, { ok: "Lien généré (valable 7 jours, à usage unique)." });
+}
+
+
+/** Envoie à la personne, par e-mail, un lien de reconnexion et de changement de mot de passe (récupération manuelle par l'équipe). */
+export async function sendMemberResetEmailAction(id: string) {
+  const ctx = await requireAdmin("members.edit");
+  const m = await getMemberById(id);
+  if (!m || m.status === "anonymized" || m.status === "expelled") redirect("/admin/adherentes");
+  const link = `${await siteOrigin()}/connexion/reinitialiser/${await createMemberResetToken(id, 48 * 3600_000)}`;
+  await sendEmail({
+    to: m.email,
+    subject: "Reconnectez-vous à votre espace Les Dames du Parc",
+    body: `Bonjour ${m.firstName},\n\nL'équipe des Dames du Parc vous envoie ce lien pour vous reconnecter à votre espace et choisir un nouveau mot de passe. Il est valable 48 heures et ne fonctionne qu'une fois :\n\n${link}\n\nSi vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer ce message.`,
+    kind: "mot-de-passe",
+  });
+  await audit(ctx, "sécurité", "adhérente", `Lien de réinitialisation du mot de passe envoyé par e-mail : fiche ${id.slice(0, 8)}`, { entityId: id });
+  back(id, { ok: `Lien de réinitialisation envoyé à ${m.email} (valable 48 heures, à usage unique).` });
+}
+
+/** Valide manuellement le règlement de la carte de membre (espèces, chèque, virement…) : la carte et le QR code deviennent valides, la membre est prévenue. */
+export async function validateMemberCardAction(id: string, formData: FormData) {
+  const ctx = await requireAdmin("finance.edit");
+  const m = await getMemberById(id);
+  if (!m || m.status === "anonymized" || m.status === "expelled") redirect("/admin/adherentes");
+  const method = (s(formData, "method") || "manual") as PayMethod;
+  const cur = await currentMembership(id);
+  const pay = cur ? await paymentOfMembership(cur.id) : null;
+  if (cur && pay && pay.status !== "paid" && effectiveStatus(cur) === "active") {
+    const res = await setTxStatus(`payment:${pay.id}`, "paid", { method });
+    if (!res.ok) back(id, { erreur: res.error });
+  } else {
+    const plan = await defaultPlan();
+    if (!plan) back(id, { erreur: "Aucune formule d'adhésion disponible." });
+    const ms = await createMembership(toPublic(m), plan!, { renewedFromId: cur?.id, startsAt: new Date(), paid: true, method });
+    await updateMember(id, { validUntil: ms.endsAt.slice(0, 10), season: ms.season });
+  }
+  await audit(ctx, "paiement", "adhérente", `Carte de membre validée manuellement (${method}) : ${m.firstName} ${m.lastName}`, { entityId: id });
+  revalidatePath("/admin/adherentes");
+  back(id, { ok: "Carte de membre validée : le QR code est valide et la membre en est informée par e-mail." });
+}
+
+/** Dates exactes de début et de fin de l'adhésion en cours. */
+export async function setMembershipDatesAction(id: string, formData: FormData) {
+  const ctx = await requireAdmin("members.edit");
+  const m = await getMemberById(id);
+  const cur = m ? await currentMembership(id) : null;
+  if (!m || !cur) back(id, { erreur: "Aucune adhésion à modifier." });
+  const start = s(formData, "start");
+  const end = s(formData, "end");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) back(id, { erreur: "Renseignez une date de début et une date de fin." });
+  if (end < start) back(id, { erreur: "La date de fin est avant la date de début." });
+  await memberships.update(cur!.id, { startsAt: `${start}T00:00:00.000Z`, endsAt: `${end}T23:59:59.000Z` });
+  await updateMember(id, { validUntil: end });
+  await audit(ctx, "modification", "adhérente", `Dates d'adhésion modifiées : du ${start} au ${end}`, { entityId: id, before: { start: cur!.startsAt, end: cur!.endsAt }, after: { start, end } });
+  revalidatePath("/admin/adherentes");
+  back(id, { ok: "Dates de l'adhésion enregistrées." });
+}
+
+/**
+ * Ligne manuelle (test, régularisation, vente sur place) : adhésion (avec dates exactes), achat, événement ou autre, avec son mode de
+ * paiement et son statut. Une ligne « payée » génère la facture ; une ligne d'adhésion payée valide la carte.
+ */
+export async function addManualLineAction(id: string, formData: FormData) {
+  const ctx = await requireAdmin("finance.edit");
+  const m = await getMemberById(id);
+  if (!m) redirect("/admin/adherentes");
+  const type = s(formData, "type") || "autre";
+  const paid = s(formData, "status") === "paid";
+  const method = (s(formData, "method") || "manual") as PayMethod;
+  const amount = Math.round(parseFloat(s(formData, "amount").replace(",", ".")) * 100);
+  if (type !== "adhesion" && (!Number.isFinite(amount) || amount <= 0)) back(id, { erreur: "Montant invalide." });
+  if (type === "adhesion") {
+    const plan = await plans.get(s(formData, "planId")) ?? (await defaultPlan());
+    if (!plan) back(id, { erreur: "Aucune formule d'adhésion disponible." });
+    const cur = await currentMembership(id);
+    const start = /^\d{4}-\d{2}-\d{2}$/.test(s(formData, "start")) ? new Date(`${s(formData, "start")}T00:00:00.000Z`) : new Date();
+    const ms = await createMembership(toPublic(m), plan!, { renewedFromId: cur?.id, startsAt: start, paid, method });
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s(formData, "end"))) await memberships.update(ms.id, { endsAt: `${s(formData, "end")}T23:59:59.000Z` });
+    const fresh = (await memberships.get(ms.id)) ?? ms;
+    await updateMember(id, { validUntil: fresh.endsAt.slice(0, 10), season: fresh.season });
+  } else {
+    const prefix = ({ boutique: "Achat", evenement: "Événement" } as Record<string, string>)[type] ?? "Autre";
+    await addManualPayment({ memberNumber: m.memberNumber, name: `${m.firstName} ${m.lastName}`, email: m.email, label: `${prefix} : ${s(formData, "label") || "ligne manuelle"}`, amountCents: amount, method, status: paid ? "paid" : "pending", note: "Ligne manuelle" });
+  }
+  await audit(ctx, "paiement", "transaction", `Ligne manuelle (${type}, ${paid ? "payée" : "en attente"}) ajoutée : ${m.firstName} ${m.lastName}`, { entityId: id });
+  revalidatePath("/admin/adherentes");
+  back(id, { ok: "Ligne enregistrée." });
+}
+
+/** Supprime un profil créé sans carte payée (fiche, adhésions et paiements non réglés). Un profil avec carte payée passe par l'effacement RGPD. */
+export async function deleteProfileAction(id: string) {
+  const ctx = await requireAdmin("members.delete");
+  await requireFresh(ctx);
+  const m = await getMemberById(id);
+  if (!m) redirect("/admin/adherentes");
+  const list = await memberships.find((x) => x.memberId === id);
+  const pays = (await payments.find((p) => p.memberNumber === m.memberNumber));
+  if (pays.some((p) => p.status === "paid" || p.status === "refunded")) back(id, { erreur: "Cette personne a une carte payée : utilisez l'effacement des données (RGPD), qui conserve les pièces comptables." });
+  for (const x of list) await memberships.remove(x.id);
+  for (const p of pays) await payments.remove(p.id);
+  await revokeMemberSessions(id);
+  await deleteMemberHard(id);
+  await audit(ctx, "suppression", "adhérente", `Profil supprimé : ${m.firstName} ${m.lastName} (${m.memberNumber})`, { entityId: id });
+  revalidatePath("/admin/adherentes");
+  redirect("/admin/adherentes?ok=" + encodeURIComponent(`Profil de ${m.firstName} ${m.lastName} supprimé.`));
 }

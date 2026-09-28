@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { Download, Trash2 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 const field = "mt-1.5 h-12 w-full rounded-[10px] border border-white/[0.14] bg-white/[0.04] px-4 font-body text-[15px] text-white outline-none focus:border-white/40";
 const box = "rounded-[10px] border border-line bg-night-900/85 p-6 md:p-8";
@@ -53,7 +54,7 @@ export function MesDonneesClient({ types }: { types: Array<{ value: string; labe
           <form onSubmit={eraseAccount} className="mt-8 grid max-w-md gap-4 border-t border-white/10 pt-8">
             <h3 className="font-body text-[16px] font-semibold text-white">Supprimer mon compte et mes données</h3>
             <p className="text-white/70 t-small">Cette action est <strong className="text-white">définitive</strong> : votre fiche, votre carte, vos pièces et vos coordonnées sont effacées. Seules les pièces comptables sont conservées sans lien avec vous, comme la loi l&rsquo;impose.</p>
-            <label className="text-[13px] text-mist">Mot de passe<input name="password" type="password" required autoComplete="current-password" className={field} /></label>
+            <label className="text-[13px] text-mist">Mot de passe<PasswordInput name="password" required autoComplete="current-password" className={field} /></label>
             <label className="text-[13px] text-mist">Tapez SUPPRIMER pour confirmer<input name="confirm" required autoComplete="off" className={field} /></label>
             {erase.msg && <p role="status" className={erase.ok ? "text-[14px] text-emerald-300" : "text-[14px] text-psg-red-bright"}>{erase.msg}</p>}
             <div><button type="submit" disabled={erase.busy} className={`${btn} border-psg-red-bright/60 text-psg-red-bright hover:border-psg-red-bright`}><Trash2 aria-hidden className="size-4" /> Supprimer définitivement mon compte</button></div>

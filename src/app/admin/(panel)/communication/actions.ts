@@ -18,7 +18,24 @@ export async function saveCampaignAction(formData: FormData) {
   if (!subject || !body) redirect(`${back}?erreur=${encodeURIComponent("Objet et contenu requis.")}`);
   if (audience.length === 0) redirect(`${back}?erreur=${encodeURIComponent("Choisissez au moins un groupe de destinataires.")}`);
   const scheduledAt = s(formData, "scheduledAt") ? new Date(s(formData, "scheduledAt")).toISOString() : undefined;
-  const data = { subject, body, audience, buttonLabel: s(formData, "buttonLabel") || undefined, buttonUrl: s(formData, "buttonUrl") || undefined, scheduledAt, recipients: (await recipientsFor(audience)).length };
+  // Photos (envoyées ou déjà enregistrées) et liens du message.
+  const { saveMedia, mediaUrl } = await import("@/lib/server/media");
+  const { safeUrl } = await import("@/lib/safe-url");
+  const upload = async (file: FormDataEntryValue | null) => {
+    if (!(file instanceof File) || file.size === 0) return "";
+    const up = await saveMedia(file);
+    if (!up.ok) redirect(`${back}?erreur=${encodeURIComponent(up.error)}`);
+    if (!up.media.mime.startsWith("image/")) redirect(`${back}?erreur=${encodeURIComponent("Les photos d'une campagne doivent être des images.")}`);
+    return mediaUrl(up.media);
+  };
+  const imageUrl = (await upload(formData.get("headerImageFile"))) || safeUrl(s(formData, "headerImage")) || undefined;
+  const extraImages = formData.getAll("extraImages").map((v) => safeUrl(String(v))).filter(Boolean);
+  for (const f of formData.getAll("extraImageFiles")) {
+    const u = await upload(f);
+    if (u) extraImages.push(u);
+  }
+  const links = s(formData, "links").split("\n").map((l) => l.split("|").map((x) => x.trim())).filter((p) => p[0] && p[1] && (/^https?:\/\//.test(p[1]) || p[1].startsWith("/"))).map(([label, url]) => ({ label: label.slice(0, 80), url }));
+  const data = { imageUrl, imageAlt: s(formData, "imageAlt") || undefined, extraImages: extraImages.length ? extraImages : undefined, links: links.length ? links : undefined, subject, body, audience, buttonLabel: s(formData, "buttonLabel") || undefined, buttonUrl: s(formData, "buttonUrl") || undefined, scheduledAt, recipients: (await recipientsFor(audience)).length };
   let saved;
   if (id) {
     const before = await campaigns.get(id);

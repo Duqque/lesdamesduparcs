@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 import { eur } from "@/lib/admin/format";
-import { ROLE_PERMISSIONS } from "@/lib/admin/permissions";
+import { effectivePermissions } from "@/lib/admin/permissions";
 import { admins, settings, type AssociationInfo } from "./admin-store";
 import { getTransactions, type Tx } from "./business";
 import { getBlob, mediaKey, putBlob } from "./blobs";
@@ -193,7 +193,8 @@ const nextNumber = (prefix: string, year: number, all: Invoice[]) => {
 };
 
 async function adminEmails() {
-  return (await admins.all()).filter((a) => a.active && ROLE_PERMISSIONS[a.role]?.has("finance.view")).map((a) => a.email);
+  const overrides = (await settings.get()).rolePermissions;
+  return (await admins.all()).filter((a) => a.active && effectivePermissions(a.role, overrides).has("finance.view")).map((a) => a.email);
 }
 
 /**

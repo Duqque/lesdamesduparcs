@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 const field = "mt-1.5 h-12 w-full rounded-[10px] border border-white/[0.14] bg-white/[0.04] px-4 font-body text-[15px] text-white outline-none focus:border-white/40";
 
@@ -25,8 +26,8 @@ export function ResetForm({ token }: { token: string }) {
     );
   return (
     <form onSubmit={submit} className="mt-8 grid gap-4 font-body">
-      <label className="text-[13px] text-mist">Nouveau mot de passe<input name="password" type="password" required minLength={10} autoComplete="new-password" className={field} /></label>
-      <label className="text-[13px] text-mist">Confirmer<input name="confirm" type="password" required autoComplete="new-password" className={field} /></label>
+      <label className="text-[13px] text-mist">Nouveau mot de passe<PasswordInput name="password" required minLength={10} autoComplete="new-password" className={field} /></label>
+      <label className="text-[13px] text-mist">Confirmer<PasswordInput name="confirm" required autoComplete="new-password" className={field} /></label>
       {state.error && <p role="alert" className="text-[14px] text-psg-red-bright">{state.error}</p>}
       <div><button type="submit" disabled={state.busy} className="inline-flex h-12 items-center rounded-[10px] bg-psg-red px-7 text-[15px] font-semibold text-white hover:bg-psg-red-bright disabled:opacity-60">Enregistrer</button></div>
     </form>

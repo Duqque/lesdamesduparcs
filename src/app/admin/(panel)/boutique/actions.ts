@@ -32,12 +32,22 @@ export async function saveProductAction(formData: FormData) {
   const name = s(formData, "name");
   if (!name) back("Le nom est requis.");
 
-  const images = lines(s(formData, "images")).map(safeUrl).filter(Boolean);
+  // Photos conservées (celles que l'administratrice n'a pas supprimées) puis nouvelles photos envoyées ; idem pour les vidéos.
+  const images = formData.getAll("images").flatMap((v) => lines(String(v))).map(safeUrl).filter(Boolean);
   for (const f of formData.getAll("imageFiles")) {
     if (!(f instanceof File) || f.size === 0) continue;
     const up = await saveMedia(f);
     if (!up.ok) back(up.error);
+    else if (!up.media.mime.startsWith("image/")) back("Les photos doivent être des images (JPEG, PNG, WebP, GIF).");
     else images.push(mediaUrl(up.media));
+  }
+  const videos = formData.getAll("videos").flatMap((v) => lines(String(v))).map(safeUrl).filter(Boolean);
+  for (const f of formData.getAll("videoFiles")) {
+    if (!(f instanceof File) || f.size === 0) continue;
+    const up = await saveMedia(f);
+    if (!up.ok) back(up.error);
+    else if (!up.media.mime.startsWith("video/")) back("Les vidéos doivent être au format MP4 ou WebM.");
+    else videos.push(mediaUrl(up.media));
   }
   const sizes = s(formData, "sizes").split(",").map((x) => x.trim()).filter(Boolean);
   const data: Omit<Product, "id" | "createdAt" | "updatedAt"> = {
@@ -47,6 +57,7 @@ export async function saveProductAction(formData: FormData) {
     description: s(formData, "description"),
     details: lines(s(formData, "details")),
     images,
+    videos,
     sizes,
     isNew: formData.get("isNew") === "on",
     status: (s(formData, "status") || "draft") as ProductStatus,
@@ -197,7 +208,7 @@ export async function saveShopCodeAction(formData: FormData) {
   if (startsAt && endsAt && endsAt < startsAt) fail("La date de fin est avant la date de début.");
   const list = (k: string) => s(formData, k).split(/[\n,;]/).map((x) => x.trim()).filter(Boolean).slice(0, 50);
   const data = {
-    code, label: s(formData, "label").slice(0, 120), type, value, scope: "shop" as const, startsAt, endsAt, maxUses: maxUses || undefined, minCents: minCents || undefined, active: formData.get("active") === "on",
+    code, label: s(formData, "label").slice(0, 120), type, value, scope: (["shop", "adhesion", "event", "all"].includes(s(formData, "scope")) ? s(formData, "scope") : "shop") as "shop" | "adhesion" | "event" | "all", startsAt, endsAt, maxUses: maxUses || undefined, minCents: minCents || undefined, active: formData.get("active") === "on",
     maxDiscountCents: euros(s(formData, "maxDiscount")) || undefined,
     perUserLimit: Math.max(Math.floor(Number(s(formData, "perUser"))) || 0, 0) || undefined,
     categories: list("categories").length ? list("categories") : undefined,

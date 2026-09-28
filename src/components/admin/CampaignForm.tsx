@@ -2,6 +2,7 @@ import { saveCampaignAction } from "@/app/admin/(panel)/communication/actions";
 import type { Campaign } from "@/lib/server/content";
 import { SubmitButton } from "./SubmitButton";
 import { Field, Panel, area, inp } from "./ui";
+import { MediaPicker } from "./MediaPicker";
 
 const toLocal = (iso?: string) => (iso ? new Date(iso).toISOString().slice(0, 16) : "");
 
@@ -27,6 +28,14 @@ export function CampaignForm({ campaign, segments }: { campaign?: Campaign; segm
           <Field label="Texte du bouton"><input name="buttonLabel" defaultValue={campaign?.buttonLabel} disabled={locked} className={inp} /></Field>
           <Field label="Lien du bouton"><input name="buttonUrl" defaultValue={campaign?.buttonUrl} disabled={locked} className={inp} /></Field>
           <Field label="Programmer l'envoi (facultatif)"><input type="datetime-local" name="scheduledAt" defaultValue={toLocal(campaign?.scheduledAt)} disabled={locked} className={inp} /></Field>
+        </div>
+      </Panel>
+      <Panel title="Photos, liens et compléments">
+        <div className="grid gap-5">
+          <Field label="Photo d'en-tête" hint="Affichée en haut du message, sous le titre."><MediaPicker name="headerImageFile" existingName="headerImage" existing={campaign?.imageUrl ? [campaign.imageUrl] : []} minWidth={1200} minHeight={630} label="Choisir la photo d'en-tête" disabled={locked} /></Field>
+          <Field label="Texte alternatif de la photo d'en-tête"><input name="imageAlt" defaultValue={campaign?.imageAlt} disabled={locked} className={inp} /></Field>
+          <Field label="Autres photos" hint="Ajoutées après le texte."><MediaPicker name="extraImageFiles" existingName="extraImages" existing={campaign?.extraImages ?? []} multiple minWidth={1200} minHeight={630} label="Ajouter des photos" disabled={locked} /></Field>
+          <Field label="Liens utiles (un par ligne : Libellé | https://…)" hint="Chaque ligne devient un bouton. Vous pouvez aussi écrire dans le texte : [Libellé](https://…) pour un bouton, ![description](https://…) pour une photo, ou une adresse seule sur une ligne."><textarea name="links" rows={3} defaultValue={campaign?.links?.map((l) => `${l.label} | ${l.url}`).join("\n")} placeholder="Voir la boutique | https://www.lesdamesduparc.com/boutique" disabled={locked} className={area} /></Field>
         </div>
       </Panel>
       {!locked && <div><SubmitButton>{campaign ? "Enregistrer" : "Créer la campagne"}</SubmitButton></div>}

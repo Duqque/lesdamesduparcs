@@ -7,7 +7,9 @@ import { loadMemberRows, type MemberRow } from "./admin-data";
 import { settings } from "./admin-store";
 import { campaigns, emailLog, templates, type Campaign } from "./content";
 import { collection, type Row } from "./db";
-import { emailConfigured, fill, sendTemplate } from "./email";
+import { emailConfigured, sendBulk, sendTemplate } from "./email";
+import { siteOrigin } from "./http";
+import { unsubscribeToken } from "./unsubscribe";
 import { getAllEventsAdmin } from "./events";
 import { listAllRegistrations, listOrders } from "./store";
 import { plans, reinstateDue, setTxStatus } from "./business";
@@ -38,27 +40,31 @@ export async function recipientsFor(audience: string[]) {
     key === "participants" ? participants.has(r.member.memberNumber) :
     key === "expired" ? r.status === "expired" :
     key.startsWith("plan:") ? r.membership?.planId === key.slice(5) && r.status === "active" : false;
-  const out = new Map<string, { email: string; firstName: string }>();
-  for (const r of rows) if (audience.some((k) => match(r, k))) out.set(r.member.email, { email: r.member.email, firstName: r.member.firstName });
+  // Les personnes qui se sont désabonnées des e-mails de nouveautés ne reçoivent pas non plus les campagnes.
+  const out = new Map<string, { id: string; email: string; firstName: string }>();
+  for (const r of rows) if (r.member.emailUpdates !== false && audience.some((k) => match(r, k))) out.set(r.member.email, { id: r.member.id, email: r.member.email, firstName: r.member.firstName });
   return [...out.values()];
 }
 
-async function sendBatch(list: Array<{ email: string; firstName: string }>, subject: string, body: string, button?: { label?: string; url?: string }) {
-  const conf = await settings.get();
-  const extra = button?.label && button.url ? `\n\n${button.label} : ${button.url}` : "";
-  let sent = 0;
-  for (let i = 0; i < list.length; i += 100) {
-    const chunk = list.slice(i, i + 100).map((r) => ({
-      from: `${conf.emails.fromName} <${process.env.RESEND_FROM_EMAIL?.trim() || conf.emails.fromEmail}>`,
-      to: [r.email],
-      subject: fill(subject, { prenom: r.firstName }),
-      text: fill(body, { prenom: r.firstName }) + extra + (conf.emails.signature ? `\n\n${conf.emails.signature}` : ""),
-    }));
-    const res = await fetch(`${process.env.RESEND_API_URL?.replace(/\/$/, "") || "https://api.resend.com"}/emails/batch`, { method: "POST", headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify(chunk) });
-    if (!res.ok) throw new Error(`Resend HTTP ${res.status}`);
-    sent += chunk.length;
+/** Envoi HTML d'une campagne : un e-mail personnalisé par personne, photo d'en-tête, photos, liens (boutons), désabonnement inclus. */
+async function sendCampaign(list: Array<{ id: string; email: string; firstName: string }>, c: Campaign) {
+  let origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com";
+  try {
+    origin = await siteOrigin();
+  } catch {
+    /* tâche planifiée : adresse configurée */
   }
-  return sent;
+  const abs = (u: string) => (u.startsWith("/") ? `${origin}${u}` : u);
+  const withUnsub = await Promise.all(list.map(async (r) => ({ email: r.email, firstName: r.firstName, unsubscribeUrl: `${origin}/desabonnement?t=${encodeURIComponent(await unsubscribeToken(r.id))}` })));
+  return sendBulk(withUnsub, {
+    subject: c.subject,
+    body: c.body,
+    kind: "campagne",
+    image: c.imageUrl ? { src: abs(c.imageUrl), alt: c.imageAlt || c.subject } : undefined,
+    extraImages: (c.extraImages ?? []).map((u) => ({ src: abs(u), alt: c.subject })),
+    links: (c.links ?? []).map((l) => ({ label: l.label, url: abs(l.url) })),
+    cta: c.buttonLabel && c.buttonUrl ? { label: c.buttonLabel, url: abs(c.buttonUrl) } : undefined,
+  });
 }
 
 /** Envoie une campagne. Sans service d'e-mail configuré, elle reste « en file d'attente » : rien n'est envoyé. */
@@ -69,9 +75,10 @@ export async function dispatchCampaign(c: Campaign) {
     return { sent: 0, queued: true, total: list.length };
   }
   try {
-    const sent = await sendBatch(list, c.subject, c.body, { label: c.buttonLabel, url: c.buttonUrl });
+    const res = await sendCampaign(list, c);
+    if (res.failed && !res.sent) throw new Error("Échec de l'envoi");
+    const sent = res.sent;
     await campaigns.update(c.id, { status: "sent", sentAt: new Date().toISOString(), recipients: sent, note: undefined });
-    await emailLog.insert({ to: `${sent} destinataire(s)`, subject: c.subject, kind: "campagne", status: "sent" });
     return { sent, queued: false, total: list.length };
   } catch (e) {
     await campaigns.update(c.id, { status: "queued", note: `Échec de l'envoi : ${e instanceof Error ? e.message : "erreur"}` });
@@ -124,6 +131,28 @@ export async function runScheduled() {
         await sendTemplate("renewal", r.member.email, { prenom: r.member.firstName, fin: formatLongDate(r.expiresAt.slice(0, 10)) });
         result.renewals++;
       }
+    }
+  }
+  // Adhésion toujours non réglée ou non validée 7 et 15 jours après la création : rappel automatique avec le lien de paiement.
+  if (conf.automations.paymentReminderJ7 || conf.automations.paymentReminderJ15) {
+    const { payments: pays, membershipState } = await import("./business");
+    const { getMemberByNumber } = await import("./store");
+    const { siteOrigin } = await import("./http");
+    let origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com";
+    try {
+      origin = await siteOrigin();
+    } catch {
+      /* tâche planifiée : adresse configurée */
+    }
+    for (const pay of await pays.find((p) => p.kind === "adhesion" && p.status === "pending" && !p.viaOrderId && p.amountCents > 0)) {
+      const days = Math.floor((now.getTime() - new Date(pay.createdAt).getTime()) / 86_400_000);
+      const due: 7 | 15 | null = days >= 15 && conf.automations.paymentReminderJ15 && pay.reminderSent !== 15 ? 15 : days >= 7 && conf.automations.paymentReminderJ7 && !pay.reminderSent ? 7 : null;
+      if (!due) continue;
+      const member = pay.memberNumber ? await getMemberByNumber(pay.memberNumber) : null;
+      if (!member || member.status === "anonymized" || member.status === "expelled" || member.status === "suspended" || (await membershipState(member.id)) !== "pending") continue;
+      await sendTemplate("payment_reminder", member.email, { prenom: member.firstName, jours: due, montant: eur(pay.amountCents), lien: `${origin}/rejoindre-le-groupe/paiement` });
+      await pays.update(pay.id, { reminderSent: due });
+      result.reminders++;
     }
   }
   const [events, regs] = await Promise.all([getAllEventsAdmin(), listAllRegistrations()]);

@@ -132,3 +132,34 @@ export async function saveInvoiceSettingsAction(formData: FormData) {
   await audit(ctx, "modification", "paramètres", "Modèle de facture modifié (numérotation, signataire, tampon, signature)");
   back("ok", "Modèle de facture enregistré : il s'applique aux prochaines factures.", path);
 }
+
+
+/** Matrice des rôles : la super administratrice choisit, permission par permission, ce que chaque rôle peut faire. */
+export async function saveRolePermissionsAction(formData: FormData) {
+  const ctx = await requireAdmin("admins.manage");
+  if (ctx.admin.role !== "super") back("erreur", "Seule la super administratrice peut modifier les rôles et permissions.", "/admin/configuration/roles");
+  await requireFresh(ctx);
+  const { PERMISSIONS, SUPER_ONLY, ROLE_PERMISSIONS } = await import("@/lib/admin/permissions");
+  const next: Record<string, string[]> = {};
+  for (const role of ROLES.filter((r) => r !== "super")) {
+    const granted = PERMISSIONS.filter((p) => !SUPER_ONLY.includes(p) && formData.get(`${role}:${p}`) === "on");
+    // Une rôle identique à celui d'origine n'est pas enregistré comme personnalisé.
+    const original = PERMISSIONS.filter((p) => ROLE_PERMISSIONS[role].has(p));
+    if (granted.length !== original.length || granted.some((p) => !original.includes(p))) next[role] = granted;
+  }
+  await settings.set({ rolePermissions: next });
+  // Les sessions ouvertes gardent leur rôle mais leurs permissions sont relues à chaque requête : le changement est immédiat.
+  await audit(ctx, "modification", "rôles", "Rôles et permissions modifiés", { after: next });
+  revalidatePath("/admin", "layout");
+  back("ok", "Rôles et permissions enregistrés : ils s'appliquent immédiatement.", "/admin/configuration/roles");
+}
+
+export async function resetRolePermissionsAction() {
+  const ctx = await requireAdmin("admins.manage");
+  if (ctx.admin.role !== "super") back("erreur", "Seule la super administratrice peut modifier les rôles et permissions.", "/admin/configuration/roles");
+  await requireFresh(ctx);
+  await settings.set({ rolePermissions: {} });
+  await audit(ctx, "modification", "rôles", "Permissions des rôles rétablies aux valeurs d'origine");
+  revalidatePath("/admin", "layout");
+  back("ok", "Permissions d'origine rétablies.", "/admin/configuration/roles");
+}

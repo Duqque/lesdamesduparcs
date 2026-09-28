@@ -18,6 +18,8 @@ const RULES = [
   ["eventReminderJ7", "Événement", "Rappel à J-7"],
   ["eventReminderJ1", "Événement", "Rappel à J-1"],
   ["waitlistNotify", "Liste d'attente", "Notification quand une place se libère"],
+  ["paymentReminderJ7", "Adhésion non réglée ou non validée", "Rappel 7 jours après la création du compte"],
+  ["paymentReminderJ15", "Adhésion non réglée ou non validée", "Rappel 15 jours après la création du compte"],
   ["notifyArticle", "Nouvel article publié", "E-mail à toutes les adhérentes actives"],
   ["notifyEvent", "Nouvel événement publié", "E-mail à toutes les adhérentes actives"],
   ["notifyProduct", "Nouveau produit en boutique", "E-mail à toutes les adhérentes actives"],

@@ -12,7 +12,7 @@ import { productsDb, totalStock } from "@/lib/server/shop";
 import { haPayments } from "@/lib/server/payment-records";
 import type { Registration } from "@/lib/registration";
 
-const MEMBER_KEYS = ["q", "vue", "plan", "statut", "paiement", "ville", "age", "du", "au", "expDu", "expAu", "mineure", "tri"] as const;
+const MEMBER_KEYS = ["q", "vue", "plan", "statut", "paiement", "ville", "age", "du", "au", "expDu", "expAu", "mineure", "type", "tri"] as const;
 const STATUS = { active: "Active", expired: "Expirée", suspended: "Suspendue", expelled: "Radiée", anonymized: "Anonymisée" } as const;
 const REG_STATUS = { confirmed: "Confirmée", paid: "Payée", awaiting_payment: "Paiement en attente", waitlist: "Liste d'attente", cancelled: "Annulée", refunded: "Remboursée" } as const;
 
@@ -38,19 +38,27 @@ export async function GET(req: Request, ctx: { params: Promise<{ kind: string }>
     const rows = filterMembers(await loadMemberRows(), f).filter((r) => r.status !== "anonymized");
     const pii = admin.can("members.pii");
     const fin = admin.can("finance.view");
-    const cols: Col<(typeof rows)[number]>[] = [
-      { label: "N° membre", value: (r) => r.member.memberNumber, w: 1.6 },
-      { label: "Nom", value: (r) => r.member.lastName },
-      { label: "Prénom", value: (r) => r.member.firstName },
-      { label: "E-mail", value: (r) => r.member.email, w: 2 },
-      { label: "Téléphone", value: (r) => r.member.phone },
-      ...(pii ? [{ label: "Naissance", value: (r: (typeof rows)[number]) => fmtDate(r.member.birthDate) }, { label: "Ville", value: (r: (typeof rows)[number]) => r.member.address.city }, { label: "Code postal", value: (r: (typeof rows)[number]) => r.member.address.postalCode }] : []),
-      { label: "Formule", value: (r) => r.planName },
-      { label: "Statut", value: (r) => STATUS[r.status] },
-      ...(fin ? [{ label: "Paiement", value: (r: (typeof rows)[number]) => (r.payment ? TX_STATUS_LABEL[r.payment] : "") }] : []),
-      { label: "Adhésion", value: (r) => fmtDate(r.joinedAt) },
-      { label: "Expiration", value: (r) => fmtDate(r.expiresAt) },
+    type Row = (typeof rows)[number];
+    // Colonnes disponibles ; l'administratrice choisit celles qui figurent dans le document (paramètre « cols »).
+    const all: Array<{ key: string; needs?: "pii" | "fin"; col: Col<Row> }> = [
+      { key: "num", col: { label: "N° membre", value: (r) => r.member.memberNumber, w: 1.6 } },
+      { key: "nom", col: { label: "Nom", value: (r) => r.member.lastName } },
+      { key: "prenom", col: { label: "Prénom", value: (r) => r.member.firstName } },
+      { key: "email", col: { label: "E-mail", value: (r) => r.member.email, w: 2 } },
+      { key: "tel", col: { label: "Téléphone", value: (r) => r.member.phone } },
+      { key: "naissance", needs: "pii", col: { label: "Date de naissance", value: (r) => fmtDate(r.member.birthDate) } },
+      { key: "ville", needs: "pii", col: { label: "Ville", value: (r) => r.member.address.city } },
+      { key: "cp", needs: "pii", col: { label: "Code postal", value: (r) => r.member.address.postalCode } },
+      { key: "type", col: { label: "Carte", value: (r) => (r.kind === "adherente" ? "Adhérente (carte payée)" : "Profil créé (carte non payée)") } },
+      { key: "formule", col: { label: "Formule", value: (r) => r.planName } },
+      { key: "statut", col: { label: "Statut", value: (r) => STATUS[r.status] } },
+      { key: "paiement", needs: "fin", col: { label: "Statut du paiement", value: (r) => (r.payment ? TX_STATUS_LABEL[r.payment] : "") } },
+      { key: "adhesion", col: { label: "Date d'adhésion", value: (r) => fmtDate(r.joinedAt) } },
+      { key: "expiration", col: { label: "Expiration", value: (r) => fmtDate(r.expiresAt) } },
     ];
+    const wanted = url.searchParams.get("cols")?.split(",").filter(Boolean);
+    const cols = all.filter((c) => (!c.needs || (c.needs === "pii" ? pii : fin)) && (!wanted || wanted.includes(c.key))).map((c) => c.col);
+    if (!cols.length) return new Response("Choisissez au moins une colonne.", { status: 400 });
     await audit(admin, "export", "adhérentes", `Export ${format.toUpperCase()} de ${rows.length} adhérente(s)`);
     return respond(format, `adherentes-${stamp}`, "Adhérentes", `${rows.length} adhérente(s) · export du ${fmtDate(new Date().toISOString())}`, rows, cols);
   }

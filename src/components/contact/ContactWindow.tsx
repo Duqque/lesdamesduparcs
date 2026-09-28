@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { X } from "lucide-react";
-import { setContactOpen, useContactOpen } from "@/lib/contact-window";
+import { setContactOpen, toggleContact, useContactOpen } from "@/lib/contact-window";
 import { ContactForm } from "./ContactForm";
 
 /** Fenêtre de contact en bas à droite de la page : ordinateur uniquement (tablette et mobile ont la page /contact). */
@@ -16,7 +16,7 @@ export function ContactWindow({ email }: { email: string }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
-  // Clic sur tout lien vers /contact : sur ordinateur (≥ 1024 px) il ouvre la fenêtre, sinon la page s'ouvre normalement.
+  // Clic sur tout lien vers /contact : sur ordinateur (≥ 1024 px) il ouvre la fenêtre (un second clic la referme), sinon la page s'ouvre normalement.
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -27,7 +27,7 @@ export function ContactWindow({ email }: { email: string }) {
       if (!window.matchMedia("(min-width: 1024px)").matches) return;
       e.preventDefault();
       e.stopPropagation(); // empêche le routeur de Next de naviguer vers /contact
-      setContactOpen(true);
+      toggleContact();
     };
     // Phase de capture : le clic est traité avant celui du composant <Link> de Next.
     document.addEventListener("click", onClick, true);

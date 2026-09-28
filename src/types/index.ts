@@ -100,6 +100,10 @@ export interface NewsItem {
   excerpt: string;
   content: string[];
   href: string;
+  /** Mots-clés cliquables en fin d'article : ils mènent à tous les articles du même sujet */
+  tags?: string[];
+  /** Nom de l'auteure (absent si l'équipe l'a masqué) */
+  authorName?: string;
 }
 
 export interface Product {

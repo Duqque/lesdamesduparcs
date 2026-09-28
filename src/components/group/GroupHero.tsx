@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Logo3D } from "./Logo3D";
 import { JoinGate } from "@/components/member/JoinGate";
 
-export function GroupHero() {
+export function GroupHero({ title = "Les Dames\ndu Parc", intro = "Une communauté de supportrices réunies par la même passion : le Paris Saint-Germain.", button = "Lire notre histoire" }: { title?: string; intro?: string; button?: string }) {
   const ref = useRef<HTMLElement>(null);
   return (
     <section ref={ref} aria-labelledby="group-title" className="relative isolate overflow-hidden px-[var(--gutter)] pb-24 pt-[190px] md:pb-36 md:pt-[260px]">
@@ -14,16 +14,19 @@ export function GroupHero() {
         <div className="order-2 md:order-1">
           <p className="t-eyebrow">Le groupe</p>
           <h1 id="group-title" className="mt-4 t-display">
-            Les Dames
-            <br />
-            du Parc
+            {title.split("\n").map((line, i) => (
+              <span key={i}>
+                {i > 0 && <br />}
+                {line}
+              </span>
+            ))}
           </h1>
           <p className="mt-8 max-w-lg text-white/85 t-lead">
-            Une communauté de supportrices réunies par la même passion : le Paris Saint-Germain.
+            {intro}
           </p>
           <div className="mt-12 flex flex-col gap-4 sm:flex-row">
             <Button size="lg" href="/groupe/notre-histoire">
-              Lire notre histoire
+              {button}
             </Button>
             <JoinGate>
               <Button size="lg" variant="outline" href="/rejoindre-le-groupe">

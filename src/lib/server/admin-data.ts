@@ -26,6 +26,8 @@ export interface MemberRow {
   joinedAt: string;
   isRenewal: boolean;
   age: number;
+  /** « adherente » : carte payée (ou offerte) ; « profil » : compte créé dont la carte n'est pas payée (en cours de création) */
+  kind: "adherente" | "profil";
 }
 
 export async function loadMemberRows(): Promise<MemberRow[]> {
@@ -55,6 +57,7 @@ export async function loadMemberRows(): Promise<MemberRow[]> {
       joinedAt: member.joinedAt,
       isRenewal: list.length > 1,
       age: ageAt(member.birthDate, today),
+      kind: current && (payByMs.get(current.id)?.status === "paid" || current.amountCents === 0) ? "adherente" : "profil",
     };
   });
 }
@@ -72,6 +75,8 @@ export interface MemberFilters {
   expDu?: string;
   expAu?: string;
   mineure?: string;
+  /** adherente | profil */
+  type?: string;
   tri?: string;
 }
 
@@ -84,6 +89,7 @@ export function filterMembers(rows: MemberRow[], f: MemberFilters): MemberRow[] 
     if (q && ![m.firstName, m.lastName, `${m.firstName} ${m.lastName}`, m.email, m.phone, m.memberNumber, m.address.city].some((v) => v?.toLowerCase().includes(q))) return false;
     if (f.plan && r.membership?.planId !== f.plan) return false;
     if (f.statut && r.status !== f.statut) return false;
+    if (f.type && r.kind !== f.type) return false;
     if (f.paiement && (r.payment ?? "none") !== f.paiement) return false;
     if (f.ville && !m.address.city.toLowerCase().includes(f.ville.toLowerCase())) return false;
     if (f.age) {

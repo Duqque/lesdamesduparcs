@@ -19,6 +19,8 @@ export interface Article extends Row {
   category: string;
   tags: string[];
   authorName: string;
+  /** Masque le nom de l'auteure sur l'article publié */
+  hideAuthor?: boolean;
   status: PublishStatus;
   publishAt?: string;
   /** Date affichée (AAAA-MM-JJ) */
@@ -62,6 +64,8 @@ export const toNewsItem = (a: Article): NewsItem => ({
   excerpt: a.summary,
   content: a.content.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean),
   href: `/actualites/${a.id}`,
+  tags: a.tags ?? [],
+  authorName: a.hideAuthor ? undefined : a.authorName || undefined,
 });
 
 export async function getPublishedNews(): Promise<NewsItem[]> {
@@ -149,6 +153,11 @@ export interface Campaign extends Row {
   body: string;
   buttonLabel?: string;
   buttonUrl?: string;
+  /** Photo d'en-tête, autres photos, liens utiles (boutons) ajoutés au message */
+  imageUrl?: string;
+  imageAlt?: string;
+  extraImages?: string[];
+  links?: Array<{ label: string; url: string }>;
   audience: string[];
   status: "draft" | "scheduled" | "sent" | "queued";
   scheduledAt?: string;
@@ -184,6 +193,8 @@ export const DEFAULT_TEMPLATES: Array<Omit<EmailTemplate, "createdAt" | "updated
   { id: "member_expelled", key: "member_expelled", name: "Radiation du groupe", subject: "Décision concernant ton adhésion aux Dames du Parc", body: "Bonjour {{prenom}},\n\nNous t'informons de ta radiation définitive de l'association Les Dames du Parc. Ton adhésion et ta carte de membre ne sont plus valides et l'accès à ton espace membre est fermé.\n\nMotif : {{motif}}\n\nTu peux présenter tes observations en écrivant à {{contact}}. Conformément au RGPD, tu peux aussi demander l'accès à tes données ou leur effacement depuis la page « Mes données » du site (les pièces comptables sont conservées le temps prévu par la loi)." },
   { id: "invoice_issued", key: "invoice_issued", name: "Paiement validé et facture (adhérente)", subject: "Paiement validé : facture {{numero}}", body: "Bonjour {{prenom}},\n\nNous avons bien reçu ton paiement de {{montant}} pour {{objet}}. Merci !\n\nTa facture n° {{numero}} est jointe à ce message. Tu la retrouveras aussi à tout moment dans ton espace membre, rubrique « Mes transactions »." },
   { id: "invoice_admin", key: "invoice_admin", name: "Paiement reçu (administratrices)", subject: "Paiement reçu : {{montant}} de {{nom}}", body: "Un paiement vient d'être validé.\n\nPersonne : {{nom}}\nObjet : {{objet}}\nMontant : {{montant}}\nMode de paiement : {{mode}}\nFacture n° {{numero}} (jointe)\n\nElle est conservée dans la fiche de la personne et dans Finances > Factures." },
+  { id: "payment_link", key: "payment_link", name: "Lien de paiement de l'adhésion (paiement différé)", subject: "Finalisez votre adhésion aux Dames du Parc", body: "Bonjour {{prenom}},\n\nVotre compte est créé. Vous avez choisi de régler votre adhésion plus tard ({{montant}}).\n\nPour la payer en ligne à tout moment, connectez-vous puis suivez ce lien :\n\n{{lien}}\n\nSi vous préférez payer en espèces ou par chèque, votre carte de membre sera validée manuellement par l'équipe des Dames du Parc dès réception de votre règlement. Tant que le paiement n'est pas validé, votre carte reste « en cours de création » et son QR code « Adhésion invalide »." },
+  { id: "payment_reminder", key: "payment_reminder", name: "Rappel : adhésion non réglée ou non validée", subject: "Votre adhésion aux Dames du Parc n'est pas encore validée", body: "Bonjour {{prenom}},\n\nIl y a {{jours}} jours, vous avez créé votre compte, mais votre adhésion ({{montant}}) n'est pas encore réglée ou validée par l'équipe.\n\nPour la payer en ligne :\n\n{{lien}}\n\nSi vous avez déjà remis un règlement en espèces ou par chèque, votre carte sera validée dès que l'équipe l'aura enregistré : inutile de faire quoi que ce soit." },
 ];
 
 export const templates = collection<EmailTemplate>("email_templates", () => DEFAULT_TEMPLATES);
@@ -266,4 +277,8 @@ export const siteConfig = singleton("site_config", {
   design: { accent: "#d90f2c", note: "" },
   /** Photos de la rubrique « Le groupe » modifiées en administration (clé : identifiant du chapitre). */
   groupPhotos: {} as Record<string, { src: string; alt: string }>,
+  /** État de chaque page publique : en ligne, masquée (le menu se réorganise), en maintenance ou « bientôt disponible » */
+  pageStates: {} as Record<string, { state: "live" | "hidden" | "maintenance" | "soon"; message?: string }>,
+  /** Textes modifiés dans « Contenus des pages » (clé → texte) ; absent = texte d'origine */
+  cms: {} as Record<string, string>,
 });

@@ -19,6 +19,7 @@ import { PhotoGallery } from "@/components/gallery/PhotoGallery";
 import { Reveal } from "@/components/ui/Reveal";
 import { getUpcomingMatchViews } from "@/lib/server/matches";
 import { getEvent, getUpcomingEvents } from "@/lib/server/events";
+import { getCms } from "@/lib/server/cms";
 import { getPublishedNews, siteConfig } from "@/lib/server/content";
 import { community } from "@/data/community";
 import { orderHomeSections, type HomeSectionKey } from "@/data/home-sections";
@@ -35,6 +36,7 @@ const wrap = "mx-auto w-full max-w-[1300px] px-[var(--gutter)]";
  */
 export default async function HomePage() {
   const [home, upcoming, allNews, matchViews] = await Promise.all([siteConfig.get().then((c) => c.home), getUpcomingEvents(), getPublishedNews(), getUpcomingMatchViews(1)]);
+  const cms = await getCms();
   const next = matchViews[0];
   const pinned = await Promise.all([...home.featuredEventIds, "soiree-des-dames"].map((id) => getEvent(id)));
   const featuredEvent = pinned.find((e) => e && e.date >= new Date().toISOString().slice(0, 10)) ?? upcoming[0] ?? null;
@@ -42,7 +44,7 @@ export default async function HomePage() {
   const blocks: Record<HomeSectionKey, ReactNode> = {
     manifeste: (
       <>
-        <Manifesto />
+        <Manifesto text={cms.t("accueil.manifeste", "") || undefined} />
         {/* Carte rouge d'appel à adhérer, juste sous le manifeste */}
         <JoinCtaCard image={safeUrl(home.ctaImage) || undefined} alt={home.ctaImageAlt || undefined} title={home.ctaTitle || undefined} text={home.ctaText || undefined} button={home.ctaButton || undefined} />
       </>

@@ -103,3 +103,14 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
 };
 
 export const can = (role: Role, perm: Permission) => ROLE_PERMISSIONS[role].has(perm);
+
+/** Permissions réservées à la super administratrice : jamais accordées à un autre rôle, même personnalisé. */
+export const SUPER_ONLY: Permission[] = ["site.structure", "admins.manage"];
+
+/** Permissions effectives d'un rôle : celles définies par la super administratrice, sinon celles d'origine. */
+export function effectivePermissions(role: Role, overrides?: Record<string, string[]>): ReadonlySet<Permission> {
+  if (role === "super") return ROLE_PERMISSIONS.super;
+  const custom = overrides?.[role];
+  if (!custom) return ROLE_PERMISSIONS[role];
+  return new Set((custom as Permission[]).filter((p) => (PERMISSIONS as readonly string[]).includes(p) && !SUPER_ONLY.includes(p)));
+}

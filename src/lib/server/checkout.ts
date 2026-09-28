@@ -36,8 +36,8 @@ export function startMembershipPayment(
     totalCents: pay.amountCents,
     payer: { firstName: member.firstName, lastName: member.lastName, email: member.email },
     returnUrl: `${site}/api/members/adhesion/confirm?payment=${encodeURIComponent(pay.id)}`,
-    backUrl: `${site}/profil#adhesion`,
-    errorUrl: `${site}/profil?adhesion=erreur#adhesion`,
+    backUrl: `${site}/rejoindre-le-groupe/paiement`,
+    errorUrl: `${site}/rejoindre-le-groupe/paiement?erreur=1`,
   });
 }
 

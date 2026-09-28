@@ -62,7 +62,9 @@ export const ADMIN_NAV: NavGroup[] = [
     label: "Site internet", icon: "globe", perm: "site.content", children: [
       { label: "Accueil", href: "/admin/site/accueil" },
       { label: "Photos du groupe", href: "/admin/site/groupe" },
-      { label: "Pages", href: "/admin/site/pages", perm: "site.structure" },
+      { label: "Pages : affichage et maintenance", href: "/admin/site/pages" },
+      { label: "Contenus des pages", href: "/admin/site/contenus" },
+      { label: "Pages d'erreur", href: "/admin/site/erreurs" },
       { label: "Sections", href: "/admin/site/sections", perm: "site.structure" },
       { label: "Navigation", href: "/admin/site/navigation", perm: "site.structure" },
       { label: "Médiathèque", href: "/admin/site/mediatheque", perm: "media.manage" },

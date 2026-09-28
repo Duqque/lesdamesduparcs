@@ -2,17 +2,18 @@ import { Check } from "lucide-react";
 import { SubmitButton } from "@/components/admin/SubmitButton";
 import { Field, Flash, PageHeader, Panel, TableWrap, Td, Th, inp } from "@/components/admin/ui";
 import { first, type SP } from "@/lib/admin/params";
-import { PERMISSIONS, PERMISSION_LABELS, ROLE_DESCRIPTIONS, ROLE_LABELS, ROLE_PERMISSIONS, type Role } from "@/lib/admin/permissions";
+import { PERMISSIONS, PERMISSION_LABELS, ROLE_DESCRIPTIONS, ROLE_LABELS, SUPER_ONLY, effectivePermissions, type Role } from "@/lib/admin/permissions";
 import { requireAdmin } from "@/lib/server/admin-auth";
 import { settings } from "@/lib/server/admin-store";
-import { saveSecurityAction } from "../actions";
+import { resetRolePermissionsAction, saveRolePermissionsAction, saveSecurityAction } from "../actions";
 
 export const metadata = { title: "Rôles et permissions" };
 
 export default async function RolesPage({ searchParams }: { searchParams: Promise<SP> }) {
-  await requireAdmin("admins.manage");
+  const ctx = await requireAdmin("admins.manage");
+  const isSuper = ctx.admin.role === "super";
   const sp = await searchParams;
-  const { security } = await settings.get();
+  const { security, rolePermissions: custom } = await settings.get();
   const roles = Object.keys(ROLE_LABELS) as Role[];
   return (
     <>
@@ -22,17 +23,34 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
         {roles.map((r) => <div key={r} className="rounded-[12px] border border-line bg-night-900/85 p-4"><p className="font-body text-[14px] font-semibold text-white">{ROLE_LABELS[r]}</p><p className="mt-2 font-body text-[12.5px] leading-[1.6] text-mist">{ROLE_DESCRIPTIONS[r]}</p></div>)}
       </div>
       <Panel flush className="mb-4">
-        <TableWrap>
-          <thead><tr><Th>Permission</Th>{roles.map((r) => <Th key={r} className="text-center">{ROLE_LABELS[r]}</Th>)}</tr></thead>
-          <tbody>
-            {PERMISSIONS.map((p) => (
-              <tr key={p}>
-                <Td>{PERMISSION_LABELS[p]}{p === "site.structure" && <span className="ml-2 text-[11.5px] text-psg-red-bright">super uniquement</span>}</Td>
-                {roles.map((r) => <Td key={r} className="text-center">{ROLE_PERMISSIONS[r].has(p) ? <Check aria-label="Autorisé" className="mx-auto size-4 text-emerald-300" /> : <span className="text-white/25" aria-label="Non autorisé">·</span>}</Td>)}
-              </tr>
-            ))}
-          </tbody>
-        </TableWrap>
+        <form action={saveRolePermissionsAction}>
+          <TableWrap>
+            <thead><tr><Th>Permission</Th>{roles.map((r) => <Th key={r} className="text-center">{ROLE_LABELS[r]}</Th>)}</tr></thead>
+            <tbody>
+              {PERMISSIONS.map((p) => (
+                <tr key={p}>
+                  <Td>{PERMISSION_LABELS[p]}{SUPER_ONLY.includes(p) && <span className="ml-2 text-[11.5px] text-psg-red-bright">super uniquement</span>}</Td>
+                  {roles.map((r) => {
+                    const on = effectivePermissions(r, custom).has(p);
+                    const locked = r === "super" || SUPER_ONLY.includes(p) || !isSuper;
+                    return (
+                      <Td key={r} className="text-center">
+                        {locked ? (on ? <Check aria-label="Autorisé" className="mx-auto size-4 text-emerald-300" /> : <span className="text-white/25">·</span>) : <input type="checkbox" name={`${r}:${p}`} defaultChecked={on} aria-label={`${ROLE_LABELS[r]} : ${PERMISSION_LABELS[p]}`} className="size-4 accent-[#d90f2c]" />}
+                      </Td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </TableWrap>
+          {isSuper ? (
+            <div className="flex flex-wrap items-center gap-3 border-t border-line p-5">
+              <SubmitButton confirm="Enregistrer ces permissions ? Elles s'appliquent immédiatement à toutes les administratrices concernées.">Enregistrer les permissions</SubmitButton>
+              <span className="font-body text-[12.5px] text-mist">Vous pouvez adapter chaque rôle. La structure du site et la gestion des administratrices restent réservées à la super administratrice.</span>
+            </div>
+          ) : <p className="border-t border-line p-5 font-body text-[13px] text-mist">Seule la super administratrice peut modifier les permissions.</p>}
+        </form>
+        {isSuper && Object.keys(custom).length > 0 && <form action={resetRolePermissionsAction} className="border-t border-line p-5"><SubmitButton variant="outline" confirm="Rétablir les permissions d'origine de tous les rôles ?">Rétablir les valeurs d&rsquo;origine</SubmitButton></form>}
       </Panel>
       <Panel title="Sécurité des connexions">
         <form action={saveSecurityAction} className="grid grid-cols-1 gap-4 sm:grid-cols-4">

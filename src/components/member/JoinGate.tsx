@@ -4,7 +4,7 @@ import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 
 import { useAuth } from "@/components/auth/AuthProvider";
 
 /** Page où la membre renouvelle ou finalise son adhésion (bouton de paiement HelloAsso). */
-export const ADHESION_HREF = "/profil#adhesion";
+export const ADHESION_HREF = "/rejoindre-le-groupe/paiement";
 
 export type JoinMode = "join" | "adhere" | "renew" | "pay" | "hidden";
 

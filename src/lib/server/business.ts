@@ -90,6 +90,14 @@ export interface Payment extends Row {
   checkoutId?: string;
   /** Adhésion réglée dans une commande mixte (adhésion + produits) : le paiement est celui de la commande, non compté deux fois */
   viaOrderId?: string;
+  /** Code promotionnel appliqué à l'adhésion : prix de la formule avant réduction, code et réduction accordée */
+  baseCents?: number;
+  promoCode?: string;
+  discountCents?: number;
+  /** La personne a choisi de payer plus tard (espèces, chèque…) : validation manuelle par l'équipe */
+  deferredAt?: string;
+  /** Dernier rappel envoyé (7 ou 15 jours après la création du compte) */
+  reminderSent?: 7 | 15;
 }
 
 export const memberships = collection<Membership>("memberships");
@@ -130,6 +138,8 @@ export async function createMembership(member: MemberPublic, plan: Plan, opts?: 
     paidAt: amount === 0 || opts?.paid ? new Date().toISOString() : undefined,
     membershipId: ms.id,
   });
+  // Adhésion réglée dès sa création (saisie par l'équipe, formule gratuite) : carte valide, e-mail de confirmation et facture.
+  if (payment.status === "paid") await (await import("./payments")).markMembershipPaid(payment, {});
   if (amount > 0 && opts?.paid) await (await import("./invoice")).issueInvoice(`payment:${payment.id}`);
   return ms;
 }
@@ -275,6 +285,8 @@ export async function setTxStatus(txId: string, status: TxStatus, opts?: { metho
     const err = pay?.status === "paid" ? await refund(pay.checkoutId) : null;
     if (err) return { ok: false, error: `Remboursement HelloAsso impossible : ${err}. Effectuez-le depuis votre espace HelloAsso, puis marquez la transaction comme remboursée.` };
     await payments.update(rowId, { status, method: opts?.method, note: opts?.note, paidAt: status === "paid" ? new Date().toISOString() : undefined });
+    // Validation manuelle d'une adhésion (espèces, chèque, virement…) : la carte devient valide, la membre en est informée par e-mail.
+    if (status === "paid" && pay?.kind === "adhesion") await (await import("./payments")).markMembershipPaid({ ...pay, status: "paid" }, {});
     if (status === "paid") await (await import("./invoice")).issueInvoice(txId);
     return { ok: true };
   }

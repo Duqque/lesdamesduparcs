@@ -3,6 +3,10 @@ import localFont from "next/font/local";
 import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "@/components/layout/Providers";
+import { ErrorScreen } from "@/components/errors/ErrorScreen";
+import { errorBySlug } from "@/data/errors";
+import { errorPhotoFor } from "@/lib/server/error-photos";
+import { getPageState, isAdminPreview } from "@/lib/server/page-gate";
 import { TextGuard } from "@/components/layout/TextGuard";
 import { SiteFrame } from "@/components/layout/SiteFrame";
 import { Header } from "@/components/navigation/Header";
@@ -43,6 +47,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [navConfig, accent, shop, conf] = await Promise.all([getNavConfig(), accentOverride(), getPublicCatalog(), settings.get()]);
   const contactEmail = conf.association.email || "contact@lesdamesduparc.com";
   // La membre connectée est connue dès le rendu serveur (état de son abonnement compris) : pas de « saut » des appels à l'adhésion.
+  // Maintenance de tout le site (état de la page « * ») : les visiteuses voient l'écran de maintenance, l'administration reste accessible.
+  const path = (await headers()).get("x-pathname") ?? "";
+  const siteState = await getPageState("*");
+  const blocked = siteState.state !== "live" && !path.startsWith("/admin") && !path.startsWith("/erreur") && !(await isAdminPreview());
   const s = await getSession().catch(() => null);
   const stored = s?.role === "member" ? await getMemberByNumber(s.memberNumber) : null;
   const initialSession: Session | undefined =
@@ -69,11 +77,18 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           Aller au contenu
         </a>
         <TextGuard />
+        {blocked ? (
+          <ErrorScreen
+            page={{ ...errorBySlug(siteState.state === "maintenance" ? "maintenance" : "bientot-disponible")!, ...(siteState.message?.trim() ? { text: siteState.message.trim() } : {}) }}
+            photo={await errorPhotoFor(siteState.state === "maintenance" ? "maintenance" : "bientot-disponible")}
+          />
+        ) : (
         <Providers shop={shop} initialSession={initialSession}>
           <SiteFrame header={<Header navConfig={navConfig} />} footer={<Footer />} contactEmail={contactEmail}>
             {children}
           </SiteFrame>
         </Providers>
+        )}
       </body>
     </html>
   );

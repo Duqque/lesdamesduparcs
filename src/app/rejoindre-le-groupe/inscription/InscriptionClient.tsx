@@ -12,6 +12,7 @@ import { PhoneInput } from "@/components/forms/PhoneInput";
 import { cn } from "@/lib/cn";
 import { MAX_AUTH_FILE_BYTES, MAX_AUTH_FILES, guardianRelations, isMinor, validateMember, type Guardian, type MemberInput } from "@/lib/members";
 import { membership } from "@/data/membership";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 const STEP_KEYS: Record<string, number> = {
   firstName: 0, lastName: 0, birthDate: 0, email: 0, phone: 0, line1: 0, postalCode: 0, city: 0, country: 0, password: 0,
@@ -133,12 +134,8 @@ export function InscriptionClient() {
         return;
       }
       await refresh();
-      // Paiement de l'adhésion sur la page sécurisée HelloAsso ; sans paiement en ligne, retour à l'espace membre.
-      if (out.checkoutUrl) {
-        window.location.href = out.checkoutUrl;
-        return;
-      }
-      router.push("/profil?bienvenue=1");
+      // Étape suivante : page de paiement de l'adhésion (en ligne, ou plus tard par espèces / chèque).
+      router.push("/rejoindre-le-groupe/paiement");
     } catch {
       setFormError("Inscription impossible. Vérifiez votre connexion et réessayez.");
     } finally {
@@ -206,7 +203,7 @@ export function InscriptionClient() {
                   errors={{ postalCode: err("postalCode"), city: err("city"), country: err("country") }}
                 />
                 <Field id="f-password" label="Mot de passe" error={err("password")} hint="10 caractères minimum, avec des lettres et des chiffres." className="sm:col-span-2">
-                  <input id="f-password" type="password" autoComplete="new-password" className={inputCls} {...text("password")} {...inv("password")} />
+                  <PasswordInput id="f-password" autoComplete="new-password" className={inputCls} {...text("password")} {...inv("password")} />
                 </Field>
               </fieldset>
             )}

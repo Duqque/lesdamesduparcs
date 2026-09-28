@@ -41,6 +41,7 @@ export async function saveArticleAction(formData: FormData) {
     category: s(formData, "category") || "Actualité",
     tags: s(formData, "tags").split(",").map((t) => t.trim()).filter(Boolean),
     authorName: s(formData, "author") || `${ctx.admin.firstName} ${ctx.admin.lastName}`.trim(),
+    hideAuthor: formData.get("hideAuthor") === "on",
     status,
     publishAt,
     date: s(formData, "date") || new Date().toISOString().slice(0, 10),

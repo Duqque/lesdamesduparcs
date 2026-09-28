@@ -9,6 +9,7 @@ export interface ShopProduct {
   priceCents: number;
   compareAtCents?: number;
   images: string[];
+  videos?: string[];
   sizes?: string[];
   isNew?: boolean;
   /** Quantités disponibles par taille (« _ » si le produit n'a pas de taille) ; absent = stock non suivi */

@@ -35,11 +35,26 @@ const CTA_LABEL: Record<string, string> = {
 
 const linkify = (escaped: string) => escaped.replace(URL_RE, (u) => `<a href="${u}" style="color:#ffffff;text-decoration:underline;text-decoration-color:${RED};">${u}</a>`);
 
-export function renderEmail(opts: { subject: string; body: string; kind?: string; brand: EmailBrand; image?: { src: string; alt: string }; unsubscribeUrl?: string }): { html: string; text: string } {
-  const { subject, body, kind = "", brand, image, unsubscribeUrl } = opts;
+export function renderEmail(opts: {
+  subject: string;
+  body: string;
+  kind?: string;
+  brand: EmailBrand;
+  image?: { src: string; alt: string };
+  unsubscribeUrl?: string;
+  /** Photos placées après le texte */
+  extraImages?: Array<{ src: string; alt: string }>;
+  /** Boutons de lien supplémentaires (libellé + adresse) */
+  links?: Array<{ label: string; url: string }>;
+  /** Bouton principal (libellé + adresse) */
+  cta?: { label: string; url: string };
+}): { html: string; text: string } {
+  const { subject, body, kind = "", brand, image, unsubscribeUrl, extraImages = [], links = [], cta } = opts;
   const o = brand.origin.replace(/\/$/, "");
-  const button = (t: string) =>
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 6px;"><tr><td bgcolor="${RED}" style="border-radius:10px;background:linear-gradient(180deg,#e51b36 0%,#b30d27 100%);"><a href="${esc(t)}" style="display:inline-block;padding:15px 30px;font-family:${BODY_FONT};font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;">${esc(CTA_LABEL[kind] ?? "Ouvrir le lien")}</a></td></tr></table><p style="margin:6px 0 20px;font-family:${BODY_FONT};font-size:12px;line-height:1.5;color:#8d99b0;word-break:break-all;">${esc(t)}</p>`;
+  const btn = (t: string, label: string) =>
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 6px;"><tr><td bgcolor="${RED}" style="border-radius:10px;background:linear-gradient(180deg,#e51b36 0%,#b30d27 100%);"><a href="${esc(t)}" style="display:inline-block;padding:15px 30px;font-family:${BODY_FONT};font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;">${esc(label)}</a></td></tr></table><p style="margin:6px 0 20px;font-family:${BODY_FONT};font-size:12px;line-height:1.5;color:#8d99b0;word-break:break-all;">${esc(t)}</p>`;
+  const button = (t: string) => btn(t, CTA_LABEL[kind] ?? "Ouvrir le lien");
+  const pic = (src: string, alt: string) => `<img src="${esc(src)}" width="528" alt="${esc(alt)}" style="display:block;width:100%;max-width:528px;height:auto;border:0;border-radius:10px;margin:0 0 20px;">`;
   const para = (lines: string[]) =>
     `<p style="margin:0 0 18px;font-family:${BODY_FONT};font-size:16px;line-height:1.7;font-weight:400;color:#e9edf5;">${linkify(esc(lines.join("\n"))).replace(/\n/g, "<br>")}</p>`;
   // Une adresse seule sur sa ligne devient un bouton d'action (l'adresse reste visible dessous pour les clients qui bloquent les boutons).
@@ -55,7 +70,15 @@ export function renderEmail(opts: { subject: string; body: string; kind?: string
         buf = [];
       };
       for (const line of p.split("\n")) {
-        if (/^\s*https?:\/\/\S+\s*$/.test(line)) {
+        const img = line.match(/^\s*!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)\s*$/);
+        const lnk = line.match(/^\s*\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)\s*$/);
+        if (img) {
+          flush();
+          out.push(pic(img[2], img[1]));
+        } else if (lnk) {
+          flush();
+          out.push(btn(lnk[2], lnk[1]));
+        } else if (/^\s*https?:\/\/\S+\s*$/.test(line)) {
           flush();
           out.push(button(line.trim()));
         } else buf.push(line);
@@ -118,6 +141,9 @@ a{color:#ffffff;}
       <h1 class="title" style="margin:0 0 24px;font-family:${TITLE_FONT};font-size:24px;line-height:1.2;font-weight:400;text-transform:uppercase;color:#ffffff;">${esc(subject)}</h1>
       ${image ? `<img src="${esc(image.src)}" width="528" alt="${esc(image.alt)}" style="display:block;width:100%;max-width:528px;height:auto;border:0;border-radius:10px;margin:0 0 22px;">` : ""}
       ${blocks}
+      ${extraImages.map((i) => pic(i.src, i.alt)).join("")}
+      ${cta ? btn(cta.url, cta.label) : ""}
+      ${links.map((l) => btn(l.url, l.label)).join("")}
       ${signature}
     </td></tr>
     <tr><td align="center" style="padding:26px 10px 0;font-family:${BODY_FONT};font-size:13px;line-height:1.7;color:#8d99b0;">
@@ -133,6 +159,6 @@ a{color:#ffffff;}
 </body>
 </html>`;
 
-  const text = `${body.trim()}${brand.signature?.trim() ? `\n\n${brand.signature.trim()}` : ""}\n\n—\n${brand.name}${brand.address ? `\n${brand.address}` : ""}${brand.email ? `\n${brand.email}` : ""}\n${o}${unsubscribeUrl ? `\n\nNe plus recevoir ces e-mails de nouveautés : ${unsubscribeUrl}` : ""}`;
+  const text = `${body.trim()}${cta ? `\n\n${cta.label} : ${cta.url}` : ""}${links.map((l) => `\n${l.label} : ${l.url}`).join("")}${brand.signature?.trim() ? `\n\n${brand.signature.trim()}` : ""}\n\n—\n${brand.name}${brand.address ? `\n${brand.address}` : ""}${brand.email ? `\n${brand.email}` : ""}\n${o}${unsubscribeUrl ? `\n\nNe plus recevoir ces e-mails de nouveautés : ${unsubscribeUrl}` : ""}`;
   return { html, text };
 }

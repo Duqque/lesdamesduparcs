@@ -25,7 +25,7 @@ import type { Order } from "@/lib/orders";
 export type Settled = "paid" | "already" | "mismatch" | "unpaid" | "unknown" | "refunded" | "failed";
 
 /** Passe un paiement d'adhésion à « payé » (activation de l'adhésion) ; en cas de renouvellement, la carte et l'attestation changent de saison. */
-async function markMembershipPaid(pay: Payment, extra: Partial<Payment>): Promise<void> {
+export async function markMembershipPaid(pay: Payment, extra: Partial<Payment>): Promise<void> {
   await payments.update(pay.id, { status: "paid", method: "online", paidAt: new Date().toISOString(), ...extra });
   const ms = pay.membershipId ? await memberships.findOne((m) => m.id === pay.membershipId) : null;
   const member = pay.memberNumber ? await getMemberByNumber(pay.memberNumber) : null;

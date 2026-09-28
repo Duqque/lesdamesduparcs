@@ -91,6 +91,7 @@ export function proxy(req: NextRequest) {
   const policy = csp(nonce);
   const headers = new Headers(req.headers);
   headers.set("x-nonce", nonce);
+  headers.set("x-pathname", req.nextUrl.pathname);
   headers.set("Content-Security-Policy", policy);
   const res = NextResponse.next({ request: { headers } });
   res.headers.set("Content-Security-Policy", policy);

@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { manifesto } from "@/data/manifesto";
 
 /** Manifeste : grand texte centré écrit lettre par lettre au fil du scroll, précédé d'un grand espace vide. */
-export function Manifesto() {
+export function Manifesto({ text: custom }: { text?: string }) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const typedRef = useRef<HTMLSpanElement>(null);
@@ -14,7 +14,7 @@ export function Manifesto() {
   const shownRef = useRef(-1);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 85%", "center 38%"] });
   const typing = useTransform(scrollYProgress, [0.1, 0.95], [0, 1], { clamp: true });
-  const text = manifesto.text;
+  const text = custom?.trim() || manifesto.text;
   const total = text.length;
 
   // Écriture lettre par lettre directement dans le DOM : aucune mise à jour React à chaque défilement (fluidité).

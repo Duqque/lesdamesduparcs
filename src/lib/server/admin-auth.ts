@@ -3,7 +3,7 @@ import { createHash, createHmac, randomBytes } from "node:crypto";
 import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { can as roleCan, type Permission } from "@/lib/admin/permissions";
+import { effectivePermissions, type Permission } from "@/lib/admin/permissions";
 import { dummyHash, hashPassword, needsRehash, verifyPassword } from "./password";
 import { safeEqual } from "./session";
 import { adminSessions, admins, auditLog, loginEvents, settings, type AdminUser } from "./admin-store";
@@ -187,7 +187,9 @@ export const getAdmin = cache(async (opts?: { allowMfa?: boolean }): Promise<Adm
   if (!id || !sig || !safeEqual(sig, sign(id))) return null;
   const session = await adminSessions.get(id);
   if (!session) return null;
-  const conf = (await settings.get()).security;
+  const fullConf = await settings.get();
+  const conf = fullConf.security;
+  const roleOverrides = fullConf.rolePermissions;
   const now = Date.now();
   if (now > new Date(session.expiresAt).getTime() || now - new Date(session.lastSeen).getTime() > conf.sessionTimeoutMin * 60_000) {
     await adminSessions.remove(id);
@@ -198,7 +200,7 @@ export const getAdmin = cache(async (opts?: { allowMfa?: boolean }): Promise<Adm
   if (session.stage === "mfa" && !opts?.allowMfa) return null;
   if (now - new Date(session.lastSeen).getTime() > 60_000) await adminSessions.update(id, { lastSeen: new Date(now).toISOString() });
   const limited = conf.require2fa !== false && !(admin.totpEnabled && admin.totpSecret);
-  return { admin, sessionId: id, stage: session.stage, limited, reauthAt: session.reauthAt, can: (p) => !limited && roleCan(admin.role, p) };
+  return { admin, sessionId: id, stage: session.stage, limited, reauthAt: session.reauthAt, can: (p) => !limited && effectivePermissions(admin.role, roleOverrides).has(p) };
 });
 
 /** À appeler en tête de chaque page et de chaque action : redirige vers la connexion ou l'écran d'accès refusé. */

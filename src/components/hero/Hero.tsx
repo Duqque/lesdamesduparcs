@@ -40,7 +40,7 @@ export function Hero({ title, subtitle, cta, image, imageAlt }: { title?: string
         className="absolute inset-0 z-[1] bg-[linear-gradient(0deg,rgba(3,9,25,0.94)_0%,rgba(3,9,25,0.6)_26%,rgba(3,9,25,0)_58%),linear-gradient(90deg,rgba(3,9,25,0.78)_0%,rgba(3,9,25,0.35)_38%,rgba(3,9,25,0)_70%),linear-gradient(180deg,rgba(3,9,25,0.62)_0%,rgba(3,9,25,0)_20%)]"
       />
       <motion.div aria-hidden className="absolute inset-0 z-[2] bg-night-950" style={{ opacity: veil }} />
-      <motion.div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center pt-[max(20px,env(safe-area-inset-top))] lg:hidden" style={{ opacity: logoOpacity }}>
+      <motion.div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center pt-[max(34px,calc(env(safe-area-inset-top)+16px))] lg:hidden" style={{ opacity: logoOpacity }}>
         <Image src="/logos/dames-du-parc-logo.webp" alt="" width={120} height={120} priority className="size-[88px] drop-shadow-[0_8px_24px_rgba(0,0,0,0.55)] sm:size-[104px]" />
       </motion.div>
       <motion.div className="relative z-10 flex w-full items-end" style={{ y: textY, opacity: textOpacity }}>

@@ -7,14 +7,14 @@ import { articlesDb } from "@/lib/server/content";
 export const metadata = { title: "Nouvel article" };
 
 export default async function NewArticlePage({ searchParams }: { searchParams: Promise<SP> }) {
-  await requireAdmin("content.edit");
+  const ctx = await requireAdmin("content.edit");
   const sp = await searchParams;
   const cats = [...new Set((await articlesDb.all()).map((a) => a.category))];
   return (
     <>
       <PageHeader back={{ href: "/admin/contenu", label: "Articles" }} title="Nouvel article" />
       <Flash error={first(sp.erreur)} />
-      <ArticleForm categories={cats} />
+      <ArticleForm categories={cats} defaultAuthor={`${ctx.admin.firstName} ${ctx.admin.lastName}`.trim()} />
     </>
   );
 }

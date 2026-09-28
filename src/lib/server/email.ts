@@ -62,8 +62,8 @@ export async function sendTemplate(key: string, to: string, vars: Record<string,
  * désabonnement dans le message et en-tête List-Unsubscribe. Sans service d'e-mail, rien ne part : un seul enregistrement « non envoyé ».
  */
 export async function sendBulk(
-  list: Array<{ email: string; firstName: string; unsubscribeUrl: string }>,
-  opts: { subject: string; body: string; kind: string; image?: { src: string; alt: string } },
+  list: Array<{ email: string; firstName: string; unsubscribeUrl?: string }>,
+  opts: { subject: string; body: string; kind: string; image?: { src: string; alt: string }; extraImages?: Array<{ src: string; alt: string }>; links?: Array<{ label: string; url: string }>; cta?: { label: string; url: string } },
 ) {
   if (!list.length) return { sent: 0, failed: 0, skipped: false };
   const { conf, brand } = await brandOf();
@@ -77,14 +77,14 @@ export async function sendBulk(
     const chunk = list.slice(i, i + 100).map((r) => {
       const vars = { prenom: r.firstName };
       const subject = fill(opts.subject, vars);
-      const { html, text } = renderEmail({ subject, body: fill(opts.body, vars), kind: opts.kind, brand, image: opts.image, unsubscribeUrl: r.unsubscribeUrl });
+      const { html, text } = renderEmail({ subject, body: fill(opts.body, vars), kind: opts.kind, brand, image: opts.image, unsubscribeUrl: r.unsubscribeUrl, extraImages: opts.extraImages, links: opts.links, cta: opts.cta });
       return {
         from: `${conf.emails.fromName} <${process.env.RESEND_FROM_EMAIL?.trim() || conf.emails.fromEmail}>`,
         to: [r.email],
         subject,
         html,
         text,
-        headers: { "List-Unsubscribe": `<${r.unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+        ...(r.unsubscribeUrl ? { headers: { "List-Unsubscribe": `<${r.unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } } : {}),
       };
     });
     try {

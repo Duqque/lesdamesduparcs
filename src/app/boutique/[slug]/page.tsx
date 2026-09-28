@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ProductGallery } from "@/components/shop/ProductGallery";
 import { ArrowLeft, RotateCcw, Truck } from "lucide-react";
 import { Price, ProductCard } from "@/components/shop/ProductCard";
 import { ProductActions } from "@/components/shop/ProductActions";
@@ -43,19 +44,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </Link>
 
       <div className="mt-8 grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
-        <div className="grid gap-4 sm:grid-cols-[1fr_88px] sm:grid-flow-dense">
-          <div className="relative aspect-[3/4] overflow-hidden rounded-[22px] bg-[#e9ebee] sm:col-start-1">
-            <Image src={product.images[0]} alt={product.name} fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-top" />
-            {product.isNew && <span className="absolute left-4 top-4 rounded-full bg-night-950 px-3.5 py-1.5 font-display text-[12px] font-semibold uppercase tracking-[0.12em] text-white">Nouveau</span>}
-          </div>
-          <div className="flex gap-3 sm:col-start-2 sm:flex-col">
-            {product.images.map((src, i) => (
-              <div key={src} className="relative aspect-[3/4] w-20 overflow-hidden rounded-[10px] bg-[#e9ebee] ring-1 ring-white/20 sm:w-full">
-                <Image src={src} alt={`${product.name}, vue ${i + 1}`} fill sizes="88px" className="object-cover object-top" />
-              </div>
-            ))}
-          </div>
-        </div>
+        <ProductGallery name={product.name} images={product.images} videos={product.videos} isNew={product.isNew} />
 
         <div className="lg:pt-6">
           <p className="t-eyebrow">{product.category}</p>

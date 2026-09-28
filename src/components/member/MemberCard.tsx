@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, useMotionValue, useSpring, type MotionStyle } from "framer-motion";
 import { RotateCw } from "lucide-react";
 import { CardObject, type CardMotion } from "@/components/membership/CardObject";
+import { QrCode } from "@/components/membership/QrCode";
 
 /** Carte membre personnalisée, à retourner : recto (identité + QR) et verso. */
 export function MemberCard({ name, season, number, qrValue, state = "active" }: { name: string; season: string; number: string; qrValue: string; state?: "active" | "pending" | "expired" | "none" | "suspended" | "expelled" }) {
@@ -40,6 +41,15 @@ export function MemberCard({ name, season, number, qrValue, state = "active" }: 
           <CardObject motion={m} name={name} season={season} number={number} qrValue={qrValue} />
         </motion.div>
       </div>
+      {/* QR code : sous la carte (il n'est plus imprimé dessus) ; « Adhésion invalide » tant que le paiement n'est pas validé. */}
+      <figure className="flex flex-col items-center gap-3">
+        <div className={valid ? "rounded-[12px] bg-white p-2.5 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.8)]" : "rounded-[12px] bg-white p-2.5 opacity-50"}>
+          <QrCode value={qrValue} className="block size-[148px]" />
+        </div>
+        <figcaption className="max-w-[300px] text-center font-body text-[13px] leading-[1.5] text-mist">
+          {valid ? "Scannez pour vérifier l’adhésion." : "Adhésion invalide tant que le paiement n’est pas validé."}
+        </figcaption>
+      </figure>
       <button
         type="button"
         onClick={() => {
