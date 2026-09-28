@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const site = await siteMeta();
   return {
     title: { default: `${site.title} : plus qu'un groupe, une famille`, template: `%s · ${site.title}` },
-    description: site.description || "Les Dames du Parc, groupe de supportrices 100 % féminin du Paris Saint-Germain : passion, partage, féminité. Au Parc des Princes et partout.",
+    description: site.description || "Les Dames du Parc, communauté 100 % féminine de supportrices du Paris Saint-Germain : passion, partage, féminité. Au Parc des Princes et partout.",
     openGraph: { title: site.title, description: "Plus qu'un groupe, une famille. Supportrices du Paris Saint-Germain.", locale: "fr_FR", type: "website" },
   };
 }

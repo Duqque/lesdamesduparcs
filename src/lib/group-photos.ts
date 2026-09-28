@@ -16,10 +16,10 @@ export const GROUP_SLOTS = [
 
 export const DEFAULT_GROUP_PHOTOS: Record<string, GroupPhoto> = {
   "lettre-d-introduction": { src: "/images/supportrices-parc-des-princes.webp", alt: "Supportrices du Paris Saint-Germain chantant dans les tribunes du Parc des Princes" },
-  "notre-histoire": { src: "/images/ligue-des-champions-2025.webp", alt: "Les joueurs du PSG fêtent la Ligue des Champions sous une pluie de confettis dorés" },
-  "qui-sommes-nous": { src: "/images/fans-drapeau-fumigene.webp", alt: "Supporters du PSG et drapeau dans la fumée d'un fumigène" },
+  "notre-histoire": { src: "/images/identite-lys.webp", alt: "Fleur-de-lis et logo des Dames du Parc sur fond bleu nuit" },
+  "qui-sommes-nous": { src: "/images/identite-silhouette.webp", alt: "Silhouette d’une supportrice, écharpe levée, sur fond bleu nuit" },
   "nos-valeurs": { src: "/images/drapeau-paris-gros-plan.webp", alt: "Gros plan sur un drapeau Paris Saint-Germain porté par la foule" },
   "pourquoi-un-fan-club-feminin": { src: "/images/drapeau-fumee-verte.webp", alt: "Drapeau Paris dans la fumée verte d'un fumigène, au milieu des supporters" },
-  "ce-que-nous-voulons-construire": { src: "/images/tribune-fumigene-orange.webp", alt: "Supporters du PSG, poings levés dans la lumière orange d'un fumigène" },
-  adhesion: { src: "/images/foule-drapeau-paris.webp", alt: "Foule de supporters derrière un drapeau Paris" },
+  "ce-que-nous-voulons-construire": { src: "/images/identite-silhouettes.webp", alt: "Silhouettes de supportrices, écharpes levées, sur fond bleu nuit" },
+  adhesion: { src: "/images/identite-logo.webp", alt: "Logo des Dames du Parc sur fond bleu nuit" },
 };

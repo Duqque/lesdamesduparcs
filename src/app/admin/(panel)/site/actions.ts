@@ -211,9 +211,15 @@ async function imageFromForm(formData: FormData, prefix: "hero" | "cta", current
 export async function savePageStatesAction(formData: FormData) {
   const ctx = await requireAdmin("site.content");
   const { SITE_PAGES } = await import("@/lib/admin/site-pages");
+  const { DEFAULT_PAGE_STATES } = await import("@/lib/server/page-gate");
   const pageStates: Record<string, { state: "live" | "hidden" | "maintenance" | "soon"; message?: string }> = {};
   for (const p of SITE_PAGES) {
     const state = s(formData, `state:${p.path}`);
+    // « En ligne » n'est enregistré que pour les pages qui ne le sont pas d'origine (la boutique), sinon l'état d'origine reviendrait.
+    if (state === "live" && DEFAULT_PAGE_STATES[p.path]) {
+      pageStates[p.path] = { state: "live" };
+      continue;
+    }
     if (!["hidden", "maintenance", "soon"].includes(state)) continue;
     pageStates[p.path] = { state: state as "hidden" | "maintenance" | "soon", message: s(formData, `message:${p.path}`).slice(0, 300) || undefined };
   }

@@ -10,7 +10,7 @@ export const metadata = { title: "Automatisations" };
 
 const RULES = [
   ["welcome", "Compte créé", "E-mail de confirmation de création du compte (paiement à finaliser)"],
-  ["membershipWelcome", "Adhésion validée", "E-mail de bienvenue avec le lien du Discord privé"],
+  ["membershipWelcome", "Adhésion validée", "E-mail de bienvenue avec le lien de l’espace privé"],
   ["paymentConfirmation", "Paiement reçu", "E-mail de confirmation"],
   ["paymentFailedReminder", "Paiement échoué", "Relance (bouton « Relancer » dans les finances)"],
   ["renewalJ30", "Adhésion bientôt expirée", "Rappel à J-30"],

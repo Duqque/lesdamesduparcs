@@ -137,11 +137,11 @@ function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: strin
 
       <AdhesionSection season={member.season} endsAt={membership?.endsAt ?? member.validUntil} flash={adhesion} />
 
-      <Section id="discord" title="Communauté Discord">
-        <p className="max-w-xl text-mist t-lead">Rejoignez le serveur Discord des Dames du Parc pour échanger avec les autres membres, organiser les déplacements et suivre les annonces du groupe.</p>
+      <Section id="espace-prive" title="Mon espace privé">
+        <p className="max-w-xl text-mist t-lead">Rejoignez l’espace privé des Dames du Parc pour échanger avec les autres membres, organiser les déplacements et suivre les annonces du groupe.</p>
         {discordUrl ? (
           <a href={discordUrl} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex h-[52px] items-center justify-center gap-3 rounded-[10px] border border-[#8f9bff]/50 bg-[linear-gradient(180deg,#5865f2_0%,#4752c4_100%)] px-6 font-body text-[14.5px] font-medium text-white hover:brightness-110">
-            <MessagesSquare aria-hidden className="size-[20px]" strokeWidth={1.8} /> Rejoindre le Discord
+            <MessagesSquare aria-hidden className="size-[20px]" strokeWidth={1.8} /> Rejoindre l’espace privé
           </a>
         ) : (
           <p className="mt-4 max-w-xl font-body text-[14px] leading-[1.7] text-amber-100">Le lien d&rsquo;invitation sera disponible dès la validation de votre adhésion.</p>

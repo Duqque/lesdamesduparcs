@@ -15,7 +15,7 @@ export interface Chapter {
 const all: readonly Chapter[] = [
   { slug: "lettre-d-introduction", number: "01", title: "Lettre d’introduction", sub: "Qui nous sommes, en quelques lignes.", icon: "Mail" },
   { slug: "notre-histoire", number: "02", title: "Notre histoire", sub: "D’un message à une communauté.", icon: "BookOpen" },
-  { slug: "qui-sommes-nous", number: "03", title: "Qui sommes-nous ?", sub: "22 supportrices, de 19 à 40 ans, une même passion.", icon: "Users" },
+  { slug: "qui-sommes-nous", number: "03", title: "Qui sommes-nous ?", sub: "15 membres historiques, de 19 à 40 ans, une même passion.", icon: "Users" },
   { slug: "nos-valeurs", number: "04", title: "Nos valeurs", sub: "Six mots.", icon: "Heart" },
   { slug: "pourquoi-un-fan-club-feminin", number: "05", title: "Pourquoi un fan club 100 % féminin", sub: "Pas pour se séparer, pour se rencontrer.", icon: "Venus" },
   { slug: "ce-que-nous-voulons-construire", number: "06", title: "Ce que nous voulons construire", sub: "Quatre ambitions.", icon: "Map" },

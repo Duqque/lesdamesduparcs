@@ -13,7 +13,7 @@ import { chapters } from "@/data/chapters";
 import { JoinGate } from "@/components/member/JoinGate";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return seoFor("/groupe", { title: "Le groupe", description: "Les Dames du Parc : 22 supportrices réunies par la même passion, le Paris Saint-Germain. Notre histoire, nos valeurs, pourquoi un fan club 100 % féminin, ce que nous voulons construire." });
+  return seoFor("/groupe", { title: "Le groupe", description: "Les Dames du Parc, communauté 100 % féminine de supportrices du Paris Saint-Germain, née de 15 membres historiques réunies par la même passion. Notre histoire, nos valeurs, pourquoi un fan club 100 % féminin, ce que nous voulons construire." });
 }
 
 export default async function GroupPage() {

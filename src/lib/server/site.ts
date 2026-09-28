@@ -11,8 +11,10 @@ export type { NavConfig };
 export async function getNavConfig(): Promise<NavConfig> {
   const { navigation } = await siteConfig.get();
   // Les pages « masquées » disparaissent aussi du menu : il se réorganise automatiquement.
-  const { hiddenPagePaths } = await import("./page-gate");
-  return { hidden: [...new Set([...navigation.hidden, ...(await hiddenPagePaths())])], labels: navigation.labels };
+  const { hiddenPagePaths, getPageState } = await import("./page-gate");
+  // Tant que la boutique n'est pas en ligne, le bouton du panier disparaît aussi.
+  const shop = await getPageState("/boutique");
+  return { hidden: [...new Set([...navigation.hidden, ...(await hiddenPagePaths())])], labels: navigation.labels, hideCart: shop.state !== "live" };
 }
 
 /** Titre et description d'une page, avec les surcharges SEO saisies dans le back-office. */

@@ -49,7 +49,7 @@ export const adhesion = {
     { icon: "Ticket", title: "Accès à certains événements", text: "Certains rendez-vous pourront être réservés aux membres (soirée, afterwork, événements autour du PSG, etc)." },
     { icon: "Clock", title: "Priorité sur certaines inscriptions", text: "Pour les événements à jauge limitée, les membres pourront avoir une période d’inscription prioritaire avant l’ouverture au reste de la communauté." },
     { icon: "IdCard", title: "Carte de membre virtuelle", text: "Une carte digitale peut être créée dans un premier temps. Une version physique pourra être envisagée plus tard si cela a du sens." },
-    { icon: "MessageCircle", title: "Espace communautaire privé", text: "Un espace réservé aux membres, par exemple Discord, pour les annonces, les informations importantes et les échanges." },
+    { icon: "MessageCircle", title: "Espace communautaire privé", text: "Un espace privé réservé aux membres, pour les annonces, les informations importantes et les échanges." },
     { icon: "Sparkles", title: "Autres avantages à terme", text: "D’autres avantages pourront être développés progressivement en fonction de la croissance de la communauté et des possibilités." },
   ],
   warning:
@@ -82,7 +82,7 @@ export const adhesion = {
     note: "La personne arrive ensuite directement sur notre parcours d’adhésion, sans que nous ayons à réexpliquer manuellement tout le fonctionnement à chaque demande.",
   },
   privateSpace: {
-    lead: "Notre espace privé ne remplacerait pas Instagram ou TikTok. Les réseaux restent les espaces publics de visibilité et de découverte. Il serait l’espace privé des membres. Discord est la piste envisagée, à confirmer selon les usages de la communauté et la simplicité d’administration.",
+    lead: "Notre espace privé ne remplacerait pas Instagram ou TikTok. Les réseaux restent les espaces publics de visibilité et de découverte. Il serait l’espace privé des membres, pour les annonces, les informations importantes et les échanges.",
     items: [
       { icon: "Megaphone", title: "Annonces", text: "Informations importantes, actualités membres, ouvertures d’inscriptions." },
       { icon: "Ticket", title: "Événements", text: "Informations pratiques, rappels et organisation." },
@@ -126,7 +126,7 @@ export const adhesion = {
     { q: "Que donne l’adhésion ?", a: "Accès à certains événements, priorité sur certaines inscriptions, carte virtuelle et espace privé, avec d’autres avantages possibles à terme." },
     { q: "Est-ce qu’une adhésion garantit une place à un événement ?", a: "Non. La priorité dépend de l’événement et des places disponibles." },
     { q: "Où s’inscrit-on ?", a: "Directement via le site." },
-    { q: "Où échangent les membres ?", a: "Dans un espace privé, Discord étant une piste." },
+    { q: "Où échangent les membres ?", a: "Dans l’espace privé de la communauté, accessible dès que l’adhésion est validée." },
     { q: "Les goodies sont-ils inclus ?", a: "Pas nécessairement ; ils peuvent être développés et vendus séparément à terme." },
   ],
 } as const;

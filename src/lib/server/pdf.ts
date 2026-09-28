@@ -143,7 +143,7 @@ export async function buildAttestation(m: MemberPublic, verifyUrl: string, asso:
   // En-tête
   c.page.drawImage(logo, { x: 40, y: y(112), width: 72, height: 72 });
   text(c, `Attestation d'adhésion Saison ${seasonShort}`, 350, 52, 21, { font: c.bold, align: "center", color: NAVY });
-  text(c, "Association de supportrices du Paris Saint-Germain", 350, 84, 10, { align: "center", color: GREY });
+  text(c, "Communauté 100 % féminine de supportrices du Paris Saint-Germain", 350, 84, 10, { align: "center", color: GREY });
   c.page.drawLine({ start: { x: 40, y: y(124) }, end: { x: W - 40, y: y(124) }, thickness: 1, color: NAVY });
   c.page.drawLine({ start: { x: 40, y: y(124) }, end: { x: 120, y: y(124) }, thickness: 2.4, color: RED });
 

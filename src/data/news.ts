@@ -7,8 +7,8 @@ export const news: NewsItem[] = [
     title: "Victoire du PSG : un Parc en fusion !",
     category: "Match",
     date: "2026-09-20",
-    image: "/images/ligue-des-champions-2025.webp",
-    imageAlt: "Les joueurs du PSG célèbrent un titre sous une pluie de confettis dorés",
+    image: "/images/identite-lys.webp",
+    imageAlt: "Fleur-de-lis et logo des Dames du Parc sur fond bleu nuit",
     excerpt: "Les tribunes ont grondé jusqu'au coup de sifflet final. Retour sur une soirée où Paris a su faire de son stade une forteresse.",
     content: [
       "Dès l'échauffement, l'ambiance était posée. Écharpes levées, chants repris en chœur, le Parc des Princes a rappelé à quel point un public uni peut soulever une équipe.",
@@ -79,8 +79,8 @@ export const news: NewsItem[] = [
     title: "Nos chants enfin en playlist",
     category: "Musique",
     date: "2026-08-18",
-    image: "/images/tribune-fumigene-orange.webp",
-    imageAlt: "Supporters dans la lumière orange d'un fumigène",
+    image: "/images/identite-silhouettes.webp",
+    imageAlt: "Silhouettes de supportrices, écharpes levées, sur fond bleu nuit",
     excerpt: "Apprenez le répertoire à votre rythme : la playlist des Dames du Parc est disponible, pour chanter avant, pendant et après le match.",
     content: [
       "Un chant se transmet : nous avons rassemblé nos titres préférés dans une playlist à écouter partout, dans le métro comme sur le trajet du Parc.",

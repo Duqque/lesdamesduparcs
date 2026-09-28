@@ -12,7 +12,7 @@ export const histoire = {
       "Puis un jour, une idée toute simple est apparue : « Et si on créait un groupe de supportrices du PSG ? » À cet instant, aucune d’entre nous n’imaginait que ce simple message allait changer bien plus que notre manière de vivre les matchs. Ce qui devait être un espace de discussion est rapidement devenu un lieu de rencontres. Derrière chaque photo de profil se cachait une femme, une histoire, une manière unique de vivre sa passion pour Paris.",
       "Petit à petit, les conversations sont devenues des habitudes, les soirs de match des rendez-vous, les émotions des souvenirs communs. Sans même nous en rendre compte, une véritable communauté était née. Non pas parce que nous avions décidé de créer un projet, mais parce que nous vivions déjà la même passion.",
       "C’est cette histoire que nous souhaitons vous raconter.",
-      "Au fil de ces pages, vous découvrirez comment vingt-deux femmes, qui ne se connaissaient pas quelques mois auparavant, ont construit bien plus qu’un groupe de supportrices. Vous découvrirez des parcours différents, des souvenirs, des rencontres, des éclats de rire, des moments de doute, mais surtout une conviction commune : certaines passions ont le pouvoir de rapprocher des personnes qui ne se seraient probablement jamais rencontrées autrement.",
+      "Au fil de ces pages, vous découvrirez comment quinze femmes, nos membres historiques, qui ne se connaissaient pas quelques mois auparavant, ont construit bien plus qu’un groupe de supportrices. Vous découvrirez des parcours différents, des souvenirs, des rencontres, des éclats de rire, des moments de doute, mais surtout une conviction commune : certaines passions ont le pouvoir de rapprocher des personnes qui ne se seraient probablement jamais rencontrées autrement.",
       "Ce dossier ne raconte pas seulement la naissance d’une communauté ; il raconte ce que le Paris Saint-Germain est capable de créer dans la vie de ceux qui l’aiment."
     ]
   },
@@ -24,7 +24,7 @@ export const histoire = {
         "title": "Un message",
         "paragraphs": [
           "Toutes les histoires ont un commencement. Certaines naissent d’années de réflexion, d’autres d’un hasard, d’une rencontre ou d’une simple idée lancée au bon moment. La nôtre est née de quelques mots publiés sur les réseaux sociaux. Une question toute simple, presque anodine : « Et si on créait un groupe de supportrices du PSG ? »",
-          "À cet instant, personne n’imaginait ce que cette phrase allait provoquer. Personne ne pouvait deviner qu’elle deviendrait le point de départ d’une aventure humaine réunissant aujourd’hui vingt-deux femmes autour d’une passion commune. Nous pensions créer un simple espace de discussion. Nous étions loin d’imaginer que nous étions en train de poser les premières pierres d’une véritable communauté."
+          "À cet instant, personne n’imaginait ce que cette phrase allait provoquer. Personne ne pouvait deviner qu’elle deviendrait le point de départ d’une aventure humaine réunissant, avant même son ouverture au public, quinze membres historiques autour d’une passion commune. Nous pensions créer un simple espace de discussion. Nous étions loin d’imaginer que nous étions en train de poser les premières pierres d’une véritable communauté."
         ],
         "pull": null
       },
@@ -97,27 +97,17 @@ export const histoire = {
     ],
     "profilsTitle": "Nos profils",
     "pull": "Ce que nous avons en commun dépasse le football. C’est une manière d’être. Une façon de ressentir. Et le PSG, au cœur de tout ça.",
-    "figuresTitle": "Une communauté jeune, fidèle et déjà bien réelle.",
+    "figuresTitle": "Une communauté jeune, fidèle et déjà bien réelle, née de 15 membres historiques.",
     "figures": [
       {
-        "value": "22",
-        "count": 22,
-        "label": "femmes réunies par la même passion pour le Paris Saint-Germain, âgées de 19 à 40 ans"
+        "value": "15",
+        "count": 15,
+        "label": "membres historiques, réunies par la même passion pour le Paris Saint-Germain"
       },
       {
-        "value": "22",
-        "count": 22,
-        "label": "membres MyParis"
-      },
-      {
-        "value": "10",
-        "count": 10,
-        "label": "cartes Collectif Ultras Paris 26/27"
-      },
-      {
-        "value": "1",
-        "count": 1,
-        "label": "abonnée au Parc des Princes"
+        "value": "19–40",
+        "count": null,
+        "label": "ans : l’âge des membres historiques"
       },
       {
         "value": "2026",
@@ -170,7 +160,7 @@ export const histoire = {
         "label": "Un espace pour elles",
         "title": "Un espace pour elles, afin qu’on puisse entendre résonner leurs voix",
         "paragraphs": [
-          "Les supportrices du Paris Saint-Germain existent depuis toujours. Elles vivent intensément chaque rencontre du Paris Saint-Germain dans les tribunes, devant leur écran ou dans un bar. Elles ressentent également l’euphorie d’une victoire, ou encore la déception d’une défaite. Toutes ces expériences, les femmes les traversent aussi, cependant elles sont souvent invisibles. Sans aucune représentation organisée, pas de groupe qui les rassemble, pas de voix collective. La passion est identique mais l’expérience quotidienne peut varier. Il n’est pas toujours facile de trouver quelqu’un avec qui discuter d’un match, d’oser aller au Parc des Princes sans se sentir en décalage, ou de vivre en tant que fan sans avoir à se justifier. Un fan club féminin, c’est simplement mettre en lumière ce qui a toujours été présent. Ce n’est pas créer quelque chose de nouveau, c’est donner une forme à ce qui existe déjà. Ce club de supportrices ne propose pas simplement que les femmes perçoivent le football d’une manière différente, il soutient que leur vécu mérite une reconnaissance particulière."
+          "Les supportrices du Paris Saint-Germain existent depuis toujours. Elles vivent intensément chaque rencontre du Paris Saint-Germain dans les tribunes, devant leur écran ou dans un bar. Elles ressentent également l’euphorie d’une victoire, ou encore la déception d’une défaite. Toutes ces expériences, les femmes les traversent aussi, cependant elles sont souvent invisibles. Sans aucune représentation organisée, pas de groupe qui les rassemble, pas de voix collective. La passion est identique mais l’expérience quotidienne peut varier. Il n’est pas toujours facile de trouver quelqu’un avec qui discuter d’un match, d’oser aller au Parc des Princes sans se sentir en décalage, ou de vivre en tant que fan sans avoir à se justifier. Une communauté féminine, c’est simplement mettre en lumière ce qui a toujours été présent. Ce n’est pas créer quelque chose de nouveau, c’est donner une forme à ce qui existe déjà. Ce club de supportrices ne propose pas simplement que les femmes perçoivent le football d’une manière différente, il soutient que leur vécu mérite une reconnaissance particulière."
         ],
         "pulls": [
           "L’amour du club ne connaît pas de genre."
@@ -182,7 +172,7 @@ export const histoire = {
         "title": "Un espace de rencontre où elles ne seront plus jamais seules dans cette quête",
         "paragraphs": [
           "Beaucoup vivent cette passion seules. Non pas par préférence, mais parce que leur cercle ne partage pas cette ferveur. Pas de famille passionnée de football, pas d’amies intéressées, pas de groupe où cet engouement trouve sa place. Faute d’entourage partageant la même flamme, certaines supportrices ne trouvent personne avec qui débriefer d’un match, ou partager l’expérience de franchir les portes du Parc des Princes pour la première fois. Se rendre en tribune seule peut être intimidant. Non pas parce que l’endroit est hostile, mais parce que l’expérience du stade se vit mieux à plusieurs et que sans réseau, on n’ose parfois pas franchir ce pas.",
-          "Pour une femme sans connaissances dans les gradins, l’expérience peut alors sembler hors de portée. Disposer d’une communauté fait toute la différence. On est accompagné de personnes qui assistent également à leur premier match ou bien avec des habituées transmettant leur amour du club. Il existe peu d’espaces dédiés à cette mise en relation. Ce fan club comble ce manque, en offrant un espace concret pour se retrouver et tisser des liens entre les supportrices autour d’une passion commune."
+          "Pour une femme sans connaissances dans les gradins, l’expérience peut alors sembler hors de portée. Disposer d’une communauté fait toute la différence. On est accompagné de personnes qui assistent également à leur premier match ou bien avec des habituées transmettant leur amour du club. Il existe peu d’espaces dédiés à cette mise en relation. Cette communauté comble ce manque, en offrant un espace concret pour se retrouver et tisser des liens entre les supportrices autour d’une passion commune."
         ],
         "pulls": [],
         "stats": []
@@ -191,7 +181,7 @@ export const histoire = {
         "label": "Un espace qui perdure",
         "title": "Un espace qui perdure dans le temps pour les générations futures",
         "paragraphs": [
-          "Pour de nombreuses femmes, cette passion se manifeste dès le plus jeune âge. Pour une jeune supportrice, l’absence de représentation féminine parmi les supporters de Paris peut rapidement donner l’impression que cet univers ne lui est pas destiné. L’existence d’un fan club féminin reconnu par le Paris Saint-Germain est un message encourageant. Sa présence dans les gradins est justifiable, son engagement dans la vie du club en tant que supportrice compte, son attachement à Paris est aussi valable que celui de quiconque. C’est un modèle discret mais puissant, capable de façonner la relation d’une génération entière de jeunes filles avec le football."
+          "Pour de nombreuses femmes, cette passion se manifeste dès le plus jeune âge. Pour une jeune supportrice, l’absence de représentation féminine parmi les supporters de Paris peut rapidement donner l’impression que cet univers ne lui est pas destiné. L’existence d’une communauté féminine reconnue par le Paris Saint-Germain est un message encourageant. Sa présence dans les gradins est justifiable, son engagement dans la vie du club en tant que supportrice compte, son attachement à Paris est aussi valable que celui de quiconque. C’est un modèle discret mais puissant, capable de façonner la relation d’une génération entière de jeunes filles avec le football."
         ],
         "pulls": [],
         "stats": []
@@ -200,9 +190,9 @@ export const histoire = {
         "label": "Un modèle déjà éprouvé en Europe",
         "title": "Un modèle qui a déjà fait ses preuves en Europe",
         "paragraphs": [
-          "C’est également une opportunité pour le club d’avoir un fan club officiel exclusivement féminin. Un exemple est déjà présent en Europe avec le Bayern Red Ladies, le premier et unique groupe de supporters officiel pour femmes du FC Bayern Munich, rassemblant aujourd’hui plus de 350 membres réparties dans plus de 20 pays. Ce qui a démarré comme un petit groupe de femmes liées par leur passion pour le club s’est transformé en une communauté admirée, fière et investie.",
-          "Ce que nous voulons créer, c’est une communauté dévouée, des ambassadrices naturelles auprès d’un public encore peu atteint, un signe fort de l’engagement en faveur de l’inclusivité. Dans un monde du football en quête d’élargir ses audiences et de se moderniser, la reconnaissance et le soutien de ce fan club s’alignent parfaitement avec les valeurs que défend le Paris Saint-Germain : un club universel, inclusif, où chaque supporter a de l’importance.",
-          "Ce fan club n’est pas le résultat d’une frustration ou d’une lutte. Son existence découle d’une envie, celle de célébrer ensemble, de transmettre cette passion dans un espace qui nous ressemble. Il ne s’agit pas d’une opposition à d’autres supporters, ni d’une séparation. L’idée n’est pas de remplacer qui que ce soit, c’est de montrer qu’on existe. C’est normaliser le fait que n’importe qui peut donner de la voix pour le PSG, dans la victoire comme dans la défaite, et qu’aucune supportrice ne devrait vivre cette passion dans l’ombre.",
+          "C’est également une opportunité pour le club d’avoir une communauté officielle exclusivement féminine. Un exemple est déjà présent en Europe avec le Bayern Red Ladies, le premier et unique groupe de supporters officiel pour femmes du FC Bayern Munich, rassemblant aujourd’hui plus de 350 membres réparties dans plus de 20 pays. Ce qui a démarré comme un petit groupe de femmes liées par leur passion pour le club s’est transformé en une communauté admirée, fière et investie.",
+          "Ce que nous voulons créer, c’est une communauté dévouée, des ambassadrices naturelles auprès d’un public encore peu atteint, un signe fort de l’engagement en faveur de l’inclusivité. Dans un monde du football en quête d’élargir ses audiences et de se moderniser, la reconnaissance et le soutien de cette communauté s’alignent parfaitement avec les valeurs que défend le Paris Saint-Germain : un club universel, inclusif, où chaque supporter a de l’importance.",
+          "Cette communauté n’est pas le résultat d’une frustration ou d’une lutte. Son existence découle d’une envie, celle de célébrer ensemble, de transmettre cette passion dans un espace qui nous ressemble. Il ne s’agit pas d’une opposition à d’autres supporters, ni d’une séparation. L’idée n’est pas de remplacer qui que ce soit, c’est de montrer qu’on existe. C’est normaliser le fait que n’importe qui peut donner de la voix pour le PSG, dans la victoire comme dans la défaite, et qu’aucune supportrice ne devrait vivre cette passion dans l’ombre.",
           "Unies par la même passion."
         ],
         "pulls": [
@@ -226,7 +216,7 @@ export const histoire = {
     "items": [
       {
         "title": "Se retrouver pour une même passion",
-        "text": "L’âme de ce fan club, c’est la rencontre. Nous souhaitons organiser des rendez-vous réguliers autour des matchs du Paris Saint-Germain, que ce soit au Parc des Princes, en déplacement pour suivre l’équipe à l’extérieur, ou dans des bars, brasseries ou salles privatisées pour les retransmissions. Chaque match est une occasion de se retrouver, de partager et de vivre ensemble ce que beaucoup vivaient jusqu’ici seules."
+        "text": "L’âme de cette communauté, c’est la rencontre. Nous souhaitons organiser des rendez-vous réguliers autour des matchs du Paris Saint-Germain, que ce soit au Parc des Princes, en déplacement pour suivre l’équipe à l’extérieur, ou dans des bars, brasseries ou salles privatisées pour les retransmissions. Chaque match est une occasion de se retrouver, de partager et de vivre ensemble ce que beaucoup vivaient jusqu’ici seules."
       },
       {
         "title": "Être pleinement actrice de la vie du club",
@@ -234,7 +224,7 @@ export const histoire = {
       },
       {
         "title": "Une communauté qui grandit, sans frontières",
-        "text": "Ce fan club est né en région parisienne, mais notre ambition ne s’arrête pas là. Nous aspirons à élargir la communauté à l’échelle nationale, voire mondiale. Pour cela, nous comptons sur une présence dynamique sur les réseaux sociaux comme Instagram, X (anciennement Twitter) et TikTok, ainsi qu’un espace Discord structuré en différents salons. Cela vise à encourager les échanges entre les membres, commenter les matchs en temps réel, partager les émotions ou organiser des rencontres. Un blog ou un site web viendra enrichir ce dispositif, en proposant un espace dédié à la vie de la communauté."
+        "text": "Cette communauté est née en région parisienne, mais notre ambition ne s’arrête pas là. Nous aspirons à élargir la communauté à l’échelle nationale, voire mondiale. Pour cela, nous comptons sur une présence dynamique sur les réseaux sociaux comme Instagram, X (anciennement Twitter) et TikTok, ainsi qu’un espace privé structuré en différents salons. Cela vise à encourager les échanges entre les membres, commenter les matchs en temps réel, partager les émotions ou organiser des rencontres. Un blog ou un site web viendra enrichir ce dispositif, en proposant un espace dédié à la vie de la communauté."
       },
       {
         "title": "Porter une image positive du supportérisme féminin",
@@ -259,7 +249,7 @@ export const histoire = {
   },
   "daily": {
     "sub": "Avant même d’obtenir une reconnaissance officielle du Paris Saint-Germain, elle est déjà vivante.",
-    "lead": "Ce fan club n’existe pas seulement sur le papier. Avant même d’obtenir une reconnaissance officielle du Paris Saint-Germain, il est déjà vivant. Les membres se retrouvent, créent des souvenirs et unissent leurs efforts pour construire quelque chose de concret ensemble. Voici ce que nous avons déjà réalisé.",
+    "lead": "Cette communauté n’existe pas seulement sur le papier. Avant même d’obtenir une reconnaissance officielle du Paris Saint-Germain, elle est déjà vivante. Les membres se retrouvent, créent des souvenirs et unissent leurs efforts pour construire quelque chose de concret ensemble. Voici ce que nous avons déjà réalisé.",
     "blocks": [
       {
         "title": "Une communauté née en ligne",

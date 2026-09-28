@@ -20,7 +20,7 @@ const dark = "border-white/[0.12] bg-[#0d0f13] hover:border-white/30 hover:bg-[#
  * Barre de navigation mobile / tablette, fixée en bas de l'écran : mon espace ou adhésion, panier, logo, menu, connexion.
  * (Le bouton du son n'existe pas sur mobile.)
  */
-export function MobileDock({ open, onToggle, onClose }: { open: boolean; onToggle: () => void; onClose: () => void }) {
+export function MobileDock({ open, onToggle, onClose, hideCart }: { hideCart?: boolean; open: boolean; onToggle: () => void; onClose: () => void }) {
   const { session, logout } = useAuth();
   const signedIn = session.status === "member" || session.status === "admin";
   return (
@@ -39,7 +39,7 @@ export function MobileDock({ open, onToggle, onClose }: { open: boolean; onToggl
       )}
 
       <div className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-[18px] border border-white/[0.12] bg-[#050608]/95 p-2 shadow-[0_18px_40px_-16px_rgba(0,0,0,0.9)] sm:max-w-[420px] sm:flex-none sm:basis-[420px]">
-        <CartButton className={cn(square, dark, "size-[52px]")} />
+        {!hideCart && <CartButton className={cn(square, dark, "size-[52px]")} />}
         <Link href="/" aria-label="Les Dames du Parc, accueil" onClick={onClose} className="relative mx-1 block h-[46px] min-w-0 flex-1 transition-transform duration-300 active:scale-95">
           <Image src={MOBILE_LOGO} alt="" fill sizes="(min-width: 640px) 200px, 40vw" className="object-contain" />
         </Link>

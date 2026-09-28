@@ -178,7 +178,7 @@ export const DEFAULT_TEMPLATES: Array<Omit<EmailTemplate, "createdAt" | "updated
   {
     id: "membership_welcome",
     key: "membership_welcome",
-    name: "Bienvenue (adhésion validée, avec le Discord privé)",
+    name: "Bienvenue (adhésion validée, avec l'espace privé)",
     subject: "Bienvenue chez Les Dames du Parc 🔴🔵",
     body: [
       "Bonjour **{{prenom}}**,",
@@ -190,7 +190,7 @@ export const DEFAULT_TEMPLATES: Array<Omit<EmailTemplate, "createdAt" | "updated
       "## 📅 Ton adhésion",
       "Ton adhésion est valable pour **toute la saison {{saison_courte}}**, jusqu’au **{{fin}}**.",
       "{{#discord}}## 💬 Ton espace privé",
-      "Pour échanger avec les autres Dames, suivre les informations réservées aux membres et faire vivre la communauté au quotidien, nous avons créé notre **salon privé Discord**.",
+      "Pour échanger avec les autres Dames, suivre les informations réservées aux membres et faire vivre la communauté au quotidien, nous avons créé notre **espace privé**.",
       "[👉 Rejoindre l’espace privé]({{discord}})",
       "N’hésite pas à nous y rejoindre **dès maintenant** !{{/discord}}",
       "Cette saison ne fait que commencer, et nous avons hâte de la vivre **avec toi**.",

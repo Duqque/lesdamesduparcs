@@ -38,6 +38,9 @@ export function LetterBody() {
 export function StoryBody() {
   return (
     <div className={`${wrap} max-w-[820px]`}>
+      <Reveal>
+        <p className="mb-14 max-w-[40ch] break-words border-l-[3px] border-psg-red-bright pl-5 text-[clamp(20px,2.4vw,28px)] font-semibold leading-[1.25] text-white">{g.storyIntro}</p>
+      </Reveal>
       <Timeline items={g.story} label="Notre histoire en cinq étapes" />
     </div>
   );
@@ -50,7 +53,7 @@ export function WhoBody() {
       <Reveal>
         <p className="max-w-[34ch] break-words text-[clamp(22px,3vw,40px)] font-medium leading-[1.16] text-white">{g.who.lead}</p>
       </Reveal>
-      <ul className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <ul className="mt-16 grid gap-4 sm:grid-cols-3">
         {g.who.figures.map((f, i) => (
           <li key={f.label} className="min-w-0">
             <Reveal delay={i * 0.05} className="h-full">
@@ -64,6 +67,10 @@ export function WhoBody() {
           </li>
         ))}
       </ul>
+      <Reveal className="mt-10 max-w-[52ch]">
+        <p className="text-[clamp(20px,2.4vw,28px)] font-semibold leading-[1.25] text-white">{g.who.passion}</p>
+        <p className="mt-3 text-white/75 t-lead">{g.who.note}</p>
+      </Reveal>
     </div>
   );
 }

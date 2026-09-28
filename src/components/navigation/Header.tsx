@@ -146,12 +146,12 @@ export function Header({ navConfig }: { navConfig?: NavConfig }) {
             </nav>
             <span className="hidden lg:block lg:flex-1" />
             <Link href="/contact" aria-label="Contact" className={squareBtn}><Mail aria-hidden className="size-[19px]" strokeWidth={1.7} /></Link>
-            <CartButton className={squareBtn} />
+            {!navConfig?.hideCart && <CartButton className={squareBtn} />}
             <AccountMenu buttonClassName={squareBtn} />
           </div>
         </div>
       </header>
-      <MobileDock open={open} onToggle={() => setOpen((v) => !v)} onClose={() => setOpen(false)} />
+      <MobileDock hideCart={navConfig?.hideCart} open={open} onToggle={() => setOpen((v) => !v)} onClose={() => setOpen(false)} />
       <SoundToggle className="fixed bottom-6 right-6 z-40 hidden size-12 place-items-center rounded-full border border-white/[0.14] bg-[#0d0f13]/90 text-white/85 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.9)] transition-[background-color,border-color,color] duration-300 hover:border-white/35 hover:bg-[#161a20] hover:text-white lg:grid" />
       <MobileMenu open={open} pathname={pathname} items={apply(mainNav)} onNavigate={() => setOpen(false)} />
     </>

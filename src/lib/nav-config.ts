@@ -3,6 +3,8 @@ import type { NavItem } from "@/types";
 export interface NavConfig {
   hidden: string[];
   labels: Record<string, string>;
+  /** Boutique fermée (masquée, en maintenance ou « bientôt disponible ») : pas de bouton panier */
+  hideCart?: boolean;
 }
 
 /** Applique les libellés et masquages du back-office aux liens de navigation. */

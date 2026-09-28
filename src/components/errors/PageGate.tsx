@@ -15,5 +15,7 @@ export async function PageGate({ path, children }: { path: string; children: Rea
   if (state === "live" || (await isAdminPreview())) return <>{children}</>;
   if (state === "hidden") notFound();
   const base = errorBySlug(state === "maintenance" ? "maintenance" : "bientot-disponible")!;
-  return <ErrorScreen page={{ ...base, text: message?.trim() || base.text }} photo={await errorPhotoFor(base.slug)} />;
+  // « BOUTIQUE / Bientôt disponible » : la rubrique est annoncée sans donner l'impression que la fonction existe déjà.
+  const label = path === "/boutique" && state === "soon" ? { code: "Boutique" } : {};
+  return <ErrorScreen page={{ ...base, ...label, text: message?.trim() || base.text }} photo={await errorPhotoFor(base.slug)} />;
 }

@@ -50,8 +50,8 @@ export const events: ClubEvent[] = [
     endTime: "01:00",
     venue: "Bar du Parc",
     address: "Paris 16e, adresse communiquée aux inscrites",
-    image: "/images/tribune-fumigene-orange.webp",
-    imageAlt: "Supporters dans la lumière orange d'un fumigène",
+    image: "/images/identite-silhouettes.webp",
+    imageAlt: "Silhouettes de supportrices, écharpes levées, sur fond bleu nuit",
     variant: "photo",
     access: "Membres",
     summary: "Une soirée pour se retrouver, chanter et refaire le match entre supportrices.",
@@ -83,8 +83,8 @@ export const events: ClubEvent[] = [
     endTime: "17:30",
     venue: "Salle des Dames",
     address: "Paris, lieu à confirmer",
-    image: "/images/foule-drapeau-paris.webp",
-    imageAlt: "Foule de supporters derrière un drapeau Paris",
+    image: "/images/identite-logo.webp",
+    imageAlt: "Logo des Dames du Parc sur fond bleu nuit",
     variant: "text",
     access: "Sur inscription",
     summary: "Deux heures pour maîtriser les chants du groupe, débutantes bienvenues.",
@@ -266,14 +266,14 @@ const pastEvent = (e: PastSeed): ClubEvent => ({
 });
 
 export const pastEvents: ClubEvent[] = [
-  { id: "soiree-de-rentree", title: "Soirée de rentrée des membres", date: "2026-09-20", venue: "Bar du Parc", image: "/images/tribune-fumigene-orange.webp", imageAlt: "Supporters dans la lumière orange d'un fumigène", text: "Une soirée pour lancer la saison, accueillir les nouvelles membres et chanter ensemble." },
+  { id: "soiree-de-rentree", title: "Soirée de rentrée des membres", date: "2026-09-20", venue: "Bar du Parc", image: "/images/identite-silhouettes.webp", imageAlt: "Silhouettes de supportrices, écharpes levées, sur fond bleu nuit", text: "Une soirée pour lancer la saison, accueillir les nouvelles membres et chanter ensemble." },
   { id: "deplacement-marseille", title: "Déplacement à Marseille", date: "2026-09-13", venue: "Départ de Paris", image: "/images/parc-des-princes-facade.webp", imageAlt: "Façade en béton du Parc des Princes", text: "Une journée de match à l'extérieur, du car au retour, entre supportrices." },
   { id: "soiree-quiz-et-chants", title: "Soirée quiz et chants", date: "2026-09-06", venue: "Salle des Dames", image: "/images/vestiaire-fauteuils.webp", imageAlt: "Rangée de fauteuils bleus dans un vestiaire du PSG", text: "Quiz aux couleurs de Paris, répertoire de chants et tirage au sort." },
   { id: "tournoi-des-supportrices", title: "Tournoi de football des supportrices", date: "2026-08-29", venue: "Terrain de quartier", image: "/images/parc-pelouse-tribunes.webp", imageAlt: "La pelouse du Parc des Princes face aux tribunes", text: "Un tournoi amical entre équipes de membres, dans la bonne humeur." },
   { id: "projection-des-feminines", title: "Projection du match des féminines", date: "2026-08-15", venue: "Bar du Parc", image: "/images/tunnel-ici-cest-paris.webp", imageAlt: "Le couloir lumineux du Parc des Princes", text: "Le match des féminines du PSG sur grand écran, en compagnie des Dames du Parc." },
-  { id: "pique-nique-parisien", title: "Pique-nique aux couleurs de Paris", date: "2026-07-12", venue: "Bois de Boulogne", image: "/images/foule-drapeau-paris.webp", imageAlt: "Foule de supporters derrière un drapeau Paris", text: "Un après-midi en plein air, drapeaux, jeux et goûter partagé." },
+  { id: "pique-nique-parisien", title: "Pique-nique aux couleurs de Paris", date: "2026-07-12", venue: "Bois de Boulogne", image: "/images/identite-logo.webp", imageAlt: "Logo des Dames du Parc sur fond bleu nuit", text: "Un après-midi en plein air, drapeaux, jeux et goûter partagé." },
   { id: "assemblee-generale", title: "Assemblée générale des Dames du Parc", date: "2026-06-14", venue: "Maison des Dames", image: "/images/sieges-rouges-bleus.webp", imageAlt: "Sièges rouges et bleus floqués Paris Saint-Germain", text: "Bilan de la saison, projets et élection du bureau, avec toutes les membres." },
-  { id: "finale-sur-ecran-geant", title: "Finale européenne sur écran géant", date: "2026-05-30", venue: "Fan zone", image: "/images/ligue-des-champions-2025.webp", imageAlt: "Les joueurs du PSG célèbrent sous une pluie de confettis dorés", text: "La finale vécue ensemble, sur écran géant, avec toute la communauté." },
+  { id: "finale-sur-ecran-geant", title: "Finale européenne sur écran géant", date: "2026-05-30", venue: "Fan zone", image: "/images/identite-lys.webp", imageAlt: "Fleur-de-lis et logo des Dames du Parc sur fond bleu nuit", text: "La finale vécue ensemble, sur écran géant, avec toute la communauté." },
 ].map(pastEvent);
 
 export const eventTags = ["Tous", "Programme", "Matchday", "Soirée", "Atelier", "Membres", "Déplacement"] as const;

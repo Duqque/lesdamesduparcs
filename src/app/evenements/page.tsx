@@ -52,7 +52,7 @@ export default async function EventsPage() {
 
         <JoinSectionGate>
         <aside aria-label="Adhérer" className="mt-16 flex flex-col items-start gap-5 rounded-[10px] border border-psg-red-bright/40 bg-[linear-gradient(90deg,rgba(217,15,44,0.16),rgba(217,15,44,0.03))] p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
-          <p className="max-w-xl font-body text-[16px] leading-[1.6] text-white"><JoinText guest="Vivez les matchs et les événements avec Les Dames du Parc : rejoignez le groupe de supportrices du Paris Saint-Germain." renew="Votre adhésion est terminée : renouvelez-la pour continuer à vivre les matchs et les événements avec Les Dames du Parc." pay="Il ne reste qu’à régler votre adhésion pour vivre les matchs et les événements avec Les Dames du Parc." /></p>
+          <p className="max-w-xl font-body text-[16px] leading-[1.6] text-white"><JoinText guest="Vivez les matchs et les événements avec Les Dames du Parc : rejoignez la communauté 100 % féminine de supportrices du Paris Saint-Germain." renew="Votre adhésion est terminée : renouvelez-la pour continuer à vivre les matchs et les événements avec Les Dames du Parc." pay="Il ne reste qu’à régler votre adhésion pour vivre les matchs et les événements avec Les Dames du Parc." /></p>
           <JoinGate><Button size="sm" href="/rejoindre-le-groupe/inscription">Adhérer aux Dames du Parc</Button></JoinGate>
         </aside>
         </JoinSectionGate>

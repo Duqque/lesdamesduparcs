@@ -1,3 +1,4 @@
+import { pageStatesOf } from "@/lib/server/page-gate";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { SubmitButton } from "@/components/admin/SubmitButton";
@@ -13,7 +14,7 @@ export const metadata = { title: "Pages : affichage et maintenance" };
 export default async function PagesPage({ searchParams }: { searchParams: Promise<SP> }) {
   await requireAdmin("site.content");
   const sp = await searchParams;
-  const { pageStates, seo } = await siteConfig.get();
+  const [{ seo }, pageStates] = await Promise.all([siteConfig.get(), pageStatesOf()]);
   return (
     <>
       <PageHeader title="Pages : affichage et maintenance" subtitle="Cachez une page (la Boutique par exemple), mettez-la en maintenance ou en « bientôt disponible » en un clic. Une page masquée disparaît des menus, qui se réorganisent automatiquement. Les administratrices connectées voient toujours les pages pour pouvoir les préparer." />
