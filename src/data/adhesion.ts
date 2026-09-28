@@ -16,11 +16,9 @@ export const adhesion = {
     title: "Membres adhérentes",
     lead: "Celles qui souhaitent aller plus loin peuvent adhérer aux Dames du Parc pour la saison et devenir officiellement membres de la communauté.",
     items: [
-      "Accès à certains événements membres.",
-      "Priorité sur certaines inscriptions.",
-      "Carte de membre virtuelle.",
-      "Espace communautaire privé.",
-      "D’autres avantages pourront être développés progressivement.",
+      "Un espace d’échange privilégié entre adhérentes.",
+      "Des événements et rendez-vous réservés aux membres tout au long de la saison.",
+      "Des goodies réservés aux adhérentes.",
     ],
   },
   compare: [
@@ -45,12 +43,11 @@ export const adhesion = {
       "Pourquoi fonctionner par saison ? Parce que cela correspond naturellement au rythme du PSG et permet de repartir chaque saison sur une base claire : membres de la saison, renouvellements, nouveaux membres, nouveaux avantages et nouveaux projets.",
     ],
   },
+  // Liste volontairement resserrée à ce qui est déjà en place ; les autres avantages (carte virtuelle, priorité d'inscription…) reviendront plus tard.
   benefits: [
-    { icon: "Ticket", title: "Accès à certains événements", text: "Certains rendez-vous pourront être réservés aux membres (soirée, afterwork, événements autour du PSG, etc)." },
-    { icon: "Clock", title: "Priorité sur certaines inscriptions", text: "Pour les événements à jauge limitée, les membres pourront avoir une période d’inscription prioritaire avant l’ouverture au reste de la communauté." },
-    { icon: "IdCard", title: "Carte de membre virtuelle", text: "Une carte digitale peut être créée dans un premier temps. Une version physique pourra être envisagée plus tard si cela a du sens." },
-    { icon: "MessageCircle", title: "Espace communautaire privé", text: "Un espace privé réservé aux membres, pour les annonces, les informations importantes et les échanges." },
-    { icon: "Sparkles", title: "Autres avantages à terme", text: "D’autres avantages pourront être développés progressivement en fonction de la croissance de la communauté et des possibilités." },
+    { icon: "MessageCircle", title: "Un espace d’échange privilégié", text: "Un espace d’échange privilégié entre adhérentes." },
+    { icon: "Ticket", title: "Des événements réservés aux membres", text: "Des événements et rendez-vous réservés aux membres tout au long de la saison." },
+    { icon: "ShoppingBag", title: "Des goodies réservés aux adhérentes", text: "Des goodies réservés aux adhérentes." },
   ],
   warning:
     "L’adhésion ne garantit pas automatiquement une place à chaque événement. Elle donne une priorité d’accès aux inscriptions lorsqu’elle est prévue, mais chaque événement reste soumis à une capacité d’accueil.",
@@ -123,10 +120,10 @@ export const adhesion = {
     { q: "Qui peut adhérer ?", a: "Le principe est une adhésion ouverte aux supportrices souhaitant devenir membres." },
     { q: "Combien coûte l’adhésion ?", a: "12 € pour la saison 2026-2027." },
     { q: "Combien de temps est-elle valable ?", a: "Toute la saison ; renouvellement pour la saison suivante." },
-    { q: "Que donne l’adhésion ?", a: "Accès à certains événements, priorité sur certaines inscriptions, carte virtuelle et espace privé, avec d’autres avantages possibles à terme." },
+    { q: "Que donne l’adhésion ?", a: "Pour le moment : un espace d’échange privilégié entre adhérentes, des événements et rendez-vous réservés aux membres tout au long de la saison, et des goodies réservés aux adhérentes." },
     { q: "Est-ce qu’une adhésion garantit une place à un événement ?", a: "Non. La priorité dépend de l’événement et des places disponibles." },
     { q: "Où s’inscrit-on ?", a: "Directement via le site." },
     { q: "Où échangent les membres ?", a: "Dans l’espace privé de la communauté, accessible dès que l’adhésion est validée." },
-    { q: "Les goodies sont-ils inclus ?", a: "Pas nécessairement ; ils peuvent être développés et vendus séparément à terme." },
+    { q: "Les goodies sont-ils inclus ?", a: "Des goodies réservés aux adhérentes sont prévus parmi les avantages de l’adhésion ; ils seront distribués progressivement." },
   ],
 } as const;
