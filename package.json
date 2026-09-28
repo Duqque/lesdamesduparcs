@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint",
-    "start:standalone": "node .next/standalone/server.js"
+    "start:standalone": "node .next/standalone/server.js",
+    "test:payments": "bash scripts/payments/test.sh"
   },
   "dependencies": {
     "framer-motion": "^13.4.3",

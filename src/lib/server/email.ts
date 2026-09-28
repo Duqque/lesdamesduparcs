@@ -33,10 +33,10 @@ export async function sendEmail(opts: { to: string; subject: string; body: strin
     return { ok: false as const, skipped: true };
   }
   try {
-    const res = await fetch("https://api.resend.com/emails", {
+    const res = await fetch(`${process.env.RESEND_API_URL?.replace(/\/$/, "") || "https://api.resend.com"}/emails`, {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: `${conf.emails.fromName} <${conf.emails.fromEmail}>`, to: [opts.to], subject: opts.subject, html, text, ...(opts.replyTo ? { reply_to: opts.replyTo } : {}), ...(opts.attachments?.length ? { attachments: opts.attachments.map((a) => ({ filename: a.filename, content: a.content.toString("base64") })) } : {}) }),
+      body: JSON.stringify({ from: `${conf.emails.fromName} <${process.env.RESEND_FROM_EMAIL?.trim() || conf.emails.fromEmail}>`, to: [opts.to], subject: opts.subject, html, text, ...((opts.replyTo || process.env.RESEND_REPLY_TO?.trim()) ? { reply_to: opts.replyTo || process.env.RESEND_REPLY_TO!.trim() } : {}), ...(opts.attachments?.length ? { attachments: opts.attachments.map((a) => ({ filename: a.filename, content: a.content.toString("base64") })) } : {}) }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     await emailLog.insert({ to: opts.to, subject: opts.subject, kind: opts.kind, status: "sent" });
@@ -79,7 +79,7 @@ export async function sendBulk(
       const subject = fill(opts.subject, vars);
       const { html, text } = renderEmail({ subject, body: fill(opts.body, vars), kind: opts.kind, brand, image: opts.image, unsubscribeUrl: r.unsubscribeUrl });
       return {
-        from: `${conf.emails.fromName} <${conf.emails.fromEmail}>`,
+        from: `${conf.emails.fromName} <${process.env.RESEND_FROM_EMAIL?.trim() || conf.emails.fromEmail}>`,
         to: [r.email],
         subject,
         html,
@@ -88,7 +88,7 @@ export async function sendBulk(
       };
     });
     try {
-      const res = await fetch("https://api.resend.com/emails/batch", { method: "POST", headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify(chunk) });
+      const res = await fetch(`${process.env.RESEND_API_URL?.replace(/\/$/, "") || "https://api.resend.com"}/emails/batch`, { method: "POST", headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify(chunk) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       sent += chunk.length;
     } catch {

@@ -6,9 +6,8 @@ import { ROLE_PERMISSIONS } from "@/lib/admin/permissions";
 import { admins, settings, type AssociationInfo } from "./admin-store";
 import { getTransactions, type Tx } from "./business";
 import { getBlob, mediaKey, putBlob } from "./blobs";
-import { ensureTemplates, templates } from "./content";
 import { collection, type Row } from "./db";
-import { fill, sendEmail } from "./email";
+import { enqueueEmail, processEmailJobsSoon } from "./email-jobs";
 import { LOGO_COLOR_PNG } from "./pdf-assets";
 import { getMemberByNumber } from "./store";
 
@@ -233,23 +232,19 @@ export async function issueInvoice(txId: string, opts: { silent?: boolean } = {}
     const address = member ? `${member.address.line1}${member.address.line2 ? `, ${member.address.line2}` : ""}, ${member.address.postalCode} ${member.address.city}` : undefined;
     const bytes = Buffer.from(await buildInvoicePdf(inv, conf.association, conf.invoice, { address }));
     await putBlob(invoiceKey(inv.id), bytes, "application/pdf");
-    if (!opts.silent) await notifyInvoice(inv, tx, bytes, member?.firstName);
+    if (!opts.silent) await notifyInvoice(inv, tx, member?.firstName);
     return inv;
   } catch {
     return null;
   }
 }
 
-async function notifyInvoice(inv: Invoice, tx: Tx, pdf: Buffer, firstName?: string) {
-  await ensureTemplates();
-  const attachments = [{ filename: `facture-${inv.number}.pdf`, content: pdf }];
+/** Met en file les e-mails de validation de paiement (personne + administratrices) : la facture est jointe au moment de l'envoi, avec nouvelles tentatives en cas d'échec. */
+async function notifyInvoice(inv: Invoice, tx: Tx, firstName?: string) {
   const vars = { prenom: firstName ?? inv.name.split(" ")[0], nom: inv.name, montant: eur(inv.amountCents), objet: tx.label, numero: inv.number, mode: inv.methodLabel };
-  const send = async (key: string, to: string) => {
-    const t = await templates.findOne((x) => x.key === key);
-    if (t) await sendEmail({ to, subject: fill(t.subject, vars), body: fill(t.body, vars), kind: key, attachments });
-  };
-  if (inv.email) await send("invoice_issued", inv.email);
-  for (const to of new Set(await adminEmails())) await send("invoice_admin", to);
+  if (inv.email) await enqueueEmail({ type: "INVOICE_ISSUED", recipient: inv.email, dedupeKey: `INVOICE_ISSUED:${inv.id}`, memberNumber: inv.memberNumber, payload: { invoiceId: inv.id, vars } });
+  for (const to of new Set(await adminEmails())) await enqueueEmail({ type: "INVOICE_ADMIN", recipient: to, dedupeKey: `INVOICE_ADMIN:${inv.id}:${to}`, payload: { invoiceId: inv.id, vars } });
+  processEmailJobsSoon();
 }
 
 /** Édite (sans envoi d'e-mail) les factures des paiements déjà validés avant la mise en place du module. */

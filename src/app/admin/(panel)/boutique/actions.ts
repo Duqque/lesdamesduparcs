@@ -195,7 +195,16 @@ export async function saveShopCodeAction(formData: FormData) {
   const startsAt = /^\d{4}-\d{2}-\d{2}$/.test(s(formData, "startsAt")) ? s(formData, "startsAt") : undefined;
   const endsAt = /^\d{4}-\d{2}-\d{2}$/.test(s(formData, "endsAt")) ? s(formData, "endsAt") : undefined;
   if (startsAt && endsAt && endsAt < startsAt) fail("La date de fin est avant la date de début.");
-  const data = { code, label: s(formData, "label").slice(0, 120), type, value, scope: "shop" as const, startsAt, endsAt, maxUses: maxUses || undefined, minCents: minCents || undefined, active: formData.get("active") === "on" };
+  const list = (k: string) => s(formData, k).split(/[\n,;]/).map((x) => x.trim()).filter(Boolean).slice(0, 50);
+  const data = {
+    code, label: s(formData, "label").slice(0, 120), type, value, scope: "shop" as const, startsAt, endsAt, maxUses: maxUses || undefined, minCents: minCents || undefined, active: formData.get("active") === "on",
+    maxDiscountCents: euros(s(formData, "maxDiscount")) || undefined,
+    perUserLimit: Math.max(Math.floor(Number(s(formData, "perUser"))) || 0, 0) || undefined,
+    categories: list("categories").length ? list("categories") : undefined,
+    productIds: list("productIds").length ? list("productIds") : undefined,
+    membersOnly: formData.get("membersOnly") === "on" || undefined,
+    newMembersOnly: formData.get("newMembersOnly") === "on" || undefined,
+  };
   if (id) {
     const before = await promoCodes.get(id);
     if (!before) fail("Code introuvable.");

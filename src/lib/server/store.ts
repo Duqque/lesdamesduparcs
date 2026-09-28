@@ -54,7 +54,9 @@ const readOrders = () => ordersStore.read();
 
 export const addOrder = (o: Omit<Order, "id" | "token" | "createdAt">) =>
   locked(async () => {
-    const created: Order = { ...o, id: randomUUID(), token: randomUUID().replace(/-/g, ""), createdAt: new Date().toISOString() };
+    const year = new Date().getFullYear();
+    const seq = (await readOrders()).filter((x) => x.orderNumber?.startsWith(`DDP-${year}-`)).length + 1;
+    const created: Order = { ...o, id: randomUUID(), orderNumber: `DDP-${year}-${String(seq).padStart(5, "0")}`, token: randomUUID().replace(/-/g, ""), createdAt: new Date().toISOString() };
     await ordersStore.upsert(created);
     return created;
   });

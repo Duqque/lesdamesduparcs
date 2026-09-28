@@ -9,6 +9,7 @@ import { getAllEventsAdmin } from "@/lib/server/events";
 import { csvResponse, pdfResponse, toCsv, toPdf, type Col } from "@/lib/server/export";
 import { listAllRegistrations, listOrders } from "@/lib/server/store";
 import { productsDb, totalStock } from "@/lib/server/shop";
+import { haPayments } from "@/lib/server/payment-records";
 import type { Registration } from "@/lib/registration";
 
 const MEMBER_KEYS = ["q", "vue", "plan", "statut", "paiement", "ville", "age", "du", "au", "expDu", "expAu", "mineure", "tri"] as const;
@@ -109,18 +110,35 @@ export async function GET(req: Request, ctx: { params: Promise<{ kind: string }>
     const rows = (await listOrders()).filter((o) => (!paiement || o.status === paiement) && (!suivi || (suivi === "aucun" ? !o.fulfilment : o.fulfilment === suivi)) && (!du || o.createdAt.slice(0, 10) >= du) && (!au || o.createdAt.slice(0, 10) <= au) && (!q || `${o.id} ${o.contact.firstName} ${o.contact.lastName} ${o.contact.email}`.toLowerCase().includes(q)));
     const fin = admin.can("finance.view");
     const cols: Col<(typeof rows)[number]>[] = [
-      { label: "N°", value: (o) => o.id.slice(0, 8).toUpperCase() },
+      { label: "N°", value: (o) => o.orderNumber ?? o.id.slice(0, 8).toUpperCase() },
       { label: "Date", value: (o) => fmtDateTime(o.createdAt) },
       { label: "Client", value: (o) => `${o.contact.lastName} ${o.contact.firstName}`, w: 1.5 },
       { label: "E-mail", value: (o) => o.contact.email, w: 2 },
       { label: "Articles", value: (o) => o.lines.map((l) => `${l.qty}x ${l.name}${l.size ? ` (${l.size})` : ""}`).join(", "), w: 3 },
-      ...(fin ? [{ label: "Total", value: (o: (typeof rows)[number]) => eur(o.totalCents) }] : []),
-      { label: "Paiement", value: (o) => ({ paid: "Payée", awaiting_payment: "En attente", refunded: "Remboursée", cancelled: "Annulée" })[o.status] },
+      ...(fin ? [{ label: "Code promo", value: (o: (typeof rows)[number]) => o.promoCode ?? "" }, { label: "Réduction", value: (o: (typeof rows)[number]) => (o.discountCents ? eur(o.discountCents) : "") }, { label: "Adhésion incluse", value: (o: (typeof rows)[number]) => (o.membership ? "oui" : "") }, { label: "Total", value: (o: (typeof rows)[number]) => eur(o.totalCents) }] : []),
+      { label: "Paiement", value: (o) => ({ paid: "Payée", awaiting_payment: "En attente", refunded: "Remboursée", partially_refunded: "Remboursée en partie", failed: "Paiement échoué", cancelled: "Annulée" })[o.status] },
       { label: "Suivi", value: (o) => o.fulfilment ?? "" },
       { label: "Livraison", value: (o) => (o.delivery.mode === "home" ? `${o.delivery.address?.line1 ?? ""} ${o.delivery.address?.postalCode ?? ""} ${o.delivery.address?.city ?? ""}` : "Retrait événement"), w: 2 },
     ];
     await audit(admin, "export", "commandes", `Export ${format.toUpperCase()} de ${rows.length} commande(s)`);
     return respond(format, `commandes-${stamp}`, "Commandes", `${rows.length} commande(s) · export du ${fmtDate(new Date().toISOString())}`, rows, cols);
+  }
+
+  if (kind === "paiements") {
+    if (!admin.can("finance.export")) return deny();
+    const rows = (await haPayments.all()).sort((a, b) => b.paidAt.localeCompare(a.paidAt));
+    const cols: Col<(typeof rows)[number]>[] = [
+      { label: "Date", value: (p) => fmtDateTime(p.paidAt) },
+      { label: "Type", value: (p) => ({ order: "Commande", registration: "Inscription", membership: "Adhésion" })[p.kind] },
+      { label: "Commande", value: (p) => p.orderNumber ?? p.ref.slice(0, 8).toUpperCase() },
+      { label: "Paiement HelloAsso", value: (p) => p.helloassoPaymentId },
+      { label: "Commande HelloAsso", value: (p) => p.helloassoOrderId },
+      { label: "Montant", value: (p) => eur(p.amountCents) },
+      { label: "État", value: (p) => p.state },
+      { label: "Membre", value: (p) => p.memberNumber ?? "" },
+    ];
+    await audit(admin, "export", "paiements", `Export ${format.toUpperCase()} de ${rows.length} paiement(s) HelloAsso`);
+    return respond(format, `paiements-${stamp}`, "Paiements HelloAsso", `${rows.length} paiement(s) · export du ${fmtDate(new Date().toISOString())}`, rows, cols);
   }
 
   if (kind === "produits") {

@@ -1,4 +1,5 @@
-export type OrderStatus = "awaiting_payment" | "paid" | "cancelled" | "refunded";
+/** awaiting_payment = PAYMENT_PENDING, failed = FAILED (paiement refusé ou en erreur, nouvel essai possible), partially_refunded = PARTIALLY_REFUNDED. */
+export type OrderStatus = "awaiting_payment" | "paid" | "cancelled" | "refunded" | "failed" | "partially_refunded";
 export type Fulfilment = "to_prepare" | "preparing" | "shipped" | "ready_for_pickup" | "delivered";
 
 export interface OrderLine {
@@ -17,11 +18,28 @@ export interface Address {
   country: string;
 }
 
+/** Adhésion incluse dans la commande (commande mixte : adhésion + produits, réglée en un seul paiement). */
+export interface OrderMembership {
+  planId: string;
+  planName: string;
+  amountCents: number;
+  membershipId: string;
+  /** Enregistrement de paiement « adhésion » relié : passe à « payé » avec la commande (sans second paiement) */
+  paymentId: string;
+}
+
 export interface Order {
   id: string;
+  /** Numéro lisible : DDP-2026-00458 */
+  orderNumber?: string;
   token: string;
   createdAt: string;
+  paidAt?: string;
   status: OrderStatus;
+  membership?: OrderMembership;
+  /** Nombre de tentatives de paiement (nouvel essai possible tant que la commande n'est pas réglée) */
+  attempts?: number;
+  refundedCents?: number;
   lines: OrderLine[];
   subtotalCents: number;
   shippingCents: number;

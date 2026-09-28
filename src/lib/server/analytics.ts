@@ -53,12 +53,21 @@ export async function financeAnalytics() {
   const regs = paid.filter((t) => t.type === "Événement");
   const events = new Set(regs.map((t) => t.eventId));
   const by = (type: string) => paid.filter((t) => t.type === type).reduce((n, t) => n + t.amountCents, 0);
+  // Commandes mixtes : la part « adhésion » d'une commande est comptée dans les adhésions, pas dans la boutique.
+  const { listOrders } = await import("./store");
+  const paidOrders = (await listOrders()).filter((o) => o.status === "paid");
+  const membershipInOrders = paidOrders.reduce((n, o) => n + (o.membership?.amountCents ?? 0), 0);
+  const membershipPayments = paid.filter((t) => t.type === "Adhésion" && t.amountCents > 0).length;
   return {
+    orders: paidOrders.length,
+    memberships: membershipPayments + paidOrders.filter((o) => o.membership).length,
+    promoUses: paidOrders.filter((o) => o.promoCode).length,
+    discounts: paidOrders.reduce((n, o) => n + (o.discountCents ?? 0), 0),
     months, monthly, total,
     average: paid.length ? total / paid.length : 0,
     perMember: members.size ? total / members.size : 0,
     perEvent: events.size ? regs.reduce((n, t) => n + t.amountCents, 0) / events.size : 0,
-    byType: [{ label: "Adhésions", value: by("Adhésion") }, { label: "Événements", value: by("Événement") }, { label: "Boutique", value: by("Boutique") }, { label: "Autres", value: by("Autre") }],
+    byType: [{ label: "Adhésions", value: by("Adhésion") + membershipInOrders }, { label: "Événements", value: by("Événement") }, { label: "Boutique", value: by("Boutique") - membershipInOrders }, { label: "Autres", value: by("Autre") }],
     refunded: txs.filter((t) => t.status === "refunded").reduce((n, t) => n + t.amountCents, 0),
     pending: txs.filter((t) => t.status === "pending").reduce((n, t) => n + t.amountCents, 0),
   };
@@ -124,6 +133,16 @@ export async function shopAnalytics() {
   return {
     orders: orders.length, revenue, average: orders.length ? revenue / orders.length : 0, discounts: orders.reduce((n, o) => n + (o.discountCents ?? 0), 0),
     months, monthly,
+    promos: (() => {
+      const m = new Map<string, { code: string; uses: number; discount: number }>();
+      for (const o of orders) if (o.promoCode) {
+        const cur = m.get(o.promoCode) ?? { code: o.promoCode, uses: 0, discount: 0 };
+        cur.uses++;
+        cur.discount += o.discountCents ?? 0;
+        m.set(o.promoCode, cur);
+      }
+      return [...m.values()].sort((a, b) => b.uses - a.uses);
+    })(),
     top: [...byProduct.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 8),
     delivery: [{ label: "Livraison à domicile", value: orders.filter((o) => o.delivery.mode === "home").length }, { label: "Retrait lors d'un événement", value: orders.filter((o) => o.delivery.mode === "event").length }],
   };

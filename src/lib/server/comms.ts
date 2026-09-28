@@ -12,6 +12,7 @@ import { getAllEventsAdmin } from "./events";
 import { listAllRegistrations, listOrders } from "./store";
 import { plans, reinstateDue, setTxStatus } from "./business";
 import { notifyNewContent } from "./notify";
+import { processEmailJobs } from "./email-jobs";
 
 export const SEGMENTS = [
   { key: "all", label: "Toutes les adhérentes actives" },
@@ -48,12 +49,12 @@ async function sendBatch(list: Array<{ email: string; firstName: string }>, subj
   let sent = 0;
   for (let i = 0; i < list.length; i += 100) {
     const chunk = list.slice(i, i + 100).map((r) => ({
-      from: `${conf.emails.fromName} <${conf.emails.fromEmail}>`,
+      from: `${conf.emails.fromName} <${process.env.RESEND_FROM_EMAIL?.trim() || conf.emails.fromEmail}>`,
       to: [r.email],
       subject: fill(subject, { prenom: r.firstName }),
       text: fill(body, { prenom: r.firstName }) + extra + (conf.emails.signature ? `\n\n${conf.emails.signature}` : ""),
     }));
-    const res = await fetch("https://api.resend.com/emails/batch", { method: "POST", headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify(chunk) });
+    const res = await fetch(`${process.env.RESEND_API_URL?.replace(/\/$/, "") || "https://api.resend.com"}/emails/batch`, { method: "POST", headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify(chunk) });
     if (!res.ok) throw new Error(`Resend HTTP ${res.status}`);
     sent += chunk.length;
   }
@@ -97,12 +98,14 @@ export async function runScheduled() {
   await housekeeping().catch(() => undefined);
   await reconcilePending().catch(() => undefined);
   await reinstateDue(true).catch(() => 0);
+  // E-mails de paiement en attente ou en échec : envoi et nouvelles tentatives.
+  await processEmailJobs().catch(() => 0);
   const result = { campaigns: 0, renewals: 0, reminders: 0, releasedOrders: 0, announced: 0 };
   // Publications programmées arrivées à échéance : annonce aux adhérentes (une seule fois par élément).
   result.announced = (await notifyNewContent().catch(() => ({ announced: 0 }))).announced;
   // Commandes jamais réglées : au bout de 72 h, le stock réservé est remis en vente.
   for (const o of await listOrders()) {
-    if (o.status === "awaiting_payment" && o.checkoutId && now.getTime() - new Date(o.createdAt).getTime() > 72 * 3600_000) {
+    if ((o.status === "awaiting_payment" || o.status === "failed") && o.checkoutId && now.getTime() - new Date(o.createdAt).getTime() > 72 * 3600_000) {
       await setTxStatus(`order:${o.id}`, "cancelled");
       result.releasedOrders++;
     }

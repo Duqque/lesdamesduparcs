@@ -23,6 +23,12 @@ export default async function FinanceAnalyticsPage() {
         <Panel title="Recettes par mois (€)"><BarChart labels={d.months.map(monthLabel)} values={d.monthly.map((c) => c / 100)} format={(n) => `${n} €`} /></Panel>
         <Panel title="Répartition"><Breakdown rows={d.byType} format={eur} /></Panel>
       </div>
+      <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Kpi label="Commandes boutique payées" value={String(d.orders)} />
+        <Kpi label="Adhésions payées" value={String(d.memberships)} />
+        <Kpi label="Codes promo utilisés" value={String(d.promoUses)} />
+        <Kpi label="Réductions accordées" value={eur(d.discounts)} />
+      </div>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <Kpi label="Remboursé" value={eur(d.refunded)} />
         <Kpi label="En attente d'encaissement" value={eur(d.pending)} tone="orange" />

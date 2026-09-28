@@ -5,7 +5,7 @@ import Link from "next/link";
 import { LocalityFields } from "@/components/forms/LocalityFields";
 import { PhoneInput } from "@/components/forms/PhoneInput";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Lock, MapPin, Truck } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/Button";
@@ -50,6 +50,20 @@ export function CheckoutClient() {
   const [promoInput, setPromoInput] = useState("");
   const [promo, setPromo] = useState<{ code: string; discountCents: number; label: string } | null>(null);
   const [promoError, setPromoError] = useState("");
+  // Adhésion proposée dans la commande (membre connectée dont l'adhésion n'est pas active) : un seul paiement pour tout.
+  const [offer, setOffer] = useState<{ planName: string; amountCents: number; state: string } | null>(null);
+  const [withMembership, setWithMembership] = useState(false);
+  useEffect(() => {
+    if (!member) return;
+    let live = true;
+    fetch("/api/shop/membership-offer", { cache: "no-store" })
+      .then((r) => r.json() as Promise<{ available?: boolean; planName?: string; amountCents?: number; state?: string }>)
+      .then((o) => live && setOffer(o.available ? { planName: o.planName!, amountCents: o.amountCents!, state: o.state! } : null))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [member]);
 
   // Préremplissage à partir de la carte de membre (une seule fois, sans écraser la saisie)
   if (member && !touchedPrefill && !v.email) {
@@ -60,7 +74,8 @@ export function CheckoutClient() {
   const set = (k: keyof typeof v, value: string) => setV((s) => ({ ...s, [k]: value }));
   const discount = promo?.discountCents ?? 0;
   const ship = mode === "event" || totals.subtotalCents - discount >= shipping.freeFromCents ? 0 : shipping.standardCents;
-  const total = totals.subtotalCents - discount + ship;
+  const membershipCents = withMembership && offer ? offer.amountCents : 0;
+  const total = totals.subtotalCents - discount + ship + membershipCents;
   const ia = (k: string) => ({ "aria-invalid": Boolean(errors[k]), "aria-describedby": errors[k] ? `c-${k}-err` : undefined });
 
   const build = (): Partial<CheckoutInput> => ({
@@ -69,7 +84,8 @@ export function CheckoutClient() {
     delivery: { mode, address: mode === "home" ? { line1: v.line1, line2: v.line2 || undefined, postalCode: v.postalCode, city: v.city, country: v.country } : undefined },
     acceptTerms: terms,
     promoCode: promo?.code,
-  });
+    ...(withMembership && offer ? { includeMembership: true } : {}),
+  } as Partial<CheckoutInput>);
 
   async function applyPromo() {
     setPromoError("");
@@ -196,6 +212,14 @@ export function CheckoutClient() {
             )}
           </Section>
 
+          {offer && (
+            <div className="rounded-[14px] border border-psg-red-bright/40 bg-psg-red/10 p-5">
+              <Check id="c-membership" checked={withMembership} onChange={setWithMembership}>
+                <strong className="text-white">{offer.state === "expired" ? "Renouveler mon adhésion" : "Ajouter mon adhésion"}</strong> ({offer.planName}, {formatPrice(offer.amountCents)}) : un seul paiement pour toute la commande.
+              </Check>
+            </div>
+          )}
+
           <Section n={3} title="Paiement">
             <p className="flex items-start gap-3 text-mist t-small">
               <Lock aria-hidden className="mt-1 size-4 shrink-0" />
@@ -237,6 +261,7 @@ export function CheckoutClient() {
           <dl className="mt-4 space-y-3 border-t border-white/10 pt-5 font-body text-[14px]">
             <div className="flex justify-between text-mist"><dt>Sous-total</dt><dd className="tabular-nums text-white">{formatPrice(totals.subtotalCents)}</dd></div>
             {discount > 0 && <div className="flex justify-between text-mist"><dt>Code {promo?.label}</dt><dd className="tabular-nums text-emerald-300">−{formatPrice(discount)}</dd></div>}
+            {membershipCents > 0 && <div className="flex justify-between text-mist"><dt>{offer?.state === "expired" ? "Renouvellement" : "Adhésion"}</dt><dd className="tabular-nums text-white">{formatPrice(membershipCents)}</dd></div>}
             <div className="flex justify-between text-mist"><dt>Livraison</dt><dd className="tabular-nums text-white">{ship === 0 ? "Offerte" : formatPrice(ship)}</dd></div>
             <div className="flex justify-between border-t border-white/10 pt-4 text-[17px] font-medium text-white"><dt>Total TTC</dt><dd className="tabular-nums">{formatPrice(total)}</dd></div>
           </dl>

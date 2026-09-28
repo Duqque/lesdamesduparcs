@@ -12,7 +12,7 @@ import { saveOrderNoteAction, setFulfilmentAction } from "../../actions";
 
 export const metadata = { title: "Commande" };
 
-const PAY = { paid: ["Payée", "green"], awaiting_payment: ["En attente de paiement", "orange"], refunded: ["Remboursée", "blue"], cancelled: ["Annulée", "grey"] } as const;
+const PAY = { paid: ["Payée", "green"], awaiting_payment: ["En attente de paiement", "orange"], refunded: ["Remboursée", "blue"], partially_refunded: ["Remboursée en partie", "blue"], failed: ["Paiement échoué", "red"], cancelled: ["Annulée", "grey"] } as const;
 
 export default async function OrderPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SP> }) {
   const ctx = await requireAdmin("shop.orders");
@@ -75,8 +75,8 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
             <p className="font-body text-[13px] text-mist">{o.checkoutId ? "Payé en ligne via HelloAsso : un remboursement est demandé automatiquement à HelloAsso." : "Paiement hors ligne : marquez-le payé à réception."}</p>
             {canPay ? (
               <div className="mt-3 flex flex-wrap gap-2">
-                {o.status === "awaiting_payment" && <form action={txStatusAction.bind(null, `order:${id}`, "paid", here)}><SubmitButton>Marquer payée</SubmitButton></form>}
-                {o.status === "awaiting_payment" && <form action={txStatusAction.bind(null, `order:${id}`, "cancelled", here)}><SubmitButton variant="outline" confirm="Annuler la commande ? Le stock est remis en vente.">Annuler</SubmitButton></form>}
+                {(o.status === "awaiting_payment" || o.status === "failed") && <form action={txStatusAction.bind(null, `order:${id}`, "paid", here)}><SubmitButton>Marquer payée</SubmitButton></form>}
+                {(o.status === "awaiting_payment" || o.status === "failed") && <form action={txStatusAction.bind(null, `order:${id}`, "cancelled", here)}><SubmitButton variant="outline" confirm="Annuler la commande ? Le stock est remis en vente.">Annuler</SubmitButton></form>}
                 {o.status === "paid" && <form action={txStatusAction.bind(null, `order:${id}`, "refunded", here)}><SubmitButton variant="danger" confirm="Rembourser cette commande ? Le stock est remis en vente.">Rembourser</SubmitButton></form>}
                 {o.status === "paid" && <form action={txStatusAction.bind(null, `order:${id}`, "refunded", here)}><input type="hidden" name="manual" value="1" /><SubmitButton variant="outline" confirm="Marquer comme remboursée sans lancer de remboursement (déjà fait chez HelloAsso) ? Le stock est remis en vente.">Déjà remboursée</SubmitButton></form>}
               </div>

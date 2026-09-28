@@ -24,6 +24,7 @@ export default async function ShopAnalyticsPage() {
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Panel title="Produits les plus vendus"><Breakdown rows={d.top.length ? d.top.map((t) => ({ label: `${t.name} (${t.qty})`, value: fin ? t.revenue : t.qty })) : [{ label: "Aucune vente", value: 0 }]} format={fin ? eur : String} /></Panel>
         <Panel title="Modes de livraison"><Breakdown rows={d.delivery} /></Panel>
+        <Panel title="Codes promotionnels utilisés"><Breakdown rows={d.promos.length ? d.promos.map((p) => ({ label: `${p.code} (${p.uses} × , −${eur(p.discount)})`, value: p.uses })) : [{ label: "Aucun code utilisé", value: 0 }]} /></Panel>
       </div>
     </>
   );

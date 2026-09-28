@@ -115,6 +115,17 @@ export interface PromoCode extends Row {
   maxUses?: number;
   /** Panier minimum (centimes) pour que le code s'applique */
   minCents?: number;
+  /** Réduction maximum accordée (centimes), utile pour un pourcentage */
+  maxDiscountCents?: number;
+  /** Nombre maximum d'utilisations par compte (ou par adresse e-mail pour un achat sans compte) */
+  perUserLimit?: number;
+  /** Le code ne s'applique qu'aux produits de ces catégories et/ou à ces produits (vide = toute la boutique) */
+  categories?: string[];
+  productIds?: string[];
+  /** Réservé aux adhérentes dont l'adhésion est active */
+  membersOnly?: boolean;
+  /** Réservé aux nouvelles adhérentes (adhésion créée depuis moins de 30 jours) */
+  newMembersOnly?: boolean;
   uses: number;
   active: boolean;
 }

@@ -40,6 +40,12 @@ export default async function ShopCodesPage({ searchParams }: { searchParams: Pr
           <Field label="Utilisations maximum" hint="0 : illimité."><input name="maxUses" type="number" min={0} defaultValue={editing?.maxUses ?? ""} className={inp} /></Field>
           <Field label="Valable à partir du"><input name="startsAt" type="date" defaultValue={editing?.startsAt} className={inp} /></Field>
           <Field label="Valable jusqu'au"><input name="endsAt" type="date" defaultValue={editing?.endsAt} className={inp} /></Field>
+          <Field label="Réduction maximum (€)" hint="Plafond, utile pour un pourcentage. Vide : aucun."><input name="maxDiscount" inputMode="decimal" defaultValue={editing?.maxDiscountCents ? editing.maxDiscountCents / 100 : ""} className={inp} /></Field>
+          <Field label="Utilisations par compte" hint="0 : illimité. Par compte, ou par adresse e-mail sans compte."><input name="perUser" type="number" min={0} defaultValue={editing?.perUserLimit ?? ""} className={inp} /></Field>
+          <Field label="Catégories concernées" hint="Une par ligne (ex. Écharpes). Vide : toute la boutique."><textarea name="categories" rows={2} defaultValue={editing?.categories?.join("\n")} className={inp + " h-auto py-2"} /></Field>
+          <Field label="Produits concernés" hint="Identifiants de produits, un par ligne. Vide : tous."><textarea name="productIds" rows={2} defaultValue={editing?.productIds?.join("\n")} className={inp + " h-auto py-2"} /></Field>
+          <label className="flex items-end gap-2 pb-2.5 font-body text-[13.5px] text-white/85"><input type="checkbox" name="membersOnly" defaultChecked={editing?.membersOnly} className="size-4 accent-[#d90f2c]" /> Réservé aux adhérentes</label>
+          <label className="flex items-end gap-2 pb-2.5 font-body text-[13.5px] text-white/85"><input type="checkbox" name="newMembersOnly" defaultChecked={editing?.newMembersOnly} className="size-4 accent-[#d90f2c]" /> Réservé aux nouvelles adhérentes (30 jours)</label>
           <label className="flex items-end gap-2 pb-2.5 font-body text-[13.5px] text-white/85"><input type="checkbox" name="active" defaultChecked={editing ? editing.active : true} className="size-4 accent-[#d90f2c]" /> Code actif</label>
           <div className="flex items-end gap-3 sm:col-span-2 lg:col-span-3">
             <SubmitButton>{editing ? "Enregistrer" : "Créer le code"}</SubmitButton>
@@ -61,6 +67,11 @@ export default async function ShopCodesPage({ searchParams }: { searchParams: Pr
                     <br />
                     {p.startsAt || p.endsAt ? `${p.startsAt ? `du ${fmtDateLong(p.startsAt)}` : ""} ${p.endsAt ? `au ${fmtDateLong(p.endsAt)}` : ""}`.trim() : "Sans limite de date"}
                     {p.scope === "all" && <><br />Aussi valable hors boutique</>}
+                    {p.maxDiscountCents ? <><br />Réduction plafonnée à {eur(p.maxDiscountCents)}</> : null}
+                    {p.perUserLimit ? <><br />{p.perUserLimit} utilisation(s) par compte</> : null}
+                    {p.categories?.length || p.productIds?.length ? <><br />Limité : {[...(p.categories ?? []), ...(p.productIds ?? [])].join(", ")}</> : null}
+                    {p.membersOnly ? <><br />Réservé aux adhérentes</> : null}
+                    {p.newMembersOnly ? <><br />Nouvelles adhérentes uniquement</> : null}
                   </Td>
                   <Td className="tabular-nums">{p.uses}{p.maxUses ? ` / ${p.maxUses}` : ""}</Td>
                   <Td>{status(p)}</Td>

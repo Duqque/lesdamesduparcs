@@ -88,6 +88,8 @@ export interface Payment extends Row {
   membershipId?: string;
   /** Identifiant de l'intention de paiement HelloAsso (adhésion réglée en ligne) */
   checkoutId?: string;
+  /** Adhésion réglée dans une commande mixte (adhésion + produits) : le paiement est celui de la commande, non compté deux fois */
+  viaOrderId?: string;
 }
 
 export const memberships = collection<Membership>("memberships");
@@ -225,13 +227,13 @@ export interface Tx {
 const regStatusToTx = (s: RegistrationStatus, amount: number): TxStatus | null =>
   s === "paid" ? "paid" : s === "awaiting_payment" ? "pending" : s === "cancelled" ? "cancelled" : s === "refunded" ? "refunded" : s === "confirmed" && amount > 0 ? "pending" : null;
 
-const orderStatusToTx = (s: Order["status"]): TxStatus => (s === "paid" ? "paid" : s === "awaiting_payment" ? "pending" : s);
+const orderStatusToTx = (s: Order["status"]): TxStatus => (s === "paid" ? "paid" : s === "awaiting_payment" ? "pending" : s === "partially_refunded" ? "refunded" : s);
 
 export async function getTransactions(): Promise<Tx[]> {
   const [pays, regs, orders, evs] = await Promise.all([payments.all(), listAllRegistrations(), listOrders(), getAllEventsAdmin()]);
   const title = (id: string) => evs.find((e) => e.id === id)?.title ?? id;
   const out: Tx[] = [];
-  for (const p of pays)
+  for (const p of pays.filter((x) => !x.viaOrderId))
     out.push({
       id: `payment:${p.id}`, source: "payment", rowId: p.id, at: p.paidAt ?? p.createdAt, name: p.name, email: p.email, memberNumber: p.memberNumber,
       type: p.kind === "adhesion" ? "Adhésion" : "Autre", label: p.label, amountCents: p.amountCents, method: methodLabel(p.method), status: p.status, reference: p.reference,
@@ -289,11 +291,15 @@ export async function setTxStatus(txId: string, status: TxStatus, opts?: { metho
     const order = (await listOrders()).find((o) => o.id === rowId);
     const err = order?.status === "paid" ? await refund(order.checkoutId) : null;
     if (err) return { ok: false, error: `Remboursement HelloAsso impossible : ${err}. Effectuez-le depuis votre espace HelloAsso, puis marquez la transaction comme remboursée.` };
-    const map: Record<TxStatus, Order["status"]> = { paid: "paid", pending: "awaiting_payment", failed: "awaiting_payment", refunded: "refunded", cancelled: "cancelled" };
+    const map: Record<TxStatus, Order["status"]> = { paid: "paid", pending: "awaiting_payment", failed: "failed", refunded: "refunded", cancelled: "cancelled" };
     const next = map[status];
     const wasOut = order?.status === "cancelled" || order?.status === "refunded";
     const goingOut = next === "cancelled" || next === "refunded";
-    if (order && goingOut && !wasOut) await releaseStock(order.lines);
+    if (order && goingOut && !wasOut) {
+      await releaseStock(order.lines);
+      // Commande jamais réglée : l'utilisation du code promotionnel est libérée.
+      if (order.promoCode && order.status !== "paid") await (await import("./shop")).releasePromo(order.promoCode);
+    }
     await updateOrder(rowId, { status: next, ...(next === "paid" && !order?.fulfilment ? { fulfilment: order?.delivery.mode === "event" ? ("ready_for_pickup" as const) : ("to_prepare" as const) } : {}) });
     if (status === "paid") await (await import("./invoice")).issueInvoice(txId);
     return { ok: true };

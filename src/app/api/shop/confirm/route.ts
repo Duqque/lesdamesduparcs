@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const id = url.searchParams.get("order") ?? "";
   const token = url.searchParams.get("t") ?? "";
-  const go = (state: string) => NextResponse.redirect(`${siteUrl(req)}/commande/confirmation?order=${encodeURIComponent(id)}&t=${encodeURIComponent(token)}&etat=${state}`);
+  const go = (state: string) => NextResponse.redirect(`${siteUrl(req)}/paiement/retour?order=${encodeURIComponent(id)}&t=${encodeURIComponent(token)}&etat=${state}`);
 
   const order = await getOrder(id);
   if (!order || !safeEqual(order.token, token) || !paymentConfigured() || !order.checkoutId) return go("erreur");

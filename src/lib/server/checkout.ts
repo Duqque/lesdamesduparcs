@@ -41,21 +41,26 @@ export function startMembershipPayment(
   });
 }
 
-/** Paiement d'une commande de la boutique : montant serveur (articles + livraison − réduction). */
+/**
+ * Paiement d'une commande (produits et/ou adhésion) : montant serveur (articles + adhésion + livraison − réduction).
+ * Le retour navigateur ne sert qu'à AFFICHER l'état ; la validation vient de la notification HelloAsso (et de la relecture serveur).
+ */
 export function startShopPayment(
   req: Request,
-  order: { id: string; token: string; totalCents: number; contact: { firstName: string; lastName: string; email: string }; lines: Array<{ name: string; size?: string; qty: number }> },
+  order: { id: string; orderNumber?: string; token: string; totalCents: number; memberNumber?: string; membership?: { planName: string }; contact: { firstName: string; lastName: string; email: string }; lines: Array<{ name: string; size?: string; qty: number }> },
 ) {
   const site = siteUrl(req);
-  const summary = order.lines.map((l) => `${l.qty} × ${l.name}${l.size ? ` (${l.size})` : ""}`).join(", ");
+  const parts = [...(order.membership ? [order.membership.planName] : []), ...order.lines.map((l) => `${l.qty} × ${l.name}${l.size ? ` (${l.size})` : ""}`)];
+  const q = `order=${encodeURIComponent(order.id)}&t=${encodeURIComponent(order.token)}`;
   return createCheckout({
     kind: "order",
     refId: order.id,
-    itemName: `Boutique Les Dames du Parc : ${summary}`,
+    itemName: `Les Dames du Parc ${order.orderNumber ?? ""} : ${parts.join(", ")}`.trim(),
     totalCents: order.totalCents,
     payer: { firstName: order.contact.firstName, lastName: order.contact.lastName, email: order.contact.email },
-    returnUrl: `${site}/api/shop/confirm?order=${encodeURIComponent(order.id)}&t=${encodeURIComponent(order.token)}`,
-    backUrl: `${site}/panier`,
-    errorUrl: `${site}/commande?paiement=erreur`,
+    returnUrl: `${site}/api/shop/confirm?${q}`,
+    backUrl: `${site}/paiement/annule?${q}`,
+    errorUrl: `${site}/paiement/erreur?${q}`,
+    extra: { orderNumber: order.orderNumber, memberNumber: order.memberNumber },
   });
 }

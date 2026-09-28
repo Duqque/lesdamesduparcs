@@ -44,6 +44,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { label: "Paiements en attente", href: "/admin/finances/transactions?statut=pending" },
       { label: "Paiements échoués", href: "/admin/finances/transactions?statut=failed" },
       { label: "Remboursements", href: "/admin/finances/transactions?statut=refunded" },
+      { label: "Paiements HelloAsso", href: "/admin/finances/paiements" },
       { label: "Factures", href: "/admin/finances/factures" },
       { label: "Exports", href: "/admin/finances/exports", perm: "finance.export" },
     ],
