@@ -1,13 +1,11 @@
 import Image from "next/image";
-import Link from "next/link";
-import { Calendar, Check, Clock, Flag, Globe, Handshake, Heart, House, IdCard, Mail, Megaphone, MessageCircle, MessagesSquare, PartyPopper, Quote, ShoppingBag, Sparkles, Star, Ticket, Users, type LucideIcon } from "lucide-react";
+import { Calendar, Clock, Globe, Handshake, Heart, House, IdCard, Mail, Megaphone, MessageCircle, MessagesSquare, PartyPopper, Quote, ShoppingBag, Sparkles, Star, Ticket, Users, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { adhesion as a } from "@/data/adhesion";
 import { histoire as h } from "@/data/histoire";
 import { membership } from "@/data/membership";
 import { CountUp } from "./CountUp";
-import { Faq } from "./Faq";
 import { MatchdayRoute } from "./MatchdayRoute";
 import { MemberCard } from "./MemberCard";
 import { StoryTimeline } from "./StoryTimeline";
@@ -315,7 +313,7 @@ export function ConclusionBody() {
         </div>
       </div>
       <Reveal className="mt-20 flex flex-col gap-3 sm:flex-row">
-        <Button size="lg" href="/groupe/adhesion">Communauté et adhésion</Button>
+        <Button size="lg" href="/rejoindre-le-groupe/adhesion">Communauté & adhésion</Button>
         <JoinGate><Button size="lg" variant="outline" href="/rejoindre-le-groupe">Devenir membre</Button></JoinGate>
       </Reveal>
     </div>
@@ -327,11 +325,7 @@ const benefitIcons: Record<string, LucideIcon> = { Ticket, Clock, IdCard, Messag
 export function AdhesionBody() {
   return (
     <div className={`${wrap} space-y-28 md:space-y-40`}>
-      <section aria-labelledby="ad-modele" className="grid gap-10 md:grid-cols-2 md:gap-16">
-        <Reveal className="md:col-span-2">
-          <h2 id="ad-modele" className={`${h2c} max-w-[26ch]`}>Le modèle en une image</h2>
-          <p className="mt-5 max-w-[62ch] break-words text-white/80 t-lead">{a.objective}</p>
-        </Reveal>
+      <section aria-label="Communauté et adhésion, en bref" className="grid gap-10 md:grid-cols-2 md:gap-16">
         {[a.community, a.members].map((col, k) => (
           <Reveal key={col.title} delay={k * 0.08} className="min-w-0">
             <div className={`${card} flex h-full flex-col gap-5 p-7 md:p-9`}>
@@ -340,14 +334,7 @@ export function AdhesionBody() {
               </span>
               <h3 className="break-words font-display text-[clamp(26px,2.6vw,36px)] font-semibold uppercase tracking-[0.04em] text-white">{col.title}</h3>
               <p className="break-words font-semibold text-white t-lead">{col.lead}</p>
-              <ul className="space-y-3">
-                {col.items.map((it) => (
-                  <li key={it} className="flex min-w-0 gap-3 text-white/80 t-small">
-                    <Check aria-hidden className="mt-1 size-4 shrink-0 text-psg-red-bright" strokeWidth={2.2} />
-                    <span className="min-w-0 break-words">{it}</span>
-                  </li>
-                ))}
-              </ul>
+              <p className="break-words text-white/80 t-small">{col.text}</p>
             </div>
           </Reveal>
         ))}
@@ -355,78 +342,23 @@ export function AdhesionBody() {
 
       <section aria-labelledby="ad-pourquoi" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
         <Reveal className="min-w-0">
-          <h2 id="ad-pourquoi" className={h2c}>Pourquoi une adhésion ?</h2>
-        </Reveal>
-        <Reveal delay={0.08} className="min-w-0 space-y-6">
-          {a.why.paragraphs.map((t) => (
-            <p key={t} className="break-words text-white/80 t-lead">{t}</p>
-          ))}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {[a.why.today, a.why.later].map((q, k) => (
-              <figure key={q.label} className={`${card} p-6 ${k === 1 ? "border-psg-red-bright/40" : ""}`}>
-                <figcaption className="t-eyebrow">{q.label}</figcaption>
-                <blockquote className="mt-4 break-words text-white/85 t-small">« {q.quote} »</blockquote>
-              </figure>
-            ))}
-          </div>
-          <p className="break-words text-white/75 t-small">{a.why.note}</p>
-        </Reveal>
-      </section>
-
-      <section aria-labelledby="ad-difference" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
-        <Reveal className="min-w-0">
-          <h2 id="ad-difference" className={h2c}>Communauté ouverte, adhésion : deux choses distinctes</h2>
-        </Reveal>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {a.compare.map((c, k) => (
-            <Reveal key={c.title} delay={k * 0.08} className="h-full min-w-0">
-              <div className={`${card} h-full p-7`}>
-                <span aria-hidden className="block h-[2px] w-8 bg-psg-red" />
-                <h3 className="mt-5 break-words font-display text-[24px] font-semibold uppercase tracking-[0.04em] text-white">{c.title}</h3>
-                <p className="mt-3 break-words text-white/75 t-small">{c.text}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      <section aria-labelledby="ad-devenir" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
-        <Reveal className="min-w-0">
-          <h2 id="ad-devenir" className={h2c}>Comment devient-on membre ?</h2>
-          <div className="mt-10 hidden md:block"><MemberCard season={membership.season} /></div>
-        </Reveal>
-        <Timeline items={a.steps} label="Les sept étapes pour devenir membre" />
-      </section>
-
-      <section aria-labelledby="ad-tarif" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
-        <Reveal className="min-w-0">
-          <h2 id="ad-tarif" className={h2c}>Durée et tarif</h2>
+          <h2 id="ad-pourquoi" className={h2c}>Pourquoi adhérer ?</h2>
         </Reveal>
         <Reveal delay={0.08} className="min-w-0">
-          <div className={`${card} p-7 md:p-10`}>
-            <p className="font-display text-[clamp(64px,9vw,120px)] font-semibold leading-none tabular-nums text-white">
-              <CountUp to={a.price.amount} /> €
-            </p>
-            <p className="mt-3 break-words font-semibold text-white t-lead">{a.price.lead}</p>
-            <div className="mt-6 space-y-5">
-              {a.price.paragraphs.map((p) => (
-                <p key={p} className="break-words text-white/75 t-lead">{p}</p>
-              ))}
-            </div>
-          </div>
+          <p className="break-words text-white/80 t-lead">{a.why}</p>
         </Reveal>
       </section>
 
       <section aria-labelledby="ad-recoit">
         <Reveal>
-          <h2 id="ad-recoit" className={`${h2c} max-w-[28ch]`}>Que reçoit une membre en échange de son adhésion ?</h2>
+          <h2 id="ad-recoit" className={`${h2c} max-w-[28ch]`}>Ce que comprend l’adhésion</h2>
         </Reveal>
-        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {a.benefits.map((b, i) => {
             const Icon = benefitIcons[b.icon] ?? Sparkles;
             return (
               <li key={b.title} className="min-w-0">
-                <Reveal delay={(i % 3) * 0.06} className="h-full">
+                <Reveal delay={(i % 4) * 0.06} className="h-full">
                   <div className={`${card} group flex h-full flex-col gap-4 p-7`}>
                     <span aria-hidden className="grid size-14 place-items-center overflow-hidden rounded-full border border-psg-red-bright/50 bg-night-800 transition-transform duration-500 group-hover:-translate-y-1">
                       <Icon className="size-6 text-white" strokeWidth={1.6} />
@@ -439,110 +371,51 @@ export function AdhesionBody() {
             );
           })}
         </ul>
-        <Reveal className="mt-6">
-          <p className="flex min-w-0 gap-3 overflow-hidden rounded-[10px] border border-psg-red-bright/40 bg-psg-red/10 p-5 text-white/85 t-small">
-            <Flag aria-hidden className="mt-0.5 size-5 shrink-0 text-psg-red-bright" />
-            <span className="min-w-0 break-words">{a.warning}</span>
-          </p>
+      </section>
+
+      <section aria-labelledby="ad-tarif" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
+        <Reveal className="min-w-0">
+          <h2 id="ad-tarif" className={h2c}>{a.price.amount} € pour la saison {a.price.season}</h2>
         </Reveal>
+        <Reveal delay={0.08} className="min-w-0">
+          <div className={`${card} p-7 md:p-10`}>
+            <p className="font-display text-[clamp(64px,9vw,120px)] font-semibold leading-none tabular-nums text-white">
+              <CountUp to={a.price.amount} /> €
+            </p>
+            <p className="mt-3 break-words font-semibold text-white t-lead">{a.price.lead}</p>
+            <div className="mt-6 space-y-3">
+              <p className="break-words text-white/75 t-lead">{a.price.validUntil}</p>
+              <p className="break-words text-white/75 t-small">{a.price.renewal}</p>
+            </div>
+            <JoinGate><Button size="lg" className="mt-8" href={membership.joinHref}>J’adhère</Button></JoinGate>
+          </div>
+        </Reveal>
+      </section>
+
+      <section aria-labelledby="ad-devenir" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
+        <Reveal className="min-w-0">
+          <h2 id="ad-devenir" className={h2c}>Comment devient-on membre ?</h2>
+          <div className="mt-10 hidden md:block"><MemberCard season={membership.season} /></div>
+        </Reveal>
+        <Timeline items={a.steps} label="Les quatre étapes pour devenir membre" />
       </section>
 
       <section aria-labelledby="ad-espace" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
         <Reveal className="min-w-0">
           <h2 id="ad-espace" className={h2c}>L’espace privé des membres</h2>
-          <p className="mt-5 break-words text-white/75 t-small">{a.privateSpace.lead}</p>
-        </Reveal>
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {a.privateSpace.items.map((it, i) => {
-            const Icon = benefitIcons[it.icon] ?? Sparkles;
-            return (
-              <li key={it.title} className="min-w-0">
-                <Reveal delay={(i % 2) * 0.06} className="h-full">
-                  <div className={`${card} flex h-full flex-col gap-3 p-6`}>
-                    <Icon aria-hidden className="size-6 text-psg-red-bright" strokeWidth={1.6} />
-                    <h3 className="break-words font-body text-[17px] font-semibold text-white">{it.title}</h3>
-                    <p className="break-words text-white/75 t-small">{it.text}</p>
-                  </div>
-                </Reveal>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      <section aria-labelledby="ad-recensement" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
-        <Reveal className="min-w-0">
-          <h2 id="ad-recensement" className={h2c}>Le recensement des membres</h2>
         </Reveal>
         <Reveal delay={0.08} className="min-w-0">
-          <p className="break-words text-white/80 t-lead">{a.registry.lead}</p>
-          <ul className="mt-6 space-y-3">
-            {a.registry.items.map((it) => (
-              <li key={it} className="flex min-w-0 gap-3 text-white/80 t-small">
-                <Check aria-hidden className="mt-1 size-4 shrink-0 text-psg-red-bright" strokeWidth={2.2} />
-                <span className="min-w-0 break-words">{it}</span>
-              </li>
-            ))}
-          </ul>
+          <p className="break-words text-white/80 t-lead">{a.privateSpace.lead}</p>
+          <Button size="lg" className="mt-8" href="/profil#espace-prive">{a.privateSpace.cta}</Button>
         </Reveal>
       </section>
 
-      <section aria-labelledby="ad-site">
-        <Reveal>
-          <h2 id="ad-site" className={`${h2c} max-w-[26ch]`}>Le site, notre point central</h2>
-          <p className="mt-5 max-w-[62ch] break-words text-white/80 t-lead">{a.site.lead}</p>
-        </Reveal>
-        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {a.site.items.map((it, i) => {
-            const Icon = benefitIcons[it.icon] ?? Sparkles;
-            return (
-              <li key={it.title} className="min-w-0">
-                <Reveal delay={(i % 4) * 0.05} className="h-full">
-                  <Link href={it.href} className={`${card} group flex h-full flex-col gap-3 p-6 transition-colors hover:border-psg-red-bright/50 hover:bg-night-800`}>
-                    <Icon aria-hidden className="size-6 text-psg-red-bright" strokeWidth={1.6} />
-                    <h3 className="break-words font-body text-[16px] font-semibold text-white">{it.title}</h3>
-                    <p className="break-words text-white/70 t-small">{it.text}</p>
-                  </Link>
-                </Reveal>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      <section aria-labelledby="ad-goodies" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
-        <Reveal className="min-w-0">
-          <h2 id="ad-goodies" className={h2c}>Les goodies</h2>
-        </Reveal>
-        <Reveal delay={0.08} className="min-w-0 space-y-5">
-          <p className="break-words font-semibold text-white t-lead">{a.goodies.lead}</p>
-          <p className="break-words text-white/75 t-lead">{a.goodies.text}</p>
-          <Button href="/boutique" variant="outline" arrow>Voir la boutique</Button>
-        </Reveal>
-      </section>
-
-      <section aria-labelledby="ad-exemple" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
-        <Reveal className="min-w-0">
-          <h2 id="ad-exemple" className={h2c}>{a.example.title}</h2>
-        </Reveal>
-        <Timeline items={a.example.steps.map((text) => ({ text }))} label="Le parcours d’une nouvelle supportrice" />
-      </section>
-
-      <section aria-labelledby="ad-faq" className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
-        <Reveal className="min-w-0">
-          <h2 id="ad-faq" className={h2c}>Questions fréquentes</h2>
-        </Reveal>
-        <Reveal delay={0.08} className="min-w-0">
-          <Faq items={a.faq} />
-        </Reveal>
-      </section>
-
-      <Reveal className="flex flex-col items-start gap-6 overflow-hidden rounded-[10px] border border-line bg-night-900/85 p-8 md:flex-row md:items-center md:justify-between md:p-12">
-        <p className={`${h2c} min-w-0 max-w-[24ch]`}>Prête à rejoindre officiellement la communauté ?</p>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <JoinGate><Button size="lg" href={membership.joinHref}>Devenir membre</Button></JoinGate>
-          <Button size="lg" variant="outline" href="/rejoindre-le-groupe" arrow={false}>Voir la carte membre</Button>
-        </div>
+      <Reveal className="text-center">
+        <p className="mx-auto max-w-[32ch] break-words font-display text-[clamp(22px,2.6vw,32px)] font-semibold uppercase leading-[1.2] tracking-[0.03em] text-white">
+          {a.final.split("\n").map((line) => (
+            <span key={line} className="block">{line}</span>
+          ))}
+        </p>
       </Reveal>
     </div>
   );

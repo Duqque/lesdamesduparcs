@@ -24,7 +24,7 @@ const all: readonly Chapter[] = [
   { slug: "en-dehors-des-jours-de-match", number: "09", title: "En dehors des jours de match", sub: h.offMatch.sub, icon: "Route" },
   { slug: "pourquoi-le-paris-saint-germain", number: "10", title: "Pourquoi le Paris Saint-Germain était une évidence", sub: h.evidence.sub, icon: "Landmark" },
   { slug: "conclusion", number: null, title: "Conclusion", sub: "Unies par la même passion.", icon: "Flag" },
-  { slug: "adhesion", number: null, title: "Communauté et adhésion", sub: "Une communauté ouverte à toutes les supportrices du PSG, et une adhésion pour celles qui souhaitent aller plus loin.", icon: "IdCard" },
+  { slug: "adhesion", number: null, title: "Communauté & adhésion", sub: "Les Dames du Parc sont une communauté ouverte à toutes les supportrices du Paris Saint-Germain. Pour celles qui souhaitent aller plus loin, l’adhésion permet de devenir officiellement membre de la communauté et de bénéficier d’avantages réservés aux adhérentes tout au long de la saison.", icon: "IdCard" },
 ];
 
 /** « Le groupe » : six parties seulement. */
