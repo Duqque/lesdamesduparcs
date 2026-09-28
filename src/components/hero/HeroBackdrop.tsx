@@ -25,7 +25,7 @@ export function HeroBackdrop({ src = DEFAULT_HERO_IMAGE, alt = "" }: { src?: str
   }, [reduce, mx, my]);
 
   return (
-    <div className="absolute inset-0 overflow-hidden xl:left-auto xl:w-[82%]" aria-hidden>
+    <div className="absolute inset-0 overflow-hidden" aria-hidden>
       <motion.div
         className="absolute inset-[-4%]"
         style={{ x, y }}
