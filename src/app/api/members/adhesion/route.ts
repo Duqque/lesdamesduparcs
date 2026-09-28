@@ -3,6 +3,7 @@ import { startMembershipPayment } from "@/lib/server/checkout";
 import { paymentConfigured } from "@/lib/server/helloasso";
 import { json, readJson, throttled, tooMany } from "@/lib/server/http";
 import { markMembershipPaid, reconcile } from "@/lib/server/payments";
+import { issueInvoice } from "@/lib/server/invoice";
 import { getSession } from "@/lib/server/session";
 import { checkPromo, consumePromo, releasePromo } from "@/lib/server/shop";
 import { getMemberByNumber, toPublic } from "@/lib/server/store";
@@ -49,8 +50,9 @@ export async function POST(req: Request) {
   pay = { ...pay, baseCents: base, amountCents: amount, discountCents: discount || undefined, promoCode: newCode };
 
   if (amount <= 0) {
-    // Adhésion offerte par le code : activée sans paiement en ligne.
-    await markMembershipPaid(pay, { amountCents: 0 });
+    // Adhésion offerte par le code : activée sans paiement en ligne (méthode « Autre », jamais « Carte »), avec sa facture à 0 € (compte et e-mail).
+    await markMembershipPaid(pay, { amountCents: 0, method: "autre" });
+    await issueInvoice(`payment:${pay.id}`);
     return json({ ok: true, state: "active", free: true });
   }
   if (!paymentConfigured()) return json({ ok: true, state: "pending", offline: true, amountCents: amount, message: "Le paiement en ligne n'est pas encore disponible : réglez votre adhésion auprès de l'association (espèces, chèque…), elle validera votre carte." });

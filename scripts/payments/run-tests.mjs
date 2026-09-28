@@ -258,6 +258,9 @@ const intentL = (await ha("/__intents")).find((i) => String(i.id) === read("paym
 ok("Paiement HelloAsso au prix réduit (6 €)", r.status === 200 && intentL.totalAmount === 600, JSON.stringify(intentL));
 r = await call("POST", "/api/members/adhesion", { json: { promoCode: "OFFERT" }, c: cL });
 ok("Code à 100 % : adhésion activée sans paiement", r.data.free === true && (await call("GET", "/api/auth/session", { c: cL })).data.membership === "active", JSON.stringify(r.data));
+const invFree = read("invoices").find((i) => i.txId === `payment:${payL.id}`);
+ok("Facture éditée même à 0 € (adhésion offerte)", invFree && invFree.amountCents === 0, JSON.stringify(invFree));
+ok("La facture à 0 € est mise en file d'envoi pour la membre", read("email_jobs").some((j) => j.type === "INVOICE_ISSUED" && j.recipient === mL.email && j.dedupeKey.includes(invFree.id)));
 
 console.log(`\n== Codes réservés aux membres (membre active) ==`);
 r = await call("POST", "/api/checkout", { json: { ...shopBody(40, [{ productId: scarf.id, qty: 1 }]), contact: { email: mA.email, firstName: "Camille", lastName: "Payeuse" }, promoCode: "MEMBRE20" }, c: cA });

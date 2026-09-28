@@ -206,7 +206,8 @@ export async function issueInvoice(txId: string, opts: { silent?: boolean } = {}
     const existing = await invoices.findOne((i) => i.txId === txId);
     if (existing) return existing;
     const tx = (await getTransactions()).find((t) => t.id === txId);
-    if (!tx || tx.status !== "paid" || tx.amountCents <= 0) return null;
+    // Une facture (reçu acquitté) est éditée même à 0 € (adhésion offerte par un code, ligne manuelle gratuite) : seul un montant négatif est refusé.
+    if (!tx || tx.status !== "paid" || tx.amountCents < 0) return null;
     const conf = await settings.get();
     const created = await serial(async () => {
       const dup = await invoices.findOne((i) => i.txId === txId);

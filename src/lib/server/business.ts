@@ -138,9 +138,11 @@ export async function createMembership(member: MemberPublic, plan: Plan, opts?: 
     paidAt: amount === 0 || opts?.paid ? new Date().toISOString() : undefined,
     membershipId: ms.id,
   });
-  // Adhésion réglée dès sa création (saisie par l'équipe, formule gratuite) : carte valide, e-mail de confirmation et facture.
-  if (payment.status === "paid") await (await import("./payments")).markMembershipPaid(payment, {});
-  if (amount > 0 && opts?.paid) await (await import("./invoice")).issueInvoice(`payment:${payment.id}`);
+  // Adhésion réglée dès sa création (saisie par l'équipe, formule gratuite) : carte valide, e-mail de confirmation et facture (même à 0 €).
+  if (payment.status === "paid") {
+    await (await import("./payments")).markMembershipPaid(payment, {});
+    await (await import("./invoice")).issueInvoice(`payment:${payment.id}`);
+  }
   return ms;
 }
 
@@ -286,7 +288,7 @@ export async function setTxStatus(txId: string, status: TxStatus, opts?: { metho
     if (err) return { ok: false, error: `Remboursement HelloAsso impossible : ${err}. Effectuez-le depuis votre espace HelloAsso, puis marquez la transaction comme remboursée.` };
     await payments.update(rowId, { status, method: opts?.method, note: opts?.note, paidAt: status === "paid" ? new Date().toISOString() : undefined });
     // Validation manuelle d'une adhésion (espèces, chèque, virement…) : la carte devient valide, la membre en est informée par e-mail.
-    if (status === "paid" && pay?.kind === "adhesion") await (await import("./payments")).markMembershipPaid({ ...pay, status: "paid" }, {});
+    if (status === "paid" && pay?.kind === "adhesion") await (await import("./payments")).markMembershipPaid({ ...pay, status: "paid" }, { method: opts?.method ?? pay.method });
     if (status === "paid") await (await import("./invoice")).issueInvoice(txId);
     return { ok: true };
   }

@@ -25,9 +25,13 @@ import type { Order } from "@/lib/orders";
  */
 export type Settled = "paid" | "already" | "mismatch" | "unpaid" | "unknown" | "refunded" | "failed";
 
-/** Passe un paiement d'adhésion à « payé » (activation de l'adhésion) ; en cas de renouvellement, la carte et l'attestation changent de saison. */
+/**
+ * Passe un paiement d'adhésion à « payé » (activation de l'adhésion) ; en cas de renouvellement, la carte et l'attestation
+ * changent de saison. Le mode de paiement affiché (facture, attestation) reste celui déjà enregistré (espèces, virement…) ou celui
+ * fourni dans `extra` : il n'est jamais remplacé par « en ligne » à cette étape.
+ */
 export async function markMembershipPaid(pay: Payment, extra: Partial<Payment>): Promise<void> {
-  await payments.update(pay.id, { status: "paid", method: "online", paidAt: new Date().toISOString(), ...extra });
+  await payments.update(pay.id, { status: "paid", method: pay.method, paidAt: new Date().toISOString(), ...extra });
   const ms = pay.membershipId ? await memberships.findOne((m) => m.id === pay.membershipId) : null;
   const member = pay.memberNumber ? await getMemberByNumber(pay.memberNumber) : null;
   if (ms && member && ms.renewal) await updateMember(member.id, { season: ms.season, validUntil: ms.endsAt.slice(0, 10) });
