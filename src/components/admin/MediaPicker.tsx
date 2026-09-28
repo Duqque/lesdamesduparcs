@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus, Trash2, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface Item {
   key: string;
@@ -47,8 +48,13 @@ export function MediaPicker({
   const [kept, setKept] = useState<string[]>(existing);
   const [items, setItems] = useState<Item[]>([]);
   const [dims, setDims] = useState<Record<string, { w: number; h: number }>>({});
+  // Un clic sur la corbeille supprime immédiatement, mais efface un fichier irrécupérable (surtout une photo tout juste choisie, pas
+  // encore enregistrée) : on demande confirmation, comme pour toute suppression sur le site.
+  const [confirming, setConfirming] = useState<{ list: "kept" | "items"; key: string; name: string } | null>(null);
 
-  useEffect(() => () => items.forEach((i) => i.url.startsWith("blob:") && URL.revokeObjectURL(i.url)), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+  useEffect(() => () => itemsRef.current.forEach((i) => i.url.startsWith("blob:") && URL.revokeObjectURL(i.url)), []);
 
   const accept = only === "video" ? "video/mp4,video/webm" : video ? "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" : "image/jpeg,image/png,image/webp,image/gif";
   const sync = (list: Item[]) => {
@@ -93,7 +99,7 @@ export function MediaPicker({
             <p className="mt-1 font-body text-[11.5px] tabular-nums text-mist">{dims[u] ? `${dims[u].w} × ${dims[u].h} px` : "Enregistrée"}</p>
             {low(u) && <p className="flex items-center gap-1 font-body text-[11.5px] text-amber-300"><TriangleAlert aria-hidden className="size-3.5" /> Résolution faible</p>}
             {!disabled && (
-              <button type="button" onClick={() => setKept((k) => k.filter((x) => x !== u))} aria-label="Supprimer ce média" className="absolute -right-2 -top-2 grid size-8 place-items-center rounded-full border border-white/25 bg-[#0b1327] text-[#ff9aa8] shadow-lg hover:border-psg-red-bright">
+              <button type="button" onClick={() => setConfirming({ list: "kept", key: u, name: "ce média déjà enregistré" })} aria-label="Supprimer ce média" className="absolute -right-2 -top-2 grid size-8 place-items-center rounded-full border border-white/25 bg-[#0b1327] text-[#ff9aa8] shadow-lg hover:border-psg-red-bright">
                 <Trash2 aria-hidden className="size-4" strokeWidth={1.8} />
               </button>
             )}
@@ -111,7 +117,7 @@ export function MediaPicker({
             </div>
             <p className="mt-1 font-body text-[11.5px] tabular-nums text-mist">{dims[i.key] ? `${dims[i.key].w} × ${dims[i.key].h} px` : "…"} · {i.size ? `${(i.size / 1048576).toFixed(1)} Mo` : ""}</p>
             {low(i.key) && <p className="flex items-center gap-1 font-body text-[11.5px] text-amber-300"><TriangleAlert aria-hidden className="size-3.5" /> Résolution faible : risque de flou</p>}
-            <button type="button" onClick={() => removeItem(i.key)} aria-label="Supprimer ce fichier" className="absolute -right-2 -top-2 grid size-8 place-items-center rounded-full border border-white/25 bg-[#0b1327] text-[#ff9aa8] shadow-lg hover:border-psg-red-bright">
+            <button type="button" onClick={() => setConfirming({ list: "items", key: i.key, name: i.file?.name ?? "ce fichier" })} aria-label="Supprimer ce fichier" className="absolute -right-2 -top-2 grid size-8 place-items-center rounded-full border border-white/25 bg-[#0b1327] text-[#ff9aa8] shadow-lg hover:border-psg-red-bright">
               <Trash2 aria-hidden className="size-4" strokeWidth={1.8} />
             </button>
           </li>
@@ -131,6 +137,19 @@ export function MediaPicker({
           {minWidth && minHeight ? <> Résolution minimale des photos : <strong className="text-white/85">{minWidth} × {minHeight} px</strong>{video ? <> (vidéos : 1280 × 720 px, 720p)</> : null} ; en dessous, l&rsquo;image apparaîtra floue ou étirée.</> : null}</>
         )}
       </p>
+
+      {confirming && (
+        <ConfirmDialog
+          message={`Supprimer ${confirming.name} ? ${confirming.list === "items" ? "Ce fichier n'est pas encore enregistré : il faudra le choisir à nouveau." : "Il ne sera plus proposé sur la fiche une fois enregistrée."}`}
+          confirmLabel="Supprimer"
+          onCancel={() => setConfirming(null)}
+          onConfirm={() => {
+            if (confirming.list === "kept") setKept((k) => k.filter((x) => x !== confirming.key));
+            else removeItem(confirming.key);
+            setConfirming(null);
+          }}
+        />
+      )}
     </div>
   );
 }
