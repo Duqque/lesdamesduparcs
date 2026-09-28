@@ -214,7 +214,12 @@ ok("Discord : lien d'invitation fourni à la membre dont l'adhésion est valide"
 ok("Un seul paiement HelloAsso pour l'adhésion", read("helloasso_payments").filter((p) => p.ref === payA.id).length === 1);
 ok("E-mail d'adhésion mis en file (MEMBERSHIP_CONFIRMATION avec numéro d'adhérente)", read("email_jobs").some((j) => j.type === "MEMBERSHIP_CONFIRMATION" && j.memberNumber === memA.memberNumber && j.payload.memberNumber === memA.memberNumber));
 await sleep(1200);
-ok("E-mail « Bienvenue » envoyé", (await rs("/__mails")).some((m) => /Bienvenue chez Les Dames du Parc/.test(m.subject)));
+ok("E-mail « Compte créé » envoyé dès l'inscription", (await rs("/__mails")).some((m) => /Ton compte Les Dames du Parc est créé/.test(m.subject) && m.to.includes(mA.email)));
+const welcome = (await rs("/__mails")).find((m) => /^Bienvenue chez Les Dames du Parc 🔴🔵$/.test(m.subject) && m.to.includes(mA.email));
+ok("E-mail de bienvenue envoyé après validation de l'adhésion", Boolean(welcome));
+if (welcome && process.env.DUMP_WELCOME) (await import('node:fs')).writeFileSync(process.env.DUMP_WELCOME, welcome.html);
+ok("Bienvenue : prénom, avantages, échéance de l'adhésion et lien Discord", welcome && welcome.text.includes(`Bonjour ${mA.firstName},`) && /Un espace d’échange privilégié/.test(welcome.text) && /jusqu’au \d+ \S+ 20\d\d à 23h59/.test(welcome.text) && welcome.text.includes("https://discord.com/invite/XTmbz3GWu"));
+ok("Bienvenue : mise en forme (graisses, intertitres, puces, bouton Discord)", welcome && /<strong style="font-weight:800/.test(welcome.html) && /<h2 [^>]*>Tes avantages/.test(welcome.html) && /<h2 [^>]*>📅 Ton adhésion/.test(welcome.html) && /href="https:\/\/discord\.com\/invite\/XTmbz3GWu"[^>]*>👉 Rejoindre l’espace privé/.test(welcome.html) && !/\*\*/.test(welcome.html) && !/Avec toute notre passion/.test(welcome.html));
 r = await call("POST", "/api/members/adhesion", { c: cA }); ok("Adhésion déjà active : pas de nouveau paiement (409)", r.status === 409);
 const wA2 = await webhook("membership", payA.id, { dataId: 5 });
 ok("Notification rejouée : une seule activation", wA2.data?.result === "already" && read("email_jobs").filter((j) => j.type === "MEMBERSHIP_CONFIRMATION" && j.memberNumber === memA.memberNumber).length === 1);

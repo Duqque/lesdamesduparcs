@@ -66,7 +66,7 @@ http.createServer((req, res) => {
     if (req.headers.authorization !== "Bearer re_test") return send(401, { message: "clé invalide" });
     if (failLeft > 0) { failLeft--; return send(500, { message: "panne simulée" }); }
     const j = JSON.parse(body || "{}");
-    for (const m of Array.isArray(j) ? j : [j]) mails.push({ to: m.to, subject: m.subject, attachments: (m.attachments ?? []).map((a) => a.filename), text: m.text });
+    for (const m of Array.isArray(j) ? j : [j]) mails.push({ to: m.to, subject: m.subject, attachments: (m.attachments ?? []).map((a) => a.filename), text: m.text, html: m.html });
     send(200, { id: "mail_" + mails.length });
   });
 }).listen(4598, () => console.log("mock Resend prêt"));

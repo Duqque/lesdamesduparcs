@@ -25,9 +25,9 @@ async function brandOf() {
   return { conf, origin, brand: { origin, name: a.name || "Les Dames du Parc", address: [a.address, [a.postalCode, a.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || undefined, email: a.email || undefined, instagram: a.instagram, tiktok: a.tiktok, signature: conf.emails.signature } };
 }
 
-export async function sendEmail(opts: { to: string; subject: string; body: string; kind: string; replyTo?: string; attachments?: Array<{ filename: string; content: Buffer }> }) {
+export async function sendEmail(opts: { to: string; subject: string; body: string; kind: string; replyTo?: string; attachments?: Array<{ filename: string; content: Buffer }>; signature?: boolean }) {
   const { conf, brand } = await brandOf();
-  const { html, text } = renderEmail({ subject: opts.subject, body: opts.body, kind: opts.kind, brand });
+  const { html, text } = renderEmail({ subject: opts.subject, body: opts.body, kind: opts.kind, brand, signature: opts.signature });
   if (!emailConfigured()) {
     await emailLog.insert({ to: opts.to, subject: opts.subject, kind: opts.kind, status: "skipped", detail: "Aucun service d'e-mail configuré (RESEND_API_KEY)." });
     return { ok: false as const, skipped: true };

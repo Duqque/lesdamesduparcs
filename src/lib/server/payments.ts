@@ -3,6 +3,7 @@ import { eur } from "@/lib/admin/format";
 import { memberships, payments, type Payment } from "./business";
 import { enqueueEmail, processEmailJobsSoon } from "./email-jobs";
 import { sendTemplate } from "./email";
+import { settings } from "./admin-store";
 import { getEvent } from "./events";
 import { isRefused, paidAmount, paymentConfigured, refundState, retrieveCheckout, type CheckoutState } from "./helloasso";
 import { issueInvoice } from "./invoice";
@@ -31,13 +32,14 @@ export async function markMembershipPaid(pay: Payment, extra: Partial<Payment>):
   const member = pay.memberNumber ? await getMemberByNumber(pay.memberNumber) : null;
   if (ms && member && ms.renewal) await updateMember(member.id, { season: ms.season, validUntil: ms.endsAt.slice(0, 10) });
   logEvent("membership_activated", { memberNumber: pay.memberNumber, membershipId: pay.membershipId, season: ms?.season });
-  if (member && ms) {
+  // Nouvelle adhérente : e-mail de bienvenue (désactivable dans Communication > Automatisations) ; renouvellement : simple confirmation.
+  if (member && ms && (ms.renewal || (await settings.get()).automations.membershipWelcome)) {
     await enqueueEmail({
       type: "MEMBERSHIP_CONFIRMATION",
       recipient: member.email,
       dedupeKey: `MEMBERSHIP_CONFIRMATION:${ms.id}`,
       memberNumber: member.memberNumber,
-      payload: { firstName: member.firstName, memberNumber: member.memberNumber, season: ms.season, startDate: ms.startsAt, endDate: ms.endsAt },
+      payload: { firstName: member.firstName, memberNumber: member.memberNumber, season: ms.season, startDate: ms.startsAt, endDate: ms.endsAt, renewal: Boolean(ms.renewal) },
     });
   }
 }

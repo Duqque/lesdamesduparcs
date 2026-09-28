@@ -9,7 +9,8 @@ import { saveAutomationsAction } from "../actions";
 export const metadata = { title: "Automatisations" };
 
 const RULES = [
-  ["welcome", "Nouvelle adhésion", "E-mail de bienvenue"],
+  ["welcome", "Compte créé", "E-mail de confirmation de création du compte (paiement à finaliser)"],
+  ["membershipWelcome", "Adhésion validée", "E-mail de bienvenue avec le lien du Discord privé"],
   ["paymentConfirmation", "Paiement reçu", "E-mail de confirmation"],
   ["paymentFailedReminder", "Paiement échoué", "Relance (bouton « Relancer » dans les finances)"],
   ["renewalJ30", "Adhésion bientôt expirée", "Rappel à J-30"],

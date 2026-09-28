@@ -14,7 +14,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
   const list = await templates.all();
   return (
     <>
-      <PageHeader title="Modèles" subtitle="Les messages envoyés automatiquement. Variables disponibles : {{prenom}}, {{numero}}, {{saison}}, {{montant}}, {{objet}}, {{date}}, {{fin}}, {{suivi}}, {{consignes}}." />
+      <PageHeader title="Modèles" subtitle="Les messages envoyés automatiquement. Variables disponibles : {{prenom}}, {{numero}}, {{saison}}, {{montant}}, {{objet}}, {{date}}, {{fin}}, {{suivi}}, {{consignes}}. Mise en forme : **gras**, « # » titre d’accroche, « ## » intertitre, « • » puces, « > » mention discrète, [libellé](adresse) bouton." />
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
       <div className="space-y-4">
         {list.map((t) => (

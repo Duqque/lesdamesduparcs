@@ -47,15 +47,25 @@ export function renderEmail(opts: {
   links?: Array<{ label: string; url: string }>;
   /** Bouton principal (libellé + adresse) */
   cta?: { label: string; url: string };
+  /** false : pas de formule de politesse automatique (le message contient déjà la sienne) */
+  signature?: boolean;
 }): { html: string; text: string } {
-  const { subject, body, kind = "", brand, image, unsubscribeUrl, extraImages = [], links = [], cta } = opts;
+  const { subject, body, kind = "", brand, image, unsubscribeUrl, extraImages = [], links = [], cta, signature: withSignature = true } = opts;
   const o = brand.origin.replace(/\/$/, "");
   const btn = (t: string, label: string) =>
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 6px;"><tr><td bgcolor="${RED}" style="border-radius:10px;background:linear-gradient(180deg,#e51b36 0%,#b30d27 100%);"><a href="${esc(t)}" style="display:inline-block;padding:15px 30px;font-family:${BODY_FONT};font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;">${esc(label)}</a></td></tr></table><p style="margin:6px 0 20px;font-family:${BODY_FONT};font-size:12px;line-height:1.5;color:#8d99b0;word-break:break-all;">${esc(t)}</p>`;
   const button = (t: string) => btn(t, CTA_LABEL[kind] ?? "Ouvrir le lien");
   const pic = (src: string, alt: string) => `<img src="${esc(src)}" width="528" alt="${esc(alt)}" style="display:block;width:100%;max-width:528px;height:auto;border:0;border-radius:10px;margin:0 0 20px;">`;
-  const para = (lines: string[]) =>
-    `<p style="margin:0 0 18px;font-family:${BODY_FONT};font-size:16px;line-height:1.7;font-weight:400;color:#e9edf5;">${linkify(esc(lines.join("\n"))).replace(/\n/g, "<br>")}</p>`;
+  // Mise en forme légère des messages : **gras** (graisse 800), « # » accroche, « ## » intertitre, « • » puces, « > » mention discrète.
+  const inline = (t: string) => linkify(esc(t)).replace(/\*\*(.+?)\*\*/g, `<strong style="font-weight:800;color:#ffffff;">$1</strong>`);
+  const para = (lines: string[]) => `<p style="margin:0 0 18px;font-family:${BODY_FONT};font-size:16px;line-height:1.7;font-weight:400;color:#dfe5f0;">${inline(lines.join("\n")).replace(/\n/g, "<br>")}</p>`;
+  const lead = (t: string) => `<p style="margin:6px 0 18px;font-family:${BODY_FONT};font-size:22px;line-height:1.3;font-weight:800;letter-spacing:-0.01em;color:#ffffff;">${inline(t)}</p>`;
+  const heading = (t: string) => `<h2 style="margin:30px 0 12px;padding:0 0 0 12px;border-left:3px solid ${RED};font-family:${BODY_FONT};font-size:18px;line-height:1.35;font-weight:800;letter-spacing:0.01em;color:#ffffff;">${inline(t)}</h2>`;
+  const bullets = (items: string[]) =>
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px;width:100%;">${items
+      .map((i) => `<tr><td valign="top" width="22" style="padding:0 0 9px;font-family:${BODY_FONT};font-size:16px;line-height:1.6;font-weight:800;color:${RED};">•</td><td style="padding:0 0 9px;font-family:${BODY_FONT};font-size:16px;line-height:1.6;font-weight:400;color:#dfe5f0;">${inline(i)}</td></tr>`)
+      .join("")}</table>`;
+  const muted = (t: string) => `<p style="margin:-8px 0 18px;font-family:${BODY_FONT};font-size:13.5px;line-height:1.6;font-weight:500;color:#8d99b0;">${inline(t)}</p>`;
   // Une adresse seule sur sa ligne devient un bouton d'action (l'adresse reste visible dessous pour les clients qui bloquent les boutons).
   const blocks = body
     .replace(/\r/g, "")
@@ -64,30 +74,57 @@ export function renderEmail(opts: {
     .map((p) => {
       const out: string[] = [];
       let buf: string[] = [];
+      let list: string[] = [];
       const flush = () => {
         if (buf.length && buf.join("").trim()) out.push(para(buf));
         buf = [];
+        if (list.length) out.push(bullets(list));
+        list = [];
       };
       for (const line of p.split("\n")) {
         const img = line.match(/^\s*!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)\s*$/);
         const lnk = line.match(/^\s*\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)\s*$/);
+        const h1 = line.match(/^#\s+(.+)$/);
+        const h2 = line.match(/^##\s+(.+)$/);
+        const li = line.match(/^\s*[•·]\s+(.+)$/);
+        const note = line.match(/^>\s?(.+)$/);
         if (img) {
           flush();
           out.push(pic(img[2], img[1]));
         } else if (lnk) {
           flush();
           out.push(btn(lnk[2], lnk[1]));
+        } else if (h2) {
+          flush();
+          out.push(heading(h2[1]));
+        } else if (h1) {
+          flush();
+          out.push(lead(h1[1]));
+        } else if (li) {
+          if (buf.length) flush();
+          list.push(li[1]);
+        } else if (note) {
+          flush();
+          out.push(muted(note[1]));
         } else if (/^\s*https?:\/\/\S+\s*$/.test(line)) {
           flush();
           out.push(button(line.trim()));
-        } else buf.push(line);
+        } else {
+          if (list.length) flush();
+          buf.push(line);
+        }
       }
       flush();
       return out.join("");
     })
     .join("");
-  const preheader = esc(body.replace(/\s+/g, " ").replace(URL_RE, "").trim().slice(0, 110));
-  const signature = brand.signature?.trim()
+  const plain = body
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/^#{1,2}\s+/gm, "")
+    .replace(/^>\s?/gm, "")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1 : $2");
+  const preheader = esc(plain.replace(/\s+/g, " ").replace(URL_RE, "").trim().slice(0, 110));
+  const signature = withSignature && brand.signature?.trim()
     ? `<p style="margin:26px 0 0;font-family:${BODY_FONT};font-size:15px;line-height:1.6;color:#c3ccdc;">${esc(brand.signature.trim()).replace(/\n/g, "<br>")}</p>`
     : "";
   const social = [
@@ -157,6 +194,6 @@ a{color:#ffffff;}
 </body>
 </html>`;
 
-  const text = `${body.trim()}${cta ? `\n\n${cta.label} : ${cta.url}` : ""}${links.map((l) => `\n${l.label} : ${l.url}`).join("")}${brand.signature?.trim() ? `\n\n${brand.signature.trim()}` : ""}\n\n—\n${brand.name}${brand.address ? `\n${brand.address}` : ""}${brand.email ? `\n${brand.email}` : ""}\n${o}${unsubscribeUrl ? `\n\nNe plus recevoir ces e-mails de nouveautés : ${unsubscribeUrl}` : ""}`;
+  const text = `${plain.trim()}${cta ? `\n\n${cta.label} : ${cta.url}` : ""}${links.map((l) => `\n${l.label} : ${l.url}`).join("")}${withSignature && brand.signature?.trim() ? `\n\n${brand.signature.trim()}` : ""}\n\n—\n${brand.name}${brand.address ? `\n${brand.address}` : ""}${brand.email ? `\n${brand.email}` : ""}\n${o}${unsubscribeUrl ? `\n\nNe plus recevoir ces e-mails de nouveautés : ${unsubscribeUrl}` : ""}`;
   return { html, text };
 }

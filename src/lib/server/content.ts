@@ -174,7 +174,31 @@ export interface EmailTemplate extends Row {
   body: string;
 }
 export const DEFAULT_TEMPLATES: Array<Omit<EmailTemplate, "createdAt" | "updatedAt">> = [
-  { id: "welcome", key: "welcome", name: "Bienvenue (nouvelle adhésion)", subject: "Bienvenue chez Les Dames du Parc", body: "Bonjour {{prenom}},\n\nBienvenue chez Les Dames du Parc. Ton adhésion {{saison}} est enregistrée : ton numéro de membre est {{numero}}.\n\nTu retrouves ta carte et ton attestation dans ton espace membre." },
+  { id: "welcome", key: "welcome", name: "Compte créé (avant validation de l'adhésion)", subject: "Ton compte Les Dames du Parc est créé", body: "Bonjour **{{prenom}}**,\n\nTon compte est créé : ton numéro de membre est **{{numero}}**.\n\nTa carte membre et ton attestation seront **validées dès que ton adhésion {{saison}} sera réglée**. Tu peux finaliser ton paiement à tout moment depuis ton espace membre." },
+  {
+    id: "membership_welcome",
+    key: "membership_welcome",
+    name: "Bienvenue (adhésion validée, avec le Discord privé)",
+    subject: "Bienvenue chez Les Dames du Parc 🔴🔵",
+    body: [
+      "Bonjour **{{prenom}}**,",
+      "# Bienvenue chez Les Dames du Parc !",
+      "Nous sommes très heureuses de t’accueillir **officiellement** au sein de notre communauté de supportrices du **Paris Saint-Germain**.",
+      "En rejoignant Les Dames du Parc pour la **saison {{saison_courte}}**, tu rejoins une communauté de femmes réunies par une même passion : **le Paris Saint-Germain**.",
+      "## Tes avantages en tant qu’adhérente",
+      "• **Un espace d’échange privilégié** entre adhérentes\n• **Des événements et rendez-vous réservés** aux membres tout au long de la saison\n• **Des goodies réservés** aux adhérentes",
+      "## 📅 Ton adhésion",
+      "Ton adhésion est valable pour **toute la saison {{saison_courte}}**, jusqu’au **{{fin}}**.",
+      "{{#discord}}## 💬 Ton espace privé",
+      "Pour échanger avec les autres Dames, suivre les informations réservées aux membres et faire vivre la communauté au quotidien, nous avons créé notre **salon privé Discord**.",
+      "[👉 Rejoindre l’espace privé]({{discord}})",
+      "N’hésite pas à nous y rejoindre **dès maintenant** !{{/discord}}",
+      "Cette saison ne fait que commencer, et nous avons hâte de la vivre **avec toi**.",
+      "**Bienvenue dans l’aventure Les Dames du Parc.**",
+      "**Unies par la même passion.** 🔴🔵",
+      "**Les Dames du Parc**\n> Communauté 100 % féminine de supportrices du Paris Saint-Germain",
+    ].join("\n\n"),
+  },
   { id: "payment", key: "payment", name: "Confirmation de paiement", subject: "Paiement reçu", body: "Bonjour {{prenom}},\n\nNous avons bien reçu ton paiement de {{montant}} pour {{objet}}. Merci !" },
   { id: "payment_failed", key: "payment_failed", name: "Relance de paiement", subject: "Ton paiement n'a pas abouti", body: "Bonjour {{prenom}},\n\nTon paiement pour {{objet}} n'a pas pu être finalisé. Tu peux le régler depuis ton espace membre." },
   { id: "renewal", key: "renewal", name: "Rappel de renouvellement", subject: "Ton adhésion arrive à échéance", body: "Bonjour {{prenom}},\n\nTon adhésion se termine le {{fin}}. Pense à la renouveler pour rester membre." },
@@ -201,8 +225,15 @@ export const templates = collection<EmailTemplate>("email_templates", () => DEFA
 
 /** Ajoute les modèles introduits depuis la création du fichier (mises à jour du site). */
 export async function ensureTemplates() {
-  const have = new Set((await templates.all()).map((t) => t.key));
+  const all = await templates.all();
+  const have = new Set(all.map((t) => t.key));
   for (const t of DEFAULT_TEMPLATES) if (!have.has(t.key)) await templates.insert(t as never);
+  // Le message « welcome » (à la création du compte) reprenait le texte de bienvenue : il devient « Compte créé », la vraie bienvenue partant à la validation.
+  const old = all.find((t) => t.key === "welcome");
+  if (old && old.body.startsWith("Bonjour {{prenom}},\n\nBienvenue chez Les Dames du Parc. Ton adhésion")) {
+    const next = DEFAULT_TEMPLATES.find((t) => t.key === "welcome")!;
+    await templates.update(old.id, { name: next.name, subject: next.subject, body: next.body });
+  }
 }
 
 export interface EmailLog extends Row {

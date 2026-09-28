@@ -7,6 +7,7 @@ import { ensureTemplates, templates } from "./content";
 import { emailConfigured, fill, sendEmail } from "./email";
 import { siteOrigin } from "./http";
 import { logEvent } from "./log";
+import { settings } from "./admin-store";
 
 /**
  * File d'e-mails (EmailJob) : un paiement validé ne dépend JAMAIS de l'envoi d'un e-mail. Le paiement est enregistré, l'e-mail est mis
@@ -76,7 +77,7 @@ interface OrderPayload {
 }
 
 /** Objet et texte de l'e-mail, construits à partir des données enregistrées dans la tâche (aucune relecture nécessaire). */
-export async function buildEmail(job: Pick<EmailJob, "type" | "payload">): Promise<{ subject: string; body: string; kind: string; invoiceId?: string } | null> {
+export async function buildEmail(job: Pick<EmailJob, "type" | "payload">): Promise<{ subject: string; body: string; kind: string; invoiceId?: string; signature?: boolean } | null> {
   const p = job.payload;
   const o = await origin();
   const hello = `Bonjour ${s(p.firstName)},`;
@@ -98,7 +99,28 @@ export async function buildEmail(job: Pick<EmailJob, "type" | "payload">): Promi
         ].join("\n\n"),
       };
     }
-    case "MEMBERSHIP_CONFIRMATION":
+    case "MEMBERSHIP_CONFIRMATION": {
+      // Nouvelle adhérente : e-mail de bienvenue modifiable (Communication > Modèles), avec l'invitation au Discord privé.
+      if (!p.renewal) {
+        await ensureTemplates();
+        const t = await templates.findOne((x) => x.key === "membership_welcome");
+        if (t) {
+          const discord = (await settings.get()).association.discord?.trim() ?? "";
+          const end = s(p.endDate);
+          const vars = {
+            prenom: s(p.firstName),
+            numero: s(p.memberNumber),
+            saison: s(p.season),
+            saison_courte: s(p.season).replace(/\s*\/\s*/, "–"),
+            // L'adhésion court jusqu'à 23h59 le dernier jour ; une durée en mois (horaire quelconque) n'affiche que la date.
+            fin: `${new Date(`${end.slice(0, 10)}T12:00:00Z`).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}${end.slice(10, 19) === "T23:59:59" ? " à 23h59" : ""}`,
+            discord,
+            espace: `${o}/profil`,
+          };
+          const withBlock = t.body.replace(/\{\{#discord\}\}([\s\S]*?)\{\{\/discord\}\}/g, (_, inner: string) => (discord ? inner : ""));
+          return { kind: "membership_welcome", subject: fill(t.subject, vars), body: fill(withBlock, vars).replace(/\n{3,}/g, "\n\n"), signature: false };
+        }
+      }
       return {
         kind: "membership_confirmation",
         subject: "Bienvenue chez Les Dames du Parc 💙",
@@ -109,6 +131,7 @@ export async function buildEmail(job: Pick<EmailJob, "type" | "payload">): Promi
           `Votre espace membre :\n${o}/profil\n\nVotre carte membre (avec son QR code) :\n${o}/profil#carte`,
         ].join("\n\n"),
       };
+    }
     case "WELCOME":
       return { kind: "welcome", subject: "Bienvenue chez Les Dames du Parc", body: [hello, `Votre compte est créé. Retrouvez votre espace membre ici :\n${o}/profil`].join("\n\n") };
     case "EVENT_CONFIRMATION": {
@@ -166,7 +189,7 @@ export function processEmailJobs(limit = 25) {
         const blob = inv ? await (await import("./blobs")).getBlob(invoiceKey(inv.id)) : null;
         if (inv && blob) attachments = [{ filename: `facture-${inv.number}.pdf`, content: blob.bytes }];
       }
-      const res = await sendEmail({ to: job.recipient, subject: mail.subject, body: mail.body, kind: mail.kind, attachments });
+      const res = await sendEmail({ to: job.recipient, subject: mail.subject, body: mail.body, kind: mail.kind, attachments, signature: mail.signature });
       if (res.ok) {
         await emailJobs.update(job.id, { status: "sent", sentAt: new Date().toISOString(), attempts: job.attempts + 1, lastError: undefined });
         logEvent("email_sent", { type: job.type, jobId: job.id });

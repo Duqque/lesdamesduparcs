@@ -84,6 +84,8 @@ export interface AssociationInfo {
 
 export const DEFAULT_AUTOMATIONS = {
   welcome: true,
+  /** E-mail de bienvenue envoyé à la nouvelle adhérente une fois son adhésion validée (avec le lien Discord) */
+  membershipWelcome: true,
   paymentConfirmation: true,
   paymentFailedReminder: true,
   renewalJ30: true,
