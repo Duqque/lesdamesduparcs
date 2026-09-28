@@ -147,10 +147,36 @@ export async function saveLogoLibraryAction(formData: FormData) {
       n++;
     }
   }
-  await matchLogos.set({ teams, competitions });
+  // Noms affichés des compétitions (« UCL », « CDF »…) : vide = nom du calendrier.
+  const compNames = { ...lib.compNames };
+  for (const key of formData.getAll("comps").map(String)) {
+    const short = s(formData, `comp:${key}:short`).slice(0, 40);
+    if (short) compNames[key] = short;
+    else delete compNames[key];
+  }
+  await matchLogos.set({ teams, competitions, compNames });
   await audit(ctx, "modification", "matchs du PSG", `${n} logo(s) de clubs ou de compétitions enregistré(s)`);
   refresh();
   back({ ok: n ? `${n} logo(s) enregistré(s).` : "Aucun nouveau logo." });
+}
+
+/** Crée une compétition (Coupe de France, Supercoupe d'Europe, tournoi amical…) avec son abréviation et son logo. */
+export async function addCompetitionAction(formData: FormData) {
+  const ctx = await requireAdmin("events.edit");
+  const name = s(formData, "name").slice(0, 80);
+  if (!name) back({ erreur: "Indiquez le nom de la compétition." });
+  const key = logoKey(name);
+  const lib = await matchLogos.get();
+  const logo = await logoFrom(formData, "logo");
+  const short = s(formData, "short").slice(0, 40);
+  await matchLogos.set({
+    customComps: { ...lib.customComps, [key]: name },
+    compNames: short ? { ...lib.compNames, [key]: short } : lib.compNames,
+    competitions: logo ? { ...lib.competitions, [key]: logo } : lib.competitions,
+  });
+  await audit(ctx, "création", "compétition", `Compétition ajoutée : ${name}`);
+  refresh();
+  back({ ok: `Compétition « ${name} » ajoutée.` });
 }
 
 export async function deleteMatchAction(id: string) {

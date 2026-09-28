@@ -54,7 +54,7 @@ export function IntroLoader() {
 
   useEffect(() => {
     const debug = new URLSearchParams(window.location.search).get("introDebug");
-    if (!debug && (hasSeenIntro() || window.matchMedia("(prefers-reduced-motion: reduce)").matches || !webglAvailable())) {
+    if (!debug && (hasSeenIntro() || document.referrer.startsWith(window.location.origin) || window.matchMedia("(prefers-reduced-motion: reduce)").matches || !webglAvailable())) {
       finishIntro();
       return;
     }

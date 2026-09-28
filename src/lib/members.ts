@@ -60,7 +60,12 @@ export interface MemberPublic {
   joinedAt: string;
   validUntil: string;
   /** Statut administratif : suspendue ou anonymisée par l'équipe (absent = active) */
-  status?: "active" | "suspended" | "anonymized";
+  status?: "active" | "suspended" | "expelled" | "anonymized";
+  /** Suspension provisoire : date (AAAA-MM-JJ) à laquelle l'adhésion est rétablie automatiquement */
+  suspendedUntil?: string;
+  /** Motif communiqué à la personne (suspension ou radiation) */
+  statusReason?: string;
+  statusAt?: string;
   notes?: string;
   /** Recevoir un e-mail à chaque nouvel article, événement ou produit (absent = oui ; modifiable dans l'espace membre ou par lien de désabonnement) */
   emailUpdates?: boolean;

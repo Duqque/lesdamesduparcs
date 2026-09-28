@@ -14,6 +14,7 @@ import { getMemberByNumber, getMemberByToken, listAllRegistrations, updateRegist
 import { formatLongDate } from "@/lib/format";
 import { safeReturn } from "@/lib/admin/params";
 import { setTxStatus } from "@/lib/server/business";
+import { mediaUrl, saveMedia } from "@/lib/server/media";
 import { announceAfterSave } from "@/lib/server/notify";
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
@@ -99,6 +100,13 @@ export async function saveEventAction(formData: FormData) {
   const editing = s(formData, "id");
   const title = s(formData, "title");
   const date = s(formData, "date");
+  // Photo envoyée depuis le formulaire : enregistrée dans la médiathèque (base de données) et utilisée comme image principale.
+  const upload = formData.get("imageFile");
+  if (upload instanceof File && upload.size > 0) {
+    const up = await saveMedia(upload);
+    if (!up.ok) redirect(`${editing ? `/admin/evenements/${editing}/modifier` : "/admin/evenements/nouveau"}?erreur=${encodeURIComponent(up.error)}`);
+    formData.set("image", mediaUrl(up.media));
+  }
   if (!title || !date || !s(formData, "venue")) redirect(`${editing ? `/admin/evenements/${editing}/modifier` : "/admin/evenements/nouveau"}?erreur=${encodeURIComponent("Titre, date et lieu sont requis.")}`);
 
   if (editing) {

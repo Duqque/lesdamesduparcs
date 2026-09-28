@@ -8,13 +8,15 @@ import { useEffect } from "react";
  *    ne sont plus des points de coupure ;
  *  - typographie française : espace insécable avant « : ; ! ? » % € » et après « ;
  *  - titres : si le mot le plus long d'un titre ne tient pas dans son conteneur, la taille du titre est réduite juste
- *    ce qu'il faut (aucun mot coupé au milieu, quel que soit l'écran).
+ *    ce qu'il faut (aucun mot coupé au milieu, quel que soit l'écran) ;
+ *  - groupes (data-fit-group) : tous les éléments d'un même groupe (chiffres clés, valeurs…) prennent la plus petite taille
+ *    du groupe, pour rester alignés et de même taille (le mot « Bienveillance » sert de référence aux valeurs).
  * Ne modifie que les nœuds texte du navigateur, après l'hydratation : le contenu du serveur reste intact (SEO, lecteurs d'écran).
  */
 const WJ = "⁠";
 const NBSP = " ";
 const SKIP = "SCRIPT,STYLE,NOSCRIPT,TEXTAREA,INPUT,SELECT,OPTION,CODE,PRE,[contenteditable],[data-no-guard]";
-const HEADINGS = 'h1,h2,h3,.font-display,[class*="font-display"],.t-display,.t-h1,.t-h2,.t-h3';
+const HEADINGS = 'h1,h2,h3,.font-display,[class*="font-display"],.t-display,.t-h1,.t-h2,.t-h3,[data-fit-group]';
 
 function cleanText(node: Text) {
   const v = node.nodeValue;
@@ -49,6 +51,7 @@ function fitHeadings() {
   const els = [...document.querySelectorAll<HTMLElement>(HEADINGS)].filter((e) => e.offsetParent !== null);
   // Lecture puis écriture séparées : pas de recalculs de mise en page en cascade.
   const plan: Array<[HTMLElement, string | null]> = [];
+  const groups = new Map<string, Array<{ el: HTMLElement; size: number; fit: number }>>();
   for (const el of els) {
     if (el.dataset.fit) el.style.removeProperty("font-size");
   }
@@ -68,8 +71,18 @@ function fitHeadings() {
       widest = Math.max(widest, ctx.measureText(word).width + ls * word.length);
     }
     const inner = cw - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    if (widest > inner && inner > 0) plan.push([el, `${Math.max(14, Math.floor(size * (inner / widest) * 0.98 * 10) / 10)}px`]);
-    else plan.push([el, null]);
+    const fit = widest > inner && inner > 0 ? Math.max(14, Math.floor(size * (inner / widest) * 0.98 * 10) / 10) : size;
+    const group = el.dataset.fitGroup;
+    if (group) {
+      const list = groups.get(group) ?? [];
+      list.push({ el, size, fit });
+      groups.set(group, list);
+    } else plan.push([el, fit < size ? `${fit}px` : null]);
+  }
+  // Un groupe partage la plus petite taille de ses membres, quand ceux-ci sont visibles en même temps sur la même largeur.
+  for (const list of groups.values()) {
+    const min = Math.min(...list.map((g) => g.fit));
+    for (const g of list) plan.push([g.el, min < g.size ? `${min}px` : null]);
   }
   for (const [el, size] of plan) {
     if (size) {

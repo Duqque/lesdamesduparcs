@@ -14,7 +14,7 @@ import { productsDb, shopConfig, totalStock } from "./shop";
 
 /* ---------- Adhérentes : vue jointe membre + adhésion + paiement ---------- */
 
-export type MemberStatus = "active" | "expired" | "suspended" | "anonymized";
+export type MemberStatus = "active" | "expired" | "suspended" | "expelled" | "anonymized";
 
 export interface MemberRow {
   member: MemberPublic;
@@ -42,6 +42,7 @@ export async function loadMemberRows(): Promise<MemberRow[]> {
     const current = list[0] ?? null;
     let status: MemberStatus = "active";
     if (member.status === "anonymized") status = "anonymized";
+    else if (member.status === "expelled") status = "expelled";
     else if (member.status === "suspended" || current?.status === "suspended") status = "suspended";
     else if (!current || effectiveStatus(current) !== "active") status = "expired";
     return {

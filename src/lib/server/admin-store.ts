@@ -120,6 +120,7 @@ const settingsStore = singleton("settings", {
   automations: { ...DEFAULT_AUTOMATIONS },
   security: { sessionTimeoutMin: 30, maxAttempts: 5, lockoutMin: 15, require2fa: true },
   retention: { inactiveMonths: 36 },
+  invoice: { prefix: "FAC", legalNote: "TVA non applicable : association à but non lucratif (à confirmer avec votre expert-comptable).", signerName: "", signerTitle: "", stamp: "", signature: "" },
 });
 
 /** Les automatisations introduites après coup (valeurs d'origine) sont ajoutées aux réglages déjà enregistrés. */

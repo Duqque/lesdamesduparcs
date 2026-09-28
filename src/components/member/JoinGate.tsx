@@ -21,6 +21,7 @@ export function useJoinMode(): JoinMode {
   switch (session.membership) {
     case "active":
     case "suspended":
+    case "expelled":
       return "hidden";
     case "expired":
       return "renew";

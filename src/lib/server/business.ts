@@ -6,7 +6,7 @@ import { seasonOf } from "@/lib/season";
 import type { RegistrationStatus } from "@/lib/registration";
 import type { Order } from "@/lib/orders";
 import { collection, type Row } from "./db";
-import { listAllRegistrations, listOrders, listStoredMembers, updateOrder, updateRegistration } from "./store";
+import { getMemberById, listAllRegistrations, listOrders, listStoredMembers, updateMember, updateOrder, updateRegistration } from "./store";
 import { releaseStock } from "./shop";
 import { paymentConfigured, refundCheckout } from "./helloasso";
 import { getAllEventsAdmin } from "./events";
@@ -115,7 +115,7 @@ export async function createMembership(member: MemberPublic, plan: Plan, opts?: 
     renewal: Boolean(opts?.renewedFromId),
     renewedFromId: opts?.renewedFromId,
   });
-  await payments.insert({
+  const payment = await payments.insert({
     memberNumber: member.memberNumber,
     name: `${member.firstName} ${member.lastName}`,
     email: member.email,
@@ -128,6 +128,7 @@ export async function createMembership(member: MemberPublic, plan: Plan, opts?: 
     paidAt: amount === 0 || opts?.paid ? new Date().toISOString() : undefined,
     membershipId: ms.id,
   });
+  if (amount > 0 && opts?.paid) await (await import("./invoice")).issueInvoice(`payment:${payment.id}`);
   return ms;
 }
 
@@ -156,8 +157,12 @@ export const paymentOfMembership = (membershipId: string) => payments.findOne((p
  *  - expired : saison terminée, annulée ou remboursée (« Renouveler mon adhésion ») ;
  *  - none : aucune adhésion enregistrée ; suspended : compte suspendu (aucun CTA).
  */
-export type MembershipState = "active" | "pending" | "expired" | "none" | "suspended";
+export type MembershipState = "active" | "pending" | "expired" | "none" | "suspended" | "expelled";
 export async function membershipState(memberId: string): Promise<MembershipState> {
+  await reinstateDue();
+  const member = await getMemberById(memberId);
+  if (member?.status === "expelled") return "expelled";
+  if (member?.status === "suspended") return "suspended";
   const ms = await currentMembership(memberId);
   if (!ms) return "none";
   const eff = effectiveStatus(ms);
@@ -166,6 +171,28 @@ export async function membershipState(memberId: string): Promise<MembershipState
   const pay = await paymentOfMembership(ms.id);
   if (!pay || pay.status === "paid") return "active";
   return pay.status === "pending" || pay.status === "failed" ? "pending" : "expired";
+}
+
+let lastReinstate = 0;
+/**
+ * Fin des suspensions provisoires : à la date choisie, l'adhésion est rétablie automatiquement et la personne en est informée par e-mail.
+ * Déclenché à la lecture (au plus une fois par minute) et par la tâche planifiée.
+ */
+export async function reinstateDue(force = false) {
+  if (!force && Date.now() - lastReinstate < 60_000) return 0;
+  lastReinstate = Date.now();
+  const today = new Date().toISOString().slice(0, 10);
+  let n = 0;
+  for (const m of await listStoredMembers()) {
+    if (m.status !== "suspended" || !m.suspendedUntil || m.suspendedUntil > today) continue;
+    await updateMember(m.id, { status: undefined, suspendedUntil: undefined, statusReason: undefined, statusAt: new Date().toISOString() });
+    const cur = await currentMembership(m.id);
+    if (cur && cur.status === "suspended") await memberships.update(cur.id, { status: "active" });
+    const { sendTemplate } = await import("./email");
+    await sendTemplate("member_reinstated", m.email, { prenom: m.firstName, contact: (await (await import("./admin-store")).settings.get()).association.email });
+    n++;
+  }
+  return n;
 }
 
 /** Nouvelle adhésion (renouvellement) pour la saison en cours, réglée ensuite en ligne ou auprès de l'association. */
@@ -246,6 +273,7 @@ export async function setTxStatus(txId: string, status: TxStatus, opts?: { metho
     const err = pay?.status === "paid" ? await refund(pay.checkoutId) : null;
     if (err) return { ok: false, error: `Remboursement HelloAsso impossible : ${err}. Effectuez-le depuis votre espace HelloAsso, puis marquez la transaction comme remboursée.` };
     await payments.update(rowId, { status, method: opts?.method, note: opts?.note, paidAt: status === "paid" ? new Date().toISOString() : undefined });
+    if (status === "paid") await (await import("./invoice")).issueInvoice(txId);
     return { ok: true };
   }
   if (source === "registration") {
@@ -254,6 +282,7 @@ export async function setTxStatus(txId: string, status: TxStatus, opts?: { metho
     if (err) return { ok: false, error: `Remboursement HelloAsso impossible : ${err}. Effectuez-le depuis votre espace HelloAsso, puis marquez la transaction comme remboursée.` };
     const map: Record<TxStatus, RegistrationStatus> = { paid: "paid", pending: "awaiting_payment", failed: "awaiting_payment", refunded: "refunded", cancelled: "cancelled" };
     await updateRegistration(rowId, { status: map[status] });
+    if (status === "paid") await (await import("./invoice")).issueInvoice(txId);
     return { ok: true };
   }
   if (source === "order") {
@@ -266,17 +295,20 @@ export async function setTxStatus(txId: string, status: TxStatus, opts?: { metho
     const goingOut = next === "cancelled" || next === "refunded";
     if (order && goingOut && !wasOut) await releaseStock(order.lines);
     await updateOrder(rowId, { status: next, ...(next === "paid" && !order?.fulfilment ? { fulfilment: order?.delivery.mode === "event" ? ("ready_for_pickup" as const) : ("to_prepare" as const) } : {}) });
+    if (status === "paid") await (await import("./invoice")).issueInvoice(txId);
     return { ok: true };
   }
   return { ok: false, error: "Transaction introuvable." };
 }
 
 export async function addManualPayment(data: { memberNumber?: string; name: string; email?: string; label: string; amountCents: number; method: PayMethod; status: TxStatus; note?: string }) {
-  return payments.insert({
+  const row = await payments.insert({
     ...data,
     kind: "other",
     reference: `PAY-${randomUUID().slice(0, 8).toUpperCase()}`,
     paidAt: data.status === "paid" ? new Date().toISOString() : undefined,
   });
+  if (data.status === "paid") await (await import("./invoice")).issueInvoice(`payment:${row.id}`);
+  return row;
 }
 

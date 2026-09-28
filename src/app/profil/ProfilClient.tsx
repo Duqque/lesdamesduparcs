@@ -110,6 +110,8 @@ function EmailPreference({ initial }: { initial: boolean }) {
 
 function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: string }) {
   const data = useMemberData();
+  const { session } = useAuth();
+  const validated = session.status === "member" && session.membership === "active";
   if (!data) return <p className="mt-8 font-body text-mist">Chargement de votre espace…</p>;
   const { member, verifyUrl, transactions: tx, benefits, offers, membership } = data;
   const minor = isMinor(member.birthDate, member.joinedAt.slice(0, 10));
@@ -125,7 +127,7 @@ function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: strin
       <section id="carte" className="scroll-mt-40">
         <h2 className="t-h2">Ma carte membre</h2>
         <div className="mt-10">
-          <MemberCard name={`${member.firstName} ${member.lastName}`} season={member.season} number={member.memberNumber} qrValue={verifyUrl} />
+          <MemberCard name={`${member.firstName} ${member.lastName}`} season={member.season} number={member.memberNumber} qrValue={verifyUrl} state={session.status === "member" ? session.membership : "active"} />
         </div>
         <p className="mx-auto mt-8 max-w-md text-center text-mist t-small">
           Le QR code de votre carte ouvre la preuve d&rsquo;adhésion, que les administrateurs peuvent vérifier à tout moment.
@@ -138,7 +140,8 @@ function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: strin
         <p className="max-w-xl text-mist t-lead">
           Votre attestation d&rsquo;adhésion {member.season} est générée automatiquement au format PDF, avec votre numéro et son QR code de vérification.
         </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        {!validated && <p className="mt-4 max-w-xl font-body text-[14px] leading-[1.7] text-amber-100">L&rsquo;attestation sera disponible dès la validation de votre paiement.</p>}
+        <div className={validated ? "mt-6 flex flex-col gap-3 sm:flex-row" : "hidden"}>
           <a href={`/api/attestation/${member.token}`} target="_blank" rel="noreferrer" className="inline-flex h-[52px] items-center justify-center gap-3 rounded-[10px] border border-[#ff6b80]/45 bg-[linear-gradient(180deg,#e51b36_0%,#b30d27_100%)] px-6 font-body text-[14.5px] font-medium text-white hover:brightness-110">
             <Download aria-hidden className="size-[18px]" strokeWidth={1.8} /> Télécharger mon attestation (PDF)
           </a>
@@ -176,7 +179,10 @@ function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: strin
                   <p className="text-[15px] text-white">{t.label}</p>
                   <p className="mt-1 text-[12.5px] text-mist">{t.type} · {dateFr(t.at)} · {txStatus[t.status]}</p>
                 </div>
-                <p className="text-[15px] tabular-nums text-white">{t.amountCents ? formatEuros(t.amountCents) : "Gratuit"}</p>
+                <div className="flex items-center gap-4">
+                  {t.invoiceId && <a href={`/api/factures/${t.invoiceId}`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 text-[13.5px] text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"><FileText aria-hidden className="size-4" strokeWidth={1.7} /> Facture</a>}
+                  <p className="text-[15px] tabular-nums text-white">{t.amountCents ? formatEuros(t.amountCents) : "Gratuit"}</p>
+                </div>
               </li>
             ))}
           </ul>

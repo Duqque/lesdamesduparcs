@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 /** État de l'abonnement de la membre (voir membershipState côté serveur) : pilote les appels à l'action d'adhésion. */
-export type MembershipState = "active" | "pending" | "expired" | "none" | "suspended";
+export type MembershipState = "active" | "pending" | "expired" | "none" | "suspended" | "expelled";
 
 export type Session =
   | { status: "loading" }

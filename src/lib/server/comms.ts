@@ -10,7 +10,7 @@ import { collection, type Row } from "./db";
 import { emailConfigured, fill, sendTemplate } from "./email";
 import { getAllEventsAdmin } from "./events";
 import { listAllRegistrations, listOrders } from "./store";
-import { plans, setTxStatus } from "./business";
+import { plans, reinstateDue, setTxStatus } from "./business";
 import { notifyNewContent } from "./notify";
 
 export const SEGMENTS = [
@@ -96,6 +96,7 @@ export async function runScheduled() {
   const now = new Date();
   await housekeeping().catch(() => undefined);
   await reconcilePending().catch(() => undefined);
+  await reinstateDue(true).catch(() => 0);
   const result = { campaigns: 0, renewals: 0, reminders: 0, releasedOrders: 0, announced: 0 };
   // Publications programmées arrivées à échéance : annonce aux adhérentes (une seule fois par élément).
   result.announced = (await notifyNewContent().catch(() => ({ announced: 0 }))).announced;

@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     const member = login && password ? await findMemberByLogin(login) : null;
     // Vérification exécutée même si le compte n'existe pas, pour ne pas révéler quelles adresses sont inscrites.
     const ok = await verifyPassword(password, member?.passwordHash || (await dummyHash()));
-    if (!member || !ok || member.status === "anonymized") return invalid();
+    if (!member || !ok || member.status === "anonymized" || member.status === "expelled") return invalid();
     if (needsRehash(member.passwordHash)) await updateMember(member.id, { passwordHash: await hashPassword(password) });
     await setSession(member.id);
     return json({ ok: true, role: "member" });

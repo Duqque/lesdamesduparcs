@@ -5,8 +5,8 @@ import { first, type SP } from "@/lib/admin/params";
 import { isPsg, matchTitle, opponentOf } from "@/lib/matches";
 import { requireAdmin } from "@/lib/server/admin-auth";
 import { getAllEventsAdmin } from "@/lib/server/events";
-import { logoKey, matchLogos, matchSettings, psgMatches, toView } from "@/lib/server/matches";
-import { deleteMatchAction, importCalendarAction, saveLogoLibraryAction, saveMatchAction, saveMatchSettingsAction, syncNowAction } from "./actions";
+import { STANDARD_COMPETITIONS, logoKey, matchLogos, matchSettings, psgMatches, toView } from "@/lib/server/matches";
+import { addCompetitionAction, deleteMatchAction, importCalendarAction, saveLogoLibraryAction, saveMatchAction, saveMatchSettingsAction, syncNowAction } from "./actions";
 
 export const metadata = { title: "Matchs du PSG" };
 
@@ -61,6 +61,11 @@ export default async function MatchesAdminPage({ searchParams }: { searchParams:
     if (opp) teamNames.set(logoKey(opp), opp);
     if (m.competition) compNames.set(logoKey(m.competition), m.competition);
   }
+  // Compétitions d'usage, puis celles créées par l'administration : toutes modifiables (abréviation, logo), même sans match programmé.
+  for (const c of STANDARD_COMPETITIONS) if (!compNames.has(logoKey(c.name))) compNames.set(logoKey(c.name), c.name);
+  for (const [k, n] of Object.entries(lib.customComps)) if (!compNames.has(k)) compNames.set(k, n);
+  // Le PSG a aussi un logo modifiable, comme les autres clubs.
+  teamNames.set(logoKey("Paris Saint-Germain"), "Paris Saint-Germain");
   const clubs = [...teamNames].sort((a, b) => a[1].localeCompare(b[1], "fr"));
   const comps = [...compNames].sort((a, b) => a[1].localeCompare(b[1], "fr"));
   const missing = clubs.filter(([k]) => !lib.teams[k] && k !== "marseille" && k !== "olympique-de-marseille").length + comps.filter(([k]) => !lib.competitions[k]).length;
@@ -103,7 +108,10 @@ export default async function MatchesAdminPage({ searchParams }: { searchParams:
             <Field label="Heure (Paris)"><input type="time" name="time" defaultValue={editing?.time} className={inp} /></Field>
             <Field label="Équipe à domicile"><input name="homeTeam" required defaultValue={editing?.homeTeam ?? "Paris Saint-Germain"} className={inp} /></Field>
             <Field label="Équipe à l'extérieur"><input name="awayTeam" required defaultValue={editing?.awayTeam} className={inp} /></Field>
-            <Field label="Compétition"><input name="competition" defaultValue={editing?.competition} placeholder="Ligue des champions" className={inp} /></Field>
+            <Field label="Compétition" hint="Choisissez dans la liste ou tapez une nouvelle compétition (elle sera ajoutée à la bibliothèque).">
+              <input name="competition" list="competitions" defaultValue={editing?.competition} placeholder="Ligue des champions" className={inp} />
+              <datalist id="competitions">{comps.map(([k, n]) => <option key={k} value={n} />)}</datalist>
+            </Field>
             <Field label="Stade"><input name="stadium" defaultValue={editing?.stadium} placeholder="Parc des Princes" className={inp} /></Field>
             <Field label="Billetterie de ce match (facultatif)"><input name="ticketUrl" defaultValue={editing?.ticketUrl} placeholder={settings.ticketUrl} className={inp} /></Field>
             <Field label="Événement des Dames relié" hint="Crée le bouton « Vivre le match avec les Dames ! »">
@@ -139,7 +147,7 @@ export default async function MatchesAdminPage({ searchParams }: { searchParams:
                 <div key={key} className="flex items-start gap-3 rounded-[10px] border border-line p-3">
                   <input type="hidden" name="comps" value={key} />
                   <Square src={lib.competitions[key]} name={name} />
-                  <div className="grid min-w-0 flex-1 gap-2"><span className="truncate font-body text-[13.5px] font-medium text-white">{name}</span><input type="file" name={`comp:${key}:file`} accept="image/png,image/jpeg,image/webp,image/svg+xml" className={inp} /></div>
+                  <div className="grid min-w-0 flex-1 gap-2"><span className="truncate font-body text-[13.5px] font-medium text-white">{name}</span><input name={`comp:${key}:short`} defaultValue={lib.compNames[key] ?? ""} placeholder="Nom affiché (ex. UCL)" maxLength={40} aria-label={`Nom affiché pour ${name}`} className={inp} /><input type="file" name={`comp:${key}:file`} accept="image/png,image/jpeg,image/webp,image/svg+xml" className={inp} /></div>
                 </div>
               ))}
             </div>
@@ -160,6 +168,16 @@ export default async function MatchesAdminPage({ searchParams }: { searchParams:
             </div>
           </div>
           <div><SubmitButton>Enregistrer les logos</SubmitButton></div>
+        </form>
+      </Panel>
+
+      <Panel className="mt-4" title="Ajouter une compétition">
+        <form action={addCompetitionAction} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Field label="Nom complet"><input name="name" required placeholder="Coupe de France" className={inp} /></Field>
+          <Field label="Nom affiché (abréviation)"><input name="short" placeholder="CDF" maxLength={40} className={inp} /></Field>
+          <Field label="Logo carré (fichier)"><input type="file" name="logoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml" className={inp} /></Field>
+          <Field label="ou adresse du logo"><input name="logoUrl" placeholder="https://…" className={inp} /></Field>
+          <div className="sm:col-span-2 lg:col-span-4"><SubmitButton>Ajouter la compétition</SubmitButton></div>
         </form>
       </Panel>
 

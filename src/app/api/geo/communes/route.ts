@@ -28,13 +28,19 @@ const names = () => (index ??= ENTRIES.map((e) => norm(e[0])));
 let byPostal: Entry[] | null = null;
 const postalSorted = () => (byPostal ??= ENTRIES.slice().sort((a, b) => a[1].localeCompare(b[1]) || a[0].localeCompare(b[0])));
 
-const out = (e: Entry) => ({ city: e[0], postalCode: e[1], department: e[2] });
+/** Paris, Lyon et Marseille : chaque code postal est un arrondissement (« Paris 1er », « Lyon 3e », « Marseille 8e »). */
+const arrondissement = (city: string, postal: string) => {
+  const n = city === "Paris" ? (postal.startsWith("750") ? Number(postal.slice(3)) : 0) : city === "Lyon" ? (postal.startsWith("690") ? Number(postal.slice(3)) : 0) : city === "Marseille" ? (postal.startsWith("130") ? Number(postal.slice(3)) : 0) : 0;
+  return n > 0 ? `${city} ${n === 1 ? "1er" : `${n}e`}` : undefined;
+};
+const out = (e: Entry) => ({ city: e[0], postalCode: e[1], department: e[2], label: arrondissement(e[0], e[1]) });
 
 export async function GET(req: Request) {
   if (await throttled(req, "geo", 240, 60_000)) return new Response("[]", { status: 429, headers: { "Content-Type": "application/json" } });
   const raw = (new URL(req.url).searchParams.get("q") ?? "").slice(0, 60);
   const headers = { "Content-Type": "application/json", "Cache-Control": "public, max-age=86400" };
-  const limit = 8;
+  // Pas de plafond serré : tous les arrondissements de Paris, Lyon et Marseille et toutes les communes de même nom doivent apparaître.
+  const limit = 80;
   const q = norm(raw);
   if (q.length < 2) return new Response("[]", { headers });
 

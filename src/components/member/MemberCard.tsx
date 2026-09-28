@@ -6,7 +6,9 @@ import { RotateCw } from "lucide-react";
 import { CardObject, type CardMotion } from "@/components/membership/CardObject";
 
 /** Carte membre personnalisée, à retourner : recto (identité + QR) et verso. */
-export function MemberCard({ name, season, number, qrValue }: { name: string; season: string; number: string; qrValue: string }) {
+export function MemberCard({ name, season, number, qrValue, state = "active" }: { name: string; season: string; number: string; qrValue: string; state?: "active" | "pending" | "expired" | "none" | "suspended" | "expelled" }) {
+  const valid = state === "active";
+  const note = state === "pending" || state === "none" ? "Carte en cours de création" : state === "suspended" ? "Adhésion suspendue" : state === "expelled" ? "Adhésion radiée" : "Adhésion terminée";
   const [flipped, setFlipped] = useState(false);
   const target = useMotionValue(-8);
   const rotateY = useSpring(target, { stiffness: 70, damping: 16 });
@@ -25,7 +27,15 @@ export function MemberCard({ name, season, number, qrValue }: { name: string; se
 
   return (
     <div className="flex flex-col items-center gap-8">
-      <div className="w-full [--cw:min(100%,480px)]">
+      {!valid && (
+        <p role="status" className="rounded-full border border-amber-400/40 bg-amber-400/10 px-5 py-2 text-center font-body text-[13px] font-semibold uppercase tracking-[0.16em] text-amber-100">
+          {note}
+          <span className="mt-1 block text-[12px] font-normal normal-case tracking-normal text-amber-100/85">
+            {state === "pending" || state === "none" ? "Elle sera validée dès la réception du paiement. D’ici là, son QR code indique « Adhésion invalide »." : "Son QR code indique que l’adhésion n’est pas valide."}
+          </span>
+        </p>
+      )}
+      <div className={valid ? "w-full [--cw:min(100%,480px)]" : "w-full opacity-70 saturate-50 [--cw:min(100%,480px)]"}>
         <motion.div className="mx-auto w-[var(--cw)] [perspective:1600px]">
           <CardObject motion={m} name={name} season={season} number={number} qrValue={qrValue} />
         </motion.div>

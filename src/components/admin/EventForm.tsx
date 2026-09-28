@@ -28,7 +28,8 @@ export function EventForm({ event, canPricing = true, matches = [], linkedMatchI
           <Field label="Catégorie"><select name="tag" defaultValue={event?.tag ?? "Programme"} className={inp}>{TAGS.map((t) => <option key={t} value={t}>{CATS[t]} ({t})</option>)}</select></Field>
           <Field label="Résumé court (carte et partage)"><input name="summary" defaultValue={event?.summary} className={inp} /></Field>
           <Field label="Description (paragraphes séparés par une ligne vide)" className="sm:col-span-2"><textarea name="description" rows={6} defaultValue={event?.description.join("\n\n")} className={area} /></Field>
-          <Field label="Image principale (adresse ou médiathèque)" hint="Ex. /medias/… copié depuis la médiathèque, ou /images/…"><input name="image" defaultValue={event?.image} className={inp} /></Field>
+          <Field label="Photo de l'événement" hint="Envoyez une photo depuis votre ordinateur : elle est enregistrée dans la base de données du site et dans la médiathèque." className="sm:col-span-2"><input type="file" name="imageFile" accept="image/jpeg,image/png,image/webp" className="block w-full font-body text-[13px] text-white/80 file:mr-3 file:rounded-[8px] file:border file:border-white/20 file:bg-white/5 file:px-4 file:py-2 file:text-white" /></Field>
+          <Field label="Ou adresse d'une image existante (médiathèque)" hint="Ex. /medias/… ou /images/… : laissée telle quelle si vous n'envoyez pas de photo."><input name="image" defaultValue={event?.image} className={inp} /></Field>
           <Field label="Texte alternatif de l'image"><input name="imageAlt" defaultValue={event?.imageAlt} className={inp} /></Field>
           <Field label="Galerie (une adresse d'image par ligne)" className="sm:col-span-2"><textarea name="gallery" rows={2} defaultValue={event?.gallery?.join("\n")} className={area} /></Field>
         </div>
@@ -42,8 +43,8 @@ export function EventForm({ event, canPricing = true, matches = [], linkedMatchI
           <Field label="Fuseau horaire"><input value="Europe/Paris" readOnly className={inp} /></Field>
           {!event && (
             <>
-              <Field label="Répétition"><select name="repeat" defaultValue="none" className={inp}><option value="none">Aucune</option><option value="weekly">Chaque semaine</option><option value="biweekly">Toutes les 2 semaines</option><option value="monthly">Chaque mois</option></select></Field>
-              <Field label="Nombre d'occurrences"><input name="repeatCount" type="number" min={1} max={20} defaultValue={4} className={inp} /></Field>
+              <Field label="Récurrence" hint="Créer plusieurs événements identiques à intervalle régulier."><select name="repeat" defaultValue="none" className={inp}><option value="none">Aucune récurrence</option><option value="weekly">Chaque semaine</option><option value="biweekly">Toutes les 2 semaines</option><option value="monthly">Chaque mois</option></select></Field>
+              <Field label="Nombre de dates (la première comprise)"><input name="repeatCount" type="number" min={1} max={20} defaultValue={4} className={inp} /></Field>
             </>
           )}
         </div>

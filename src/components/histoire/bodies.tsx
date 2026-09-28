@@ -88,7 +88,7 @@ export function WhoBody() {
                 <Reveal delay={i * 0.06} className="h-full">
                   <div className={`${card} flex h-full min-h-[230px] flex-col justify-between gap-8 p-7`}>
                     <div className="flex items-start justify-between gap-4">
-                      <p className="font-display text-[clamp(56px,6vw,92px)] font-semibold leading-none tabular-nums text-white">
+                      <p data-fit-group="figures" className="font-display text-[clamp(56px,6vw,92px)] font-semibold leading-none tabular-nums text-white">
                         {f.count !== null ? <CountUp to={f.count} /> : f.value}
                       </p>
                       <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-full border border-psg-red-bright/50">
@@ -120,7 +120,7 @@ export function ValuesBody() {
                   <ValueIcon name={v.title} />
                   <p className="text-[12px] font-semibold tabular-nums tracking-[0.2em] text-psg-red-bright">{String(i + 1).padStart(2, "0")}</p>
                 </div>
-                <h2 className="break-words font-display text-[clamp(30px,3.2vw,44px)] font-semibold uppercase leading-[1.05] tracking-[0.04em] text-white">{v.title}</h2>
+                <h2 data-fit-group="values" className="break-words font-display text-[clamp(30px,3.2vw,44px)] font-semibold uppercase leading-[1.05] tracking-[0.04em] text-white">{v.title}</h2>
                 <p className="break-words text-white/75 t-small">{v.text}</p>
                 <blockquote className="mt-auto break-words border-t border-line pt-5 font-body text-[18px] font-semibold uppercase leading-[1.25] tracking-[0.03em] text-psg-red-bright">{v.quote}</blockquote>
               </div>

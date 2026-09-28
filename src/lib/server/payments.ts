@@ -4,6 +4,7 @@ import { sendTemplate } from "./email";
 import { getEvent } from "./events";
 import { paidAmount, retrieveCheckout, paymentConfigured, type CheckoutState } from "./helloasso";
 import { payments, memberships } from "./business";
+import { issueInvoice } from "./invoice";
 import { getMemberByNumber, updateMember } from "./store";
 import { getOrder, getRegistration, listAllRegistrations, listOrders, updateOrder, updateRegistration } from "./store";
 
@@ -24,7 +25,8 @@ export async function settleRegistration(registrationId: string, checkout: Check
   if (reg.status === "paid") return "already";
   if (reg.status === "cancelled" || reg.status === "refunded") return "mismatch";
   await updateRegistration(reg.id, { status: "paid" });
-  await sendTemplate("payment", reg.email, { prenom: reg.firstName, montant: eur(reg.amountCents), objet: (await getEvent(reg.eventId))?.title ?? reg.eventId }, "paymentConfirmation");
+  // Facture automatique (et e-mail de validation du paiement avec la facture) ; à défaut, l'ancien e-mail de confirmation.
+  if (!(await issueInvoice(`registration:${reg.id}`))) await sendTemplate("payment", reg.email, { prenom: reg.firstName, montant: eur(reg.amountCents), objet: (await getEvent(reg.eventId))?.title ?? reg.eventId }, "paymentConfirmation");
   return "paid";
 }
 
@@ -37,6 +39,7 @@ export async function settleOrder(orderId: string, checkout: CheckoutState): Pro
   if (order.status === "paid") return "already";
   if (order.status === "cancelled" || order.status === "refunded") return "mismatch";
   await updateOrder(order.id, { status: "paid", fulfilment: order.delivery.mode === "event" ? "ready_for_pickup" : "to_prepare" });
+  await issueInvoice(`order:${order.id}`);
   await sendTemplate("order_paid", order.contact.email, { prenom: order.contact.firstName, objet: order.id.slice(0, 8).toUpperCase(), montant: eur(order.totalCents) }, "paymentConfirmation");
   return "paid";
 }
@@ -54,7 +57,7 @@ export async function settleMembership(paymentId: string, checkout: CheckoutStat
   const ms = pay.membershipId ? await memberships.findOne((m) => m.id === pay.membershipId) : null;
   const member = pay.memberNumber ? await getMemberByNumber(pay.memberNumber) : null;
   if (ms && member && ms.renewal) await updateMember(member.id, { season: ms.season, validUntil: ms.endsAt.slice(0, 10) });
-  if (pay.email) await sendTemplate("payment", pay.email, { prenom: member?.firstName ?? pay.name, montant: eur(pay.amountCents), objet: `Adhésion ${pay.label}` }, "paymentConfirmation");
+  if (!(await issueInvoice(`payment:${pay.id}`)) && pay.email) await sendTemplate("payment", pay.email, { prenom: member?.firstName ?? pay.name, montant: eur(pay.amountCents), objet: `Adhésion ${pay.label}` }, "paymentConfirmation");
   return "paid";
 }
 

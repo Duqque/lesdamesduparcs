@@ -13,6 +13,7 @@ interface Suggestion {
   city: string;
   postalCode: string;
   department: string;
+  label?: string;
 }
 
 const STYLES = {
@@ -55,7 +56,7 @@ function useCommunes(query: string, active: boolean) {
 function Suggest({ id, items, active, onPick }: { id: string; items: Suggestion[]; active: number; onPick: (s: Suggestion) => void }) {
   if (!items.length) return null;
   return (
-    <ul id={id} role="listbox" className="absolute left-0 right-0 top-full z-40 mt-1 max-h-[260px] overflow-y-auto overscroll-contain rounded-[12px] border border-white/[0.14] bg-[#0b1020] py-1 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.95)]">
+    <ul id={id} role="listbox" className="absolute left-0 right-0 top-full z-40 mt-1 max-h-[320px] overflow-y-auto overscroll-contain rounded-[12px] border border-white/[0.14] bg-[#0b1020] py-1 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.95)]">
       {items.map((s, i) => (
         <li key={`${s.city}-${s.postalCode}`} role="option" aria-selected={i === active}>
           <button
@@ -65,7 +66,7 @@ function Suggest({ id, items, active, onPick }: { id: string; items: Suggestion[
             onClick={() => onPick(s)}
             className={cn("flex min-h-11 w-full items-center justify-between gap-3 px-4 text-left font-body text-[14px] text-white/90 hover:bg-white/[0.07]", i === active && "bg-white/[0.09]")}
           >
-            <span className="min-w-0 truncate">{s.city}</span>
+            <span className="min-w-0 truncate">{s.label ?? s.city}</span>
             <span className="shrink-0 tabular-nums text-mist">{s.postalCode} · {s.department}</span>
           </button>
         </li>

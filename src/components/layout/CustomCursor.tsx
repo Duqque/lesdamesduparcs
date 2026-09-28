@@ -60,7 +60,7 @@ export function CustomCursor() {
 
   return (
     <div ref={ref} aria-hidden className="cursor-ring" data-state={state} data-visible="false">
-      {state === "view" ? "VIEW" : null}
+      {state === "view" ? "LIRE" : null}
     </div>
   );
 }

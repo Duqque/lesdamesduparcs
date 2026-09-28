@@ -55,7 +55,7 @@ export function WhoBody() {
           <li key={f.label} className="min-w-0">
             <Reveal delay={i * 0.05} className="h-full">
               <div className={`${card} flex h-full min-h-[190px] flex-col justify-between gap-6 p-6`}>
-                <p className="font-display text-[clamp(48px,5vw,72px)] font-semibold leading-none tabular-nums text-white">
+                <p data-fit-group="figures" className="font-display text-[clamp(48px,5vw,72px)] font-semibold leading-none tabular-nums text-white">
                   {f.count !== null ? <CountUp to={f.count} /> : (f as { value: string }).value}
                 </p>
                 <p className="break-words text-mist t-small">{f.label}</p>
@@ -82,7 +82,7 @@ export function ValuesBody() {
                   <p className="text-[12px] font-semibold tabular-nums tracking-[0.2em] text-psg-red-bright">{String(i + 1).padStart(2, "0")}</p>
                 </div>
                 <div>
-                  <h2 className="break-words font-display text-[clamp(28px,3vw,40px)] font-semibold uppercase leading-[1.05] tracking-[0.04em] text-white">{v.title}</h2>
+                  <h2 data-fit-group="values" className="break-words font-display text-[clamp(28px,3vw,40px)] font-semibold uppercase leading-[1.05] tracking-[0.04em] text-white">{v.title}</h2>
                   <p className="mt-3 break-words text-white/75 t-small">{v.text}</p>
                 </div>
               </div>

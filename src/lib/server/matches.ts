@@ -42,8 +42,29 @@ export const matchSettings = singleton("match_settings", {
 });
 
 /** Bibliothèque de logos : un logo enregistré pour un club ou une compétition sert pour tous ses matchs. */
-export const matchLogos = singleton("match_logos", { teams: {} as Record<string, string>, competitions: {} as Record<string, string> });
+export const matchLogos = singleton("match_logos", {
+  teams: {} as Record<string, string>,
+  competitions: {} as Record<string, string>,
+  /** Nom affiché à la place du nom du calendrier (ex. « Ligue des champions » → « UCL ») */
+  compNames: {} as Record<string, string>,
+  /** Compétitions créées par l'administration (clé → nom complet), même sans match programmé */
+  customComps: {} as Record<string, string>,
+});
 export const logoKey = (name: string) => name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+/** Compétitions proposées d'office, avec leur abréviation d'usage (modifiable dans l'administration). */
+export const STANDARD_COMPETITIONS: Array<{ name: string; short: string }> = [
+  { name: "Ligue 1", short: "L1" },
+  { name: "Ligue des champions", short: "UCL" },
+  { name: "Coupe de France", short: "CDF" },
+  { name: "Trophée des champions", short: "TDC" },
+  { name: "Supercoupe d'Europe", short: "Supercoupe d'Europe" },
+];
+export const competitionLabel = (name: string, lib: { compNames: Record<string, string> }) => {
+  if (!name) return "";
+  const k = logoKey(name);
+  return lib.compNames[k] || STANDARD_COMPETITIONS.find((c) => logoKey(c.name) === k && c.short !== c.name && c.short !== "L1")?.short || name;
+};
 
 const todayParis = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Paris" }).format(new Date());
 const cmp = (a: ParsedMatch, b: ParsedMatch) => `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`);
@@ -157,7 +178,7 @@ export const PSG_LOGO = "/logos/team-psg.webp";
 export async function toView(row: PsgMatchRow, settings?: Awaited<ReturnType<typeof matchSettings.get>>, relatedTitle?: (id: string) => string | undefined, library?: Awaited<ReturnType<typeof matchLogos.get>>): Promise<MatchView> {
   const s = settings ?? (await matchSettings.get());
   const lib = library ?? (await matchLogos.get());
-  const teamLogo = (team: string, own?: string) => own || (isPsg(team) ? PSG_LOGO : lib.teams[logoKey(team)] || KNOWN_LOGOS[logoKey(team)] || "");
+  const teamLogo = (team: string, own?: string) => own || (isPsg(team) ? lib.teams[logoKey("Paris Saint-Germain")] || PSG_LOGO : lib.teams[logoKey(team)] || KNOWN_LOGOS[logoKey(team)] || "");
   const title = row.relatedEventId ? relatedTitle?.(row.relatedEventId) : undefined;
   return {
     id: row.id,
@@ -169,7 +190,7 @@ export async function toView(row: PsgMatchRow, settings?: Awaited<ReturnType<typ
     date: row.date,
     time: row.time,
     stadium: row.stadium || (isPsg(row.homeTeam) ? "Parc des Princes" : ""),
-    competition: row.competition,
+    competition: competitionLabel(row.competition, lib),
     image: "/images/parc-pelouse-tribunes.webp",
     ticketHref: row.ticketUrl || s.ticketUrl || DEFAULT_TICKET_URL,
     opponent: opponentOf(row),

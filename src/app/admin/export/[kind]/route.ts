@@ -12,7 +12,7 @@ import { productsDb, totalStock } from "@/lib/server/shop";
 import type { Registration } from "@/lib/registration";
 
 const MEMBER_KEYS = ["q", "vue", "plan", "statut", "paiement", "ville", "age", "du", "au", "expDu", "expAu", "mineure", "tri"] as const;
-const STATUS = { active: "Active", expired: "Expirée", suspended: "Suspendue", anonymized: "Anonymisée" } as const;
+const STATUS = { active: "Active", expired: "Expirée", suspended: "Suspendue", expelled: "Radiée", anonymized: "Anonymisée" } as const;
 const REG_STATUS = { confirmed: "Confirmée", paid: "Payée", awaiting_payment: "Paiement en attente", waitlist: "Liste d'attente", cancelled: "Annulée", refunded: "Remboursée" } as const;
 
 async function respond<T>(format: string, name: string, title: string, subtitle: string, rows: T[], cols: Col<T>[]) {

@@ -53,7 +53,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: `try{if(sessionStorage.getItem("${INTRO_STORAGE_KEY}")==="1")document.documentElement.dataset.introSeen=""}catch(e){}`,
+            __html: `try{if(sessionStorage.getItem("${INTRO_STORAGE_KEY}")==="1"||document.referrer.indexOf(location.origin)===0)document.documentElement.dataset.introSeen=""}catch(e){}`,
           }}
         />
         {accent && <style>{`:root{--color-psg-red:${accent};--color-psg-red-bright:${accent}}`}</style>}

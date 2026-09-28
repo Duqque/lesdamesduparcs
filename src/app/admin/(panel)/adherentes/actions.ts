@@ -15,6 +15,9 @@ import { eraseMemberData } from "@/lib/server/privacy";
 import { createMemberResetToken } from "@/lib/server/member-reset";
 import { siteOrigin } from "@/lib/server/http";
 import { cookies } from "next/headers";
+import { formatLongDate } from "@/lib/format";
+import { settings } from "@/lib/server/admin-store";
+import { revokeMemberSessions } from "@/lib/server/session";
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const back = (id: string, msg: { ok?: string; erreur?: string }) => redirect(`/admin/adherentes/${id}?${msg.ok ? `ok=${encodeURIComponent(msg.ok)}` : `erreur=${encodeURIComponent(msg.erreur!)}`}`);
@@ -92,16 +95,58 @@ export async function updateMemberAction(id: string, formData: FormData) {
   back(id, { ok: "Fiche enregistrée." });
 }
 
-export async function setMemberStatusAction(id: string, next: "suspended" | "active") {
+const contactOf = async () => (await settings.get()).association.email;
+const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+
+/** Suspension provisoire : jusqu'à une date choisie, puis remise en route automatique. La personne est prévenue par e-mail. */
+export async function suspendMemberAction(id: string, formData: FormData) {
   const ctx = await requireAdmin("members.edit");
   const m = await getMemberById(id);
-  if (!m) redirect("/admin/adherentes");
-  await updateMember(id, { status: next === "suspended" ? "suspended" : undefined });
+  if (!m || m.status === "anonymized" || m.status === "expelled") redirect("/admin/adherentes");
+  const until = s(formData, "until");
+  const reason = s(formData, "reason");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(until) || until <= isoDay(new Date())) back(id, { erreur: "Choisissez une date de déblocage postérieure à aujourd'hui." });
+  await updateMember(id, { status: "suspended", suspendedUntil: until, statusReason: reason || undefined, statusAt: new Date().toISOString() });
   const cur = await currentMembership(id);
-  if (cur) await memberships.update(cur.id, { status: next === "suspended" ? "suspended" : "active" });
-  await audit(ctx, next === "suspended" ? "suspension" : "réactivation", "adhérente", `${next === "suspended" ? "Adhésion suspendue" : "Adhésion réactivée"} : ${m.firstName} ${m.lastName}`, { entityId: id });
+  if (cur) await memberships.update(cur.id, { status: "suspended" });
+  await revokeMemberSessions(id);
+  await sendTemplate("member_suspended", m.email, { prenom: m.firstName, fin: formatLongDate(until), motif: reason || "Non précisé", contact: await contactOf() });
+  await audit(ctx, "suspension", "adhérente", `Adhésion suspendue jusqu'au ${until} : ${m.firstName} ${m.lastName}`, { entityId: id, after: { until, reason } });
   revalidatePath("/admin/adherentes");
-  back(id, { ok: next === "suspended" ? "Adhésion suspendue." : "Adhésion réactivée." });
+  back(id, { ok: `Adhésion suspendue jusqu'au ${formatLongDate(until)} : elle sera rétablie automatiquement à cette date. La personne en a été informée par e-mail.` });
+}
+
+/** Levée anticipée d'une suspension. */
+export async function setMemberStatusAction(id: string, next: "active") {
+  void next;
+  const ctx = await requireAdmin("members.edit");
+  const m = await getMemberById(id);
+  if (!m || m.status === "anonymized" || m.status === "expelled") redirect("/admin/adherentes");
+  await updateMember(id, { status: undefined, suspendedUntil: undefined, statusReason: undefined, statusAt: new Date().toISOString() });
+  const cur = await currentMembership(id);
+  if (cur && cur.status === "suspended") await memberships.update(cur.id, { status: "active" });
+  await sendTemplate("member_reinstated", m.email, { prenom: m.firstName, contact: await contactOf() });
+  await audit(ctx, "réactivation", "adhérente", `Adhésion réactivée : ${m.firstName} ${m.lastName}`, { entityId: id });
+  revalidatePath("/admin/adherentes");
+  back(id, { ok: "Adhésion réactivée. La personne en a été informée par e-mail." });
+}
+
+/** Radiation définitive du groupe : adhésion annulée, accès fermé, personne informée par e-mail. Réservée aux rôles autorisés, avec ré-authentification. */
+export async function expelMemberAction(id: string, formData: FormData) {
+  const ctx = await requireAdmin("members.delete");
+  await requireFresh(ctx);
+  const m = await getMemberById(id);
+  if (!m || m.status === "anonymized") redirect("/admin/adherentes");
+  const reason = s(formData, "reason");
+  if (!reason) back(id, { erreur: "Indiquez le motif de la radiation : il est communiqué à la personne." });
+  await updateMember(id, { status: "expelled", suspendedUntil: undefined, statusReason: reason, statusAt: new Date().toISOString() });
+  const cur = await currentMembership(id);
+  if (cur) await memberships.update(cur.id, { status: "cancelled" });
+  await revokeMemberSessions(id);
+  await sendTemplate("member_expelled", m.email, { prenom: m.firstName, motif: reason, contact: await contactOf() });
+  await audit(ctx, "radiation", "adhérente", `Radiation définitive : ${m.firstName} ${m.lastName}`, { entityId: id, after: { reason } });
+  revalidatePath("/admin/adherentes");
+  back(id, { ok: "Radiation enregistrée. La personne en a été informée par e-mail et n'a plus accès à son espace." });
 }
 
 export async function renewMemberAction(id: string, formData: FormData) {

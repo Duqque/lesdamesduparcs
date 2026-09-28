@@ -8,7 +8,7 @@ export interface MemberSpace {
   member: Omit<MemberPublic, "authorizations"> & { authorizations: Array<{ id: string; name: string }> };
   verifyUrl: string;
   membership: { planName: string; season: string; startsAt: string; endsAt: string; status: string } | null;
-  transactions: Array<{ id: string; at: string; type: string; label: string; amountCents: number; status: "paid" | "pending" | "failed" | "refunded" | "cancelled"; method: string }>;
+  transactions: Array<{ id: string; at: string; type: string; label: string; amountCents: number; status: "paid" | "pending" | "failed" | "refunded" | "cancelled"; method: string; invoiceId?: string }>;
   benefits: Array<{ id: string; title: string; text: string }>;
   offers: Array<{ id: string; title: string; text: string; partner?: string; code?: string }>;
 }

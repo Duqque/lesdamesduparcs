@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BadgeCheck, Download, FileText, ShieldAlert } from "lucide-react";
 import { settings } from "@/lib/server/admin-store";
+import { membershipState } from "@/lib/server/business";
 import { getAdmin } from "@/lib/server/admin-auth";
 import { getMemberByToken, toPublic } from "@/lib/server/store";
 import { guardianRelations, isMinor } from "@/lib/members";
@@ -28,7 +29,17 @@ export default async function VerificationPage({ params }: { params: Promise<{ t
   if (!stored) notFound();
   const m = toPublic(stored);
   const admin = Boolean(adminCtx?.can("members.pii"));
-  const valid = m.validUntil >= new Date().toISOString().slice(0, 10);
+  const state = await membershipState(stored.id);
+  const valid = state === "active" && m.validUntil >= new Date().toISOString().slice(0, 10);
+  const verdict = valid
+    ? { title: "Adhésion valide", sub: `Saison ${m.season} · valable jusqu’au ${dateFr(m.validUntil)}` }
+    : state === "pending" || state === "none"
+      ? { title: "Adhésion invalide", sub: "Carte en cours de création : le paiement de l’adhésion n’est pas encore validé." }
+      : state === "suspended"
+        ? { title: "Adhésion suspendue", sub: stored.suspendedUntil ? `Suspension provisoire jusqu’au ${dateFr(stored.suspendedUntil)}.` : "Adhésion suspendue à titre provisoire." }
+        : state === "expelled"
+          ? { title: "Adhésion radiée", sub: "Cette personne n’est plus membre de l’association." }
+          : { title: "Adhésion expirée", sub: `Saison ${m.season} · échue le ${dateFr(m.validUntil)}` };
   const minor = isMinor(m.birthDate, m.joinedAt.slice(0, 10));
 
   return (
@@ -47,8 +58,8 @@ export default async function VerificationPage({ params }: { params: Promise<{ t
       >
         {valid ? <BadgeCheck aria-hidden className="size-8 shrink-0" strokeWidth={1.5} /> : <ShieldAlert aria-hidden className="size-8 shrink-0" strokeWidth={1.5} />}
         <div>
-          <p className="font-display text-[26px] font-semibold uppercase tracking-[0.06em]">{valid ? "Adhésion valide" : "Adhésion expirée"}</p>
-          <p className="font-body text-[13.5px] opacity-90">Saison {m.season} · {valid ? "valable" : "échue"} jusqu&rsquo;au {dateFr(m.validUntil)}</p>
+          <p className="font-display text-[26px] font-semibold uppercase tracking-[0.06em]">{verdict.title}</p>
+          <p className="font-body text-[13.5px] opacity-90">{verdict.sub}</p>
         </div>
       </div>
 

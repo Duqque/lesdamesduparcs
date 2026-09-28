@@ -25,7 +25,7 @@ async function brandOf() {
   return { conf, origin, brand: { origin, name: a.name || "Les Dames du Parc", address: [a.address, [a.postalCode, a.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || undefined, email: a.email || undefined, instagram: a.instagram, tiktok: a.tiktok, facebook: a.facebook, signature: conf.emails.signature } };
 }
 
-export async function sendEmail(opts: { to: string; subject: string; body: string; kind: string; replyTo?: string }) {
+export async function sendEmail(opts: { to: string; subject: string; body: string; kind: string; replyTo?: string; attachments?: Array<{ filename: string; content: Buffer }> }) {
   const { conf, brand } = await brandOf();
   const { html, text } = renderEmail({ subject: opts.subject, body: opts.body, kind: opts.kind, brand });
   if (!emailConfigured()) {
@@ -36,7 +36,7 @@ export async function sendEmail(opts: { to: string; subject: string; body: strin
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: `${conf.emails.fromName} <${conf.emails.fromEmail}>`, to: [opts.to], subject: opts.subject, html, text, ...(opts.replyTo ? { reply_to: opts.replyTo } : {}) }),
+      body: JSON.stringify({ from: `${conf.emails.fromName} <${conf.emails.fromEmail}>`, to: [opts.to], subject: opts.subject, html, text, ...(opts.replyTo ? { reply_to: opts.replyTo } : {}), ...(opts.attachments?.length ? { attachments: opts.attachments.map((a) => ({ filename: a.filename, content: a.content.toString("base64") })) } : {}) }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     await emailLog.insert({ to: opts.to, subject: opts.subject, kind: opts.kind, status: "sent" });

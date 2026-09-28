@@ -14,10 +14,11 @@ import { TX_STATUS_LABEL, getTransactions, membershipsOf, plans, effectiveStatus
 import { getAllEventsAdmin } from "@/lib/server/events";
 import { emailConfigured } from "@/lib/server/email";
 import { getMemberById, listAllRegistrations } from "@/lib/server/store";
+import { invoices } from "@/lib/server/invoice";
 import { BirthDateInput } from "@/components/forms/BirthDateInput";
 import { LocalityGroup } from "@/components/forms/LocalityGroup";
 import { PhoneInput } from "@/components/forms/PhoneInput";
-import { addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, updateMemberAction } from "../actions";
+import { addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
 
 export const metadata = { title: "Fiche adhérente" };
 
@@ -34,7 +35,7 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
   void _p;
   const pii = ctx.can("members.pii");
   const finance = ctx.can("finance.view");
-  const [rows, history, txs, regs, events, planList] = await Promise.all([loadMemberRows(), membershipsOf(id), getTransactions(), listAllRegistrations(), getAllEventsAdmin(), plans.all()]);
+  const [rows, history, txs, regs, events, planList, memberInvoices] = await Promise.all([loadMemberRows(), membershipsOf(id), getTransactions(), listAllRegistrations(), getAllEventsAdmin(), plans.all(), invoices.find((i) => i.memberNumber === stored.memberNumber)]);
   const row = rows.find((r) => r.member.id === id)!;
   const myTx = txs.filter((t) => t.memberNumber === m.memberNumber);
   const myRegs = regs.filter((r) => r.memberNumber === m.memberNumber).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -203,11 +204,9 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
             </form>
           )}
           <div className="flex flex-wrap content-start gap-2">
-            {ctx.can("members.edit") && !anonymized && (row.status === "suspended" ? (
-              <form action={setMemberStatusAction.bind(null, id, "active")}><SubmitButton variant="outline">Réactiver l&rsquo;adhésion</SubmitButton></form>
-            ) : (
-              <form action={setMemberStatusAction.bind(null, id, "suspended")}><SubmitButton variant="outline" confirm="Suspendre cette adhésion ?">Suspendre</SubmitButton></form>
-            ))}
+            {ctx.can("members.edit") && !anonymized && m.status === "suspended" && (
+              <form action={setMemberStatusAction.bind(null, id, "active")}><SubmitButton variant="outline">Lever la suspension maintenant</SubmitButton></form>
+            )}
             {ctx.can("members.edit") && !anonymized && <form action={memberInviteLinkAction.bind(null, id)}><SubmitButton variant="outline">Générer un lien de connexion</SubmitButton></form>}
             {ctx.can("members.export") && !anonymized && <a href={`/admin/export/membre/${id}`} className={btn.outline}><Download aria-hidden className="size-4" /> Exporter ses données</a>}
             {(ctx.can("members.delete") || ctx.can("privacy.manage")) && !anonymized && (
@@ -216,6 +215,47 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
           </div>
         </div>
       </Panel>
+
+      {finance && (
+        <Panel title={`Factures (${memberInvoices.length})`}>
+          {memberInvoices.length === 0 ? <p className="font-body text-[13.5px] text-mist">Aucune facture : elles sont éditées automatiquement à chaque paiement validé.</p> : (
+            <ul className="divide-y divide-white/[0.06]">
+              {[...memberInvoices].sort((a, b) => b.issuedAt.localeCompare(a.issuedAt)).map((i) => (
+                <li key={i.id} className="flex flex-wrap items-center justify-between gap-3 py-3 font-body text-[14px]">
+                  <span className="min-w-0"><span className="tabular-nums font-medium text-white">{i.number}</span> <span className="text-mist">· {fmtDate(i.issuedAt)} · {i.label} · {i.methodLabel}</span></span>
+                  <span className="flex items-center gap-4"><span className="tabular-nums text-white">{eur(i.amountCents)}</span><a href={`/api/factures/${i.id}`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1.5 text-white underline decoration-white/25 underline-offset-4 hover:decoration-white"><FileText aria-hidden className="size-4" /> PDF</a></span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      )}
+
+      {!anonymized && (
+        <Panel title="Suspension et radiation">
+          {m.status === "expelled" && <p className="mb-4 rounded-[10px] border border-psg-red/40 bg-psg-red/10 px-4 py-3 font-body text-[13.5px] text-[#ffb4bf]">Radiée du groupe le {m.statusAt ? fmtDateLong(m.statusAt) : ""}. Motif communiqué : {m.statusReason}</p>}
+          {m.status === "suspended" && <p className="mb-4 rounded-[10px] border border-amber-400/30 bg-amber-400/10 px-4 py-3 font-body text-[13.5px] text-amber-100">Suspendue jusqu&rsquo;au {m.suspendedUntil ? fmtDateLong(m.suspendedUntil) : "?"} : rétablie automatiquement à cette date. Motif communiqué : {m.statusReason || "non précisé"}</p>}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {ctx.can("members.edit") && m.status !== "expelled" && (
+              <form action={suspendMemberAction.bind(null, id)} className="grid content-start gap-3">
+                <h3 className="font-body text-[14px] font-semibold text-white">Suspension provisoire</h3>
+                <p className="font-body text-[12.5px] leading-[1.6] text-mist">La carte devient invalide et l&rsquo;accès aux événements est fermé jusqu&rsquo;à la date choisie, puis l&rsquo;adhésion repart automatiquement. La personne reçoit un e-mail avec la date et le motif.</p>
+                <Field label="Date de déblocage"><input type="date" name="until" required min={new Date(Date.now() + 86_400_000).toISOString().slice(0, 10)} defaultValue={m.suspendedUntil} className={inp} /></Field>
+                <Field label="Motif (communiqué à la personne)"><textarea name="reason" rows={3} defaultValue={m.statusReason} className={area} /></Field>
+                <div><SubmitButton variant="outline" confirm="Suspendre cette adhésion jusqu'à la date choisie ? La personne en sera informée par e-mail.">{m.status === "suspended" ? "Modifier la suspension" : "Suspendre jusqu'à cette date"}</SubmitButton></div>
+              </form>
+            )}
+            {ctx.can("members.delete") && m.status !== "expelled" && (
+              <form action={expelMemberAction.bind(null, id)} className="grid content-start gap-3">
+                <h3 className="font-body text-[14px] font-semibold text-white">Radiation définitive</h3>
+                <p className="font-body text-[12.5px] leading-[1.6] text-mist">Exclut la personne du groupe : adhésion annulée, accès à l&rsquo;espace membre fermé, e-mail de notification avec le motif. Demande une ré-authentification.</p>
+                <Field label="Motif (communiqué à la personne, obligatoire)"><textarea name="reason" rows={3} required className={area} /></Field>
+                <div><SubmitButton variant="danger" confirm="Radier définitivement cette personne du groupe ? Son adhésion sera annulée et elle en sera informée par e-mail.">Radier définitivement</SubmitButton></div>
+              </form>
+            )}
+          </div>
+        </Panel>
+      )}
     </>
   );
 }

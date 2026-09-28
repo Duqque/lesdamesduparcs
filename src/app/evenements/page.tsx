@@ -7,6 +7,7 @@ import { EventGridCard } from "@/components/events/EventGridCard";
 import { PastEvents } from "@/components/events/PastEvents";
 import { getPublishedEvents } from "@/lib/server/events";
 import { isPast } from "@/data/events";
+import { MatchWithEventCard } from "@/components/matches/MatchWithEventCard";
 import { MatchEventCard } from "@/components/matches/MatchEventCard";
 import { getUpcomingMatchViews } from "@/lib/server/matches";
 import { Button } from "@/components/ui/Button";
@@ -23,10 +24,12 @@ export default async function EventsPage() {
   const upcoming = all.filter((e) => !isPast(e)).sort((a, b) => a.date.localeCompare(b.date));
   // Les événements des Dames priment : en haut, seul le prochain match du PSG accompagne les événements (par date) ; tous les autres sont en fin de page.
   const [nextMatch, ...otherMatches] = matches;
-  const timeline = [
-    ...upcoming.map((e) => ({ kind: "event" as const, date: e.date, event: e })),
-    ...(nextMatch ? [{ kind: "match" as const, date: nextMatch.date, match: nextMatch }] : []),
-  ].sort((a, b) => (a.kind === b.kind ? a.date.localeCompare(b.date) : a.date.localeCompare(b.date) || (a.kind === "event" ? -1 : 1)));
+  // Le prochain match est TOUJOURS en premier. Si un événement des Dames lui est relié le même jour, les deux ne forment qu'une seule carte.
+  const linked = nextMatch?.related ? upcoming.find((e) => e.id === nextMatch.related!.id && e.date === nextMatch.date) : undefined;
+  const timeline: Array<{ kind: "event"; event: (typeof upcoming)[number] } | { kind: "match"; match: NonNullable<typeof nextMatch> } | { kind: "merged"; match: NonNullable<typeof nextMatch>; event: (typeof upcoming)[number] }> = [
+    ...(nextMatch ? [linked ? { kind: "merged" as const, match: nextMatch, event: linked } : { kind: "match" as const, match: nextMatch }] : []),
+    ...upcoming.filter((e) => e !== linked).map((e) => ({ kind: "event" as const, event: e })),
+  ];
   const past = all.filter((e) => isPast(e)).sort((a, b) => b.date.localeCompare(a.date));
 
   return (
@@ -57,8 +60,8 @@ export default async function EventsPage() {
           <h2 id="upcoming" className="font-body text-[20px] font-medium text-white">Prochains événements</h2>
           <ul className="mt-10 -mx-[var(--gutter)] flex snap-x gap-4 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
             {timeline.map((it) => (
-              <li key={it.kind === "event" ? it.event.id : `match-${it.match.id}`} className="contents md:block">
-                {it.kind === "event" ? <EventGridCard event={it.event} /> : <MatchEventCard match={it.match} next />}
+              <li key={it.kind === "event" ? it.event.id : `${it.kind}-${it.match.id}`} className={it.kind === "merged" ? "contents md:col-span-2 md:block lg:col-span-2" : "contents md:block"}>
+                {it.kind === "event" ? <EventGridCard event={it.event} /> : it.kind === "merged" ? <MatchWithEventCard match={it.match} event={it.event} /> : <MatchEventCard match={it.match} next />}
               </li>
             ))}
           </ul>

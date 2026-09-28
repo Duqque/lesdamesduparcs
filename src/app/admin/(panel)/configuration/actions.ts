@@ -107,3 +107,28 @@ export async function saveSettingsAction(section: "adhesions" | "payments" | "em
   revalidatePath("/", "layout");
   back("ok", "Paramètres enregistrés.", path);
 }
+
+/** Modèle de facture : numérotation, mention légale, signataire, tampon de l'association (photo) et signature. */
+export async function saveInvoiceSettingsAction(formData: FormData) {
+  const ctx = await requireAdmin("settings.edit");
+  const path = "/admin/configuration/factures";
+  const cur = (await settings.get()).invoice;
+  const next = { ...cur, prefix: (s(formData, "prefix") || "FAC").replace(/[^A-Za-z0-9]/g, "").slice(0, 8).toUpperCase() || "FAC", legalNote: s(formData, "legalNote").slice(0, 200), signerName: s(formData, "signerName").slice(0, 80), signerTitle: s(formData, "signerTitle").slice(0, 80) };
+  const { saveMedia, mediaUrl, deleteMedia } = await import("@/lib/server/media");
+  for (const field of ["stamp", "signature"] as const) {
+    if (formData.get(`${field}Remove`) === "on") next[field] = "";
+    const file = formData.get(`${field}File`);
+    if (file instanceof File && file.size > 0) {
+      const up = await saveMedia(file);
+      if (!up.ok) back("erreur", up.error, path);
+      if (up.media.mime !== "image/png" && up.media.mime !== "image/jpeg") {
+        await deleteMedia(up.media.id);
+        back("erreur", "Le tampon et la signature doivent être une image PNG ou JPEG (un PNG à fond transparent donne le meilleur rendu).", path);
+      }
+      next[field] = mediaUrl(up.media);
+    }
+  }
+  await settings.set({ invoice: next });
+  await audit(ctx, "modification", "paramètres", "Modèle de facture modifié (numérotation, signataire, tampon, signature)");
+  back("ok", "Modèle de facture enregistré : il s'applique aux prochaines factures.", path);
+}

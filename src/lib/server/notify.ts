@@ -78,7 +78,7 @@ export async function newsRecipients() {
   const out: Array<{ id: string; email: string; firstName: string }> = [];
   const seen = new Set<string>();
   for (const m of members) {
-    if (m.status === "anonymized" || m.status === "suspended" || m.emailUpdates === false) continue;
+    if (m.status === "anonymized" || m.status === "suspended" || m.status === "expelled" || m.emailUpdates === false) continue;
     const cur = latest.get(m.id);
     if (!cur || effectiveStatus(cur) !== "active") continue;
     const pay = payByMs.get(cur.id);
