@@ -18,7 +18,7 @@ export function SiteFrame({ header, footer, children, contactEmail }: { header: 
       {header}
       {/* Mobile et tablette : petit logo en haut de chaque page (l'accueil a son grand logo, qui s'efface au défilement). */}
       {pathname !== "/" && (
-        <Link href="/" aria-label="Les Dames du Parc, accueil" className="absolute inset-x-0 top-0 z-30 mx-auto mt-[max(30px,calc(env(safe-area-inset-top)+14px))] block size-[56px] lg:hidden">
+        <Link href="/" aria-label="Les Dames du Parc, accueil" className="absolute inset-x-0 top-0 z-30 mx-auto mt-[max(30px,calc(env(safe-area-inset-top)+14px))] block size-[67px] lg:hidden">
           <Image src="/logos/dames-du-parc-logo.webp" alt="" width={112} height={112} priority className="size-full drop-shadow-[0_6px_18px_rgba(0,0,0,0.55)]" />
         </Link>
       )}
