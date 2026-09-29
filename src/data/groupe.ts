@@ -1,5 +1,5 @@
 /**
- * Contenus de la page « Qui sommes-nous » (ex-« Le groupe ») : une seule page qui réunit ce qui était réparti en six chapitres —
+ * Contenus de la page « Qui sommes-nous » (ex-« Le groupe ») : une seule page qui réunit ce qui était réparti en six chapitres,
  * chiffres clés, origine du projet, raison d'être d'un fan club 100 % féminin, valeurs et ambitions.
  */
 export const groupe = {
@@ -23,8 +23,8 @@ export const groupe = {
     title: "D’un message à une communauté : comment tout a commencé",
     paragraphs: [
       "Tout est parti d’une question posée en quelques mots, un soir, sur les réseaux sociaux : « Et si on créait un groupe de supportrices du PSG ? » Une idée simple, presque anodine, qui allait pourtant donner naissance à la première communauté 100 % féminine de supportrices du Paris Saint-Germain.",
-      "Quinze femmes ont répondu présentes. Des étudiantes, des cadres, des salariées, des mères — toutes différentes par leur âge, leur métier, leur parcours, mais unies par la même émotion quand Paris entre sur la pelouse. Les échanges se sont vite transformés en habitudes, et les soirs de match en rendez-vous.",
-      "Puis est venue la finale de la Ligue des Champions 2025, vécue ensemble : au stade, devant un écran ou en watch party. Un moment qui a scellé ce qui n’était encore qu’un groupe de discussion. Les retrouvailles autour d’un restaurant ou d’une terrasse ont mis des visages sur les prénoms, et une véritable communauté est née — bien avant de porter officiellement le nom des Dames du Parc.",
+      "Quinze femmes ont répondu présentes : des étudiantes, des cadres, des salariées, des mères, toutes différentes par leur âge, leur métier, leur parcours, mais unies par la même émotion quand Paris entre sur la pelouse. Les échanges se sont vite transformés en habitudes, et les soirs de match en rendez-vous.",
+      "Puis est venue la finale de la Ligue des Champions 2025, vécue ensemble : au stade, devant un écran ou en watch party. Un moment qui a scellé ce qui n’était encore qu’un groupe de discussion. Les retrouvailles autour d’un restaurant ou d’une terrasse ont mis des visages sur les prénoms, et une véritable communauté est née, bien avant de porter officiellement le nom des Dames du Parc.",
       "Aujourd’hui, ces 15 fondatrices ouvrent la communauté à toutes les supportrices qui partagent leur passion pour le Paris Saint-Germain, avec une ambition claire : la faire grandir sans jamais perdre ce qui a fait sa force, la rencontre.",
     ],
   },

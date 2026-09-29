@@ -40,15 +40,17 @@ function StatCard({ value, label, dark }: { value: string; label: string; dark?:
 }
 
 /** Page unique « Qui sommes-nous » (ex-« Le groupe ») : chiffres clés, origine du projet, positionnement, valeurs, ambitions. */
-export function QuiSommesNousBody({ photos }: { photos: Record<string, GroupPhoto> }) {
+export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, GroupPhoto>; cms: { t: (key: string, fallback: string) => string } }) {
+  const origineParagraphs = cms.t("groupe.origine.texte", g.origin.paragraphs.join("\n\n")).split(/\n{2,}/).filter(Boolean);
+  const pourquoiParagraphs = cms.t("groupe.pourquoi.texte", g.why.paragraphs.join("\n\n")).split(/\n{2,}/).filter(Boolean);
   return (
     <div className="space-y-28 md:space-y-40">
       {/* Bento : chiffres clés + réseaux, en un coup d'œil */}
       <section aria-labelledby="en-bref" className={wrap}>
         <Reveal className="max-w-2xl">
           <p className="t-eyebrow">{g.bento.eyebrow}</p>
-          <h2 id="en-bref" className={`${h2c} mt-4`}>{g.bento.title}</h2>
-          <p className="mt-5 max-w-[62ch] break-words text-white/80 t-lead">{g.bento.lead}</p>
+          <h2 id="en-bref" className={`${h2c} mt-4`}>{cms.t("groupe.bento.titre", g.bento.title)}</h2>
+          <p className="mt-5 max-w-[62ch] break-words text-white/80 t-lead">{cms.t("groupe.bento.texte", g.bento.lead)}</p>
         </Reveal>
 
         {/* Grille en damier à partir de lg ; empilée verticalement en dessous. */}
@@ -105,29 +107,33 @@ export function QuiSommesNousBody({ photos }: { photos: Record<string, GroupPhot
         <div className="mx-auto max-w-[760px] text-center">
           <Reveal>
             <p className="t-eyebrow">{g.origin.eyebrow}</p>
-            <h2 id="origine-titre" className={`${h2c} mt-4`}>{g.origin.title}</h2>
+            <h2 id="origine-titre" className={`${h2c} mt-4`}>{cms.t("groupe.origine.titre", g.origin.title)}</h2>
           </Reveal>
           <div className="mt-10 space-y-6 text-left">
-            {g.origin.paragraphs.map((p) => (
+            {origineParagraphs.map((p) => (
               <Reveal key={p}><p className={`${body} max-w-none`}>{p}</p></Reveal>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Séparateur visuel entre « Notre histoire » et « Notre positionnement » */}
+      <Reveal className={wrap}>
+        <BentoPhoto photo={photos.pourquoi} className="aspect-[21/9] w-full" />
+      </Reveal>
+
       {/* Pourquoi un fan club 100 % féminin */}
       <section aria-labelledby="pourquoi-titre" className={wrap}>
         <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
           <Reveal className="min-w-0">
             <p className="t-eyebrow">{g.why.eyebrow}</p>
-            <h2 id="pourquoi-titre" className={`${h2c} mt-4`}>{g.why.title}</h2>
-            <p className={`${pullc} mt-8 max-w-[18ch]`}>{g.why.pull}</p>
+            <h2 id="pourquoi-titre" className={`${h2c} mt-4`}>{cms.t("groupe.pourquoi.titre", g.why.title)}</h2>
+            <p className={`${pullc} mt-8 max-w-[18ch]`}>{cms.t("groupe.pourquoi.accroche", g.why.pull)}</p>
           </Reveal>
           <div className="min-w-0 space-y-6">
-            {g.why.paragraphs.map((p) => (
+            {pourquoiParagraphs.map((p) => (
               <Reveal key={p}><p className={body}>{p}</p></Reveal>
             ))}
-            <Reveal><BentoPhoto photo={photos.pourquoi} className="mt-4 aspect-[16/9] w-full" /></Reveal>
           </div>
         </div>
       </section>
@@ -136,7 +142,7 @@ export function QuiSommesNousBody({ photos }: { photos: Record<string, GroupPhot
       <section aria-labelledby="valeurs-titre" className={wrap}>
         <Reveal className="max-w-2xl">
           <p className="t-eyebrow">{g.values.eyebrow}</p>
-          <h2 id="valeurs-titre" className={`${h2c} mt-4`}>{g.values.title}</h2>
+          <h2 id="valeurs-titre" className={`${h2c} mt-4`}>{cms.t("groupe.valeurs.titre", g.values.title)}</h2>
         </Reveal>
         <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {g.values.items.map((v, i) => (
@@ -160,7 +166,7 @@ export function QuiSommesNousBody({ photos }: { photos: Record<string, GroupPhot
         <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
           <Reveal className="min-w-0">
             <p className="t-eyebrow">{g.build.eyebrow}</p>
-            <h2 id="construire-titre" className={`${h2c} mt-4`}>{g.build.title}</h2>
+            <h2 id="construire-titre" className={`${h2c} mt-4`}>{cms.t("groupe.construire.titre", g.build.title)}</h2>
             <div className="mt-10 hidden md:block"><BentoPhoto photo={photos.construire} className="aspect-[4/5] w-full" /></div>
           </Reveal>
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">

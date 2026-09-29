@@ -7,7 +7,7 @@ export interface GroupPhoto {
 export const GROUP_SLOTS = [
   { slug: "bento-1", label: "Qui sommes-nous : grande photo" },
   { slug: "bento-2", label: "Qui sommes-nous : photo secondaire" },
-  { slug: "pourquoi", label: "Qui sommes-nous : pourquoi un fan club féminin" },
+  { slug: "pourquoi", label: "Qui sommes-nous : bandeau entre « Notre histoire » et « Notre positionnement »" },
   { slug: "construire", label: "Qui sommes-nous : ce que nous voulons construire" },
   { slug: "adhesion", label: "Adhésion (Rejoindre le groupe)" },
 ] as const;

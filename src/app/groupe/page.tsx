@@ -23,7 +23,7 @@ export default async function GroupPage() {
       <GroupHero title={cms.t("groupe.titre", "Les Dames\ndu Parc")} intro={cms.t("groupe.intro", groupe.hero.intro)} button={cms.t("groupe.bouton", groupe.hero.button)} />
 
       <div className="py-24 md:py-32">
-        <QuiSommesNousBody photos={photos} />
+        <QuiSommesNousBody photos={photos} cms={cms} />
       </div>
 
       <section aria-labelledby="rejoindre" className="relative isolate overflow-hidden px-[var(--gutter)] py-28 text-center md:py-40">
