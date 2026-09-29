@@ -279,6 +279,18 @@ html[data-intro-seen] .intro-root { display: none; }
   to { transform: scaleX(1); }
 }
 
+/* Bannière flash (FlashBanner.tsx) : texte défilant, deux copies identiques dans le même rail ; -50% ramène pile sur la seconde. */
+@keyframes flash-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.flash-marquee-track {
+  animation: flash-marquee 22s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flash-marquee-track { animation: none; }
+}
+
 /* Special Gothic Expanded est déjà très large : on neutralise les grands espacements de lettres hérités de l'ancienne police. */
 .font-display {
   letter-spacing: 0.015em !important;
