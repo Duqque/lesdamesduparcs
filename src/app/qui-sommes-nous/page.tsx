@@ -10,7 +10,7 @@ import { JoinGate } from "@/components/member/JoinGate";
 import { groupe } from "@/data/groupe";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return seoFor("/groupe", {
+  return seoFor("/qui-sommes-nous", {
     title: "Qui sommes-nous",
     description: "Les Dames du Parc, première communauté 100 % féminine de supportrices du Paris Saint-Germain : notre histoire, nos 15 fondatrices, pourquoi un fan club féminin, nos valeurs et ce que nous voulons construire.",
   });

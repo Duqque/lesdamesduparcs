@@ -2,7 +2,7 @@ import type { NavItem } from "@/types";
 
 /** À gauche du logo */
 export const leftNav: NavItem[] = [
-  { label: "Qui sommes-nous", href: "/groupe" },
+  { label: "Qui sommes-nous", href: "/qui-sommes-nous" },
   { label: "Actualités", href: "/actualites" },
 ];
 

@@ -22,10 +22,12 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/abonnement", destination: "/rejoindre-le-groupe", permanent: true },
-      // Anciennes sous-pages de « Le groupe », réunies depuis dans la page unique « Qui sommes-nous » (/groupe).
+      // Ancienne adresse de la page « Qui sommes-nous » (ex-« Le groupe »).
+      { source: "/groupe", destination: "/qui-sommes-nous", permanent: true },
+      // Anciennes sous-pages de « Le groupe », réunies depuis dans la page unique « Qui sommes-nous ».
       {
         source: "/groupe/:slug(lettre-d-introduction|notre-histoire|qui-sommes-nous|nos-valeurs|pourquoi-un-fan-club-feminin|ce-que-nous-voulons-construire)",
-        destination: "/groupe",
+        destination: "/qui-sommes-nous",
         permanent: true,
       },
     ];

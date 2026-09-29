@@ -23,7 +23,7 @@ export function JoinCtaCard({ image, alt, title, text, button }: { image?: strin
                   {button || DEFAULT_CTA.button}
                 </Button>
               </JoinGate>
-              <a href="/groupe" className="inline-flex min-h-11 items-center px-2 font-body text-[14.5px] font-medium text-white underline decoration-white/60 decoration-2 underline-offset-[6px] hover:decoration-white">Découvrir le groupe</a>
+              <a href="/qui-sommes-nous" className="inline-flex min-h-11 items-center px-2 font-body text-[14.5px] font-medium text-white underline decoration-white/60 decoration-2 underline-offset-[6px] hover:decoration-white">Découvrir le groupe</a>
             </div>
           </div>
           <div className="relative order-1 aspect-[16/10] md:order-2 md:aspect-auto">

@@ -26,7 +26,7 @@ export function ChapterShell({ chapter, art, children, standalone }: Props) {
         <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_60%_at_78%_40%,rgba(26,52,112,0.5),transparent_70%)]" />
         <div className={wrap}>
           <nav aria-label="Fil d’Ariane" className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 font-body text-[13px] text-white/60">
-            <Link href={standalone?.parentHref ?? "/groupe"} className="inline-flex min-h-11 items-center gap-2 transition-colors hover:text-white">
+            <Link href={standalone?.parentHref ?? "/qui-sommes-nous"} className="inline-flex min-h-11 items-center gap-2 transition-colors hover:text-white">
               <ArrowLeft aria-hidden className="size-4" />
               {standalone?.parentLabel ?? "Le groupe"}
             </Link>
