@@ -7,7 +7,6 @@ import { ensureTemplates, templates } from "./content";
 import { emailConfigured, fill, sendEmail } from "./email";
 import { siteOrigin } from "./http";
 import { logEvent } from "./log";
-import { settings } from "./admin-store";
 
 /**
  * File d'e-mails (EmailJob) : un paiement validé ne dépend JAMAIS de l'envoi d'un e-mail. Le paiement est enregistré, l'e-mail est mis
@@ -105,7 +104,8 @@ export async function buildEmail(job: Pick<EmailJob, "type" | "payload">): Promi
         await ensureTemplates();
         const t = await templates.findOne((x) => x.key === "membership_welcome");
         if (t) {
-          const discord = (await settings.get()).association.discord?.trim() ?? "";
+          // Plus de lien d'invitation dans l'e-mail : Discord se connecte depuis l'espace membre (adhésion vérifiée à chaque fois).
+          const discord = `${o}/profil#espace-prive`;
           const end = s(p.endDate);
           const vars = {
             prenom: s(p.firstName),

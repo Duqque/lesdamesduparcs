@@ -23,6 +23,7 @@ export const PERMISSIONS = [
   "content.edit", // articles, catégories
   "media.manage",
   "community.edit", // partenaires, avantages, offres, codes promo
+  "discord.manage", // comptes Discord associés aux adhérentes, rôle et synchronisation
   "communication.send",
   "analytics.view",
   "reports.generate",
@@ -61,7 +62,7 @@ export const ROLE_PERMISSIONS: Record<Role, ReadonlySet<Permission>> = {
   admin: set(
     "dashboard.view", "members.view", "members.pii", "members.edit", "members.export", "plans.manage",
     "events.view", "events.edit", "events.attendance", "events.pricing", "shop.view", "shop.edit", "shop.pricing", "shop.stock", "shop.orders", "content.edit", "media.manage", "community.edit",
-    "communication.send", "analytics.view", "reports.generate", "site.content", "privacy.manage",
+    "communication.send", "analytics.view", "reports.generate", "site.content", "privacy.manage", "discord.manage",
   ),
   tresoriere: set("dashboard.view", "members.view", "events.view", "events.pricing", "shop.view", "shop.pricing", "shop.orders", "finance.view", "finance.edit", "finance.export", "analytics.view", "reports.generate"),
   communication: set("dashboard.view", "events.view", "events.edit", "shop.view", "shop.edit", "content.edit", "media.manage", "community.edit", "communication.send", "site.content", "analytics.view"),
@@ -91,6 +92,7 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   "content.edit": "Articles et catégories",
   "media.manage": "Médiathèque",
   "community.edit": "Partenaires, avantages, codes promo",
+  "discord.manage": "Comptes Discord des adhérentes",
   "communication.send": "Campagnes et e-mails",
   "analytics.view": "Statistiques",
   "reports.generate": "Rapports",

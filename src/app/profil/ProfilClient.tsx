@@ -5,11 +5,12 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { CheckCircle2, Download, FileText, LogOut, MessagesSquare, QrCode as QrIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberCard } from "@/components/member/MemberCard";
-import { useMemberData } from "@/components/member/useMemberData";
+import { useMemberData, type MemberSpace as MemberSpaceData } from "@/components/member/useMemberData";
 import { Button } from "@/components/ui/Button";
 import { formatEuros } from "@/lib/money";
 import { guardianRelations, isMinor } from "@/lib/members";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 const dateFr = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
@@ -109,12 +110,83 @@ function EmailPreference({ initial }: { initial: boolean }) {
   );
 }
 
-function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: string }) {
+/**
+ * Espace Discord : jamais un simple lien à partager. Trois états possibles (cahier des charges, §16) : jamais connectée
+ * (connexion OAuth2, qui vérifie l'adhésion côté serveur avant de rediriger vers Discord), connectée (pseudo affiché,
+ * accès direct au serveur), adhésion expirée (accès retiré, invite au renouvellement).
+ */
+function DiscordSection({ discord, membershipActive, flash }: { discord: MemberSpaceData["discord"]; membershipActive: boolean; flash?: string }) {
+  const { refresh } = useAuth();
+  const [asking, setAsking] = useState(false);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (flash) void refresh();
+  }, [flash, refresh]);
+
+  async function disconnect() {
+    setBusy(true);
+    try {
+      await fetch("/api/discord/disconnect", { method: "POST" });
+      window.location.href = "/api/discord/authorize";
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Section id="espace-prive" title="Mon espace privé">
+      <p className="max-w-xl text-mist t-lead">Rejoignez l’espace privé des Dames du Parc pour échanger avec les autres membres, organiser les déplacements et suivre les annonces du groupe.</p>
+
+      {flash === "deja-associe" && <p role="alert" className="mt-4 max-w-xl font-body text-[14px] leading-[1.7] text-amber-100">Ce compte Discord est déjà associé à un autre compte Les Dames du Parc. Contactez l&rsquo;équipe si vous pensez qu&rsquo;il s&rsquo;agit d&rsquo;une erreur.</p>}
+      {flash === "erreur" && <p role="alert" className="mt-4 max-w-xl font-body text-[14px] leading-[1.7] text-amber-100">La connexion à Discord a échoué. Réessayez dans un instant.</p>}
+      {flash === "role-en-attente" && <p role="status" className="mt-4 max-w-xl font-body text-[14px] leading-[1.7] text-amber-100">Compte associé : le rôle sera attribué très prochainement.</p>}
+      {flash === "indisponible" && <p role="alert" className="mt-4 max-w-xl font-body text-[14px] leading-[1.7] text-amber-100">La connexion Discord n&rsquo;est pas encore disponible. Réessayez plus tard.</p>}
+
+      {!membershipActive ? (
+        <>
+          <p className="mt-4 max-w-xl font-body text-[14px] leading-[1.7] text-amber-100">Votre adhésion a expiré. L&rsquo;accès à l&rsquo;espace privé Discord est réservé aux adhérentes actives.</p>
+          <Link href="/rejoindre-le-groupe" className="mt-6 inline-flex h-[52px] items-center justify-center gap-3 rounded-[10px] border border-[#ff6b80]/45 bg-[linear-gradient(180deg,#e51b36_0%,#b30d27_100%)] px-6 font-body text-[14.5px] font-medium text-white hover:brightness-110">Renouveler mon adhésion</Link>
+        </>
+      ) : discord.connected ? (
+        <>
+          <p className="mt-6 flex items-center gap-2 font-body text-[14.5px] text-white/85">
+            <span aria-hidden className="size-2.5 rounded-full bg-emerald-400" /> Compte Discord connecté — <span className="font-medium text-white">@{discord.username}</span>
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            <a href={discord.appUrl ?? "https://discord.com/channels/@me"} target="_blank" rel="noopener noreferrer" className="inline-flex h-[52px] items-center justify-center gap-3 rounded-[10px] border border-[#8f9bff]/50 bg-[linear-gradient(180deg,#5865f2_0%,#4752c4_100%)] px-6 font-body text-[14.5px] font-medium text-white hover:brightness-110">
+              <MessagesSquare aria-hidden className="size-[20px]" strokeWidth={1.8} /> Accéder à Discord
+            </a>
+            <button type="button" onClick={() => setAsking(true)} className="font-body text-[13px] text-mist underline-offset-4 hover:text-white hover:underline">Modifier mon compte Discord</button>
+          </div>
+        </>
+      ) : (
+        <a href="/api/discord/authorize" className="mt-6 inline-flex h-[52px] items-center justify-center gap-3 rounded-[10px] border border-[#8f9bff]/50 bg-[linear-gradient(180deg,#5865f2_0%,#4752c4_100%)] px-6 font-body text-[14.5px] font-medium text-white hover:brightness-110">
+          <MessagesSquare aria-hidden className="size-[20px]" strokeWidth={1.8} /> Connecter mon compte Discord
+        </a>
+      )}
+      <p className="mt-4 max-w-xl font-body text-[13px] leading-[1.7] text-mist">Votre compte Discord est associé à votre compte Les Dames du Parc : il n&rsquo;est ni transférable, ni partageable.</p>
+
+      {asking && (
+        <ConfirmDialog
+          message="Modifier votre compte Discord ? L'association actuelle sera supprimée et le rôle retiré ; vous serez redirigée vers Discord pour en connecter un nouveau."
+          confirmLabel={busy ? "…" : "Modifier"}
+          onCancel={() => setAsking(false)}
+          onConfirm={() => {
+            setAsking(false);
+            void disconnect();
+          }}
+        />
+      )}
+    </Section>
+  );
+}
+
+function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; adhesion?: string; discordFlash?: string }) {
   const data = useMemberData();
   const { session } = useAuth();
   const validated = session.status === "member" && session.membership === "active";
   if (!data) return <p className="mt-8 font-body text-mist">Chargement de votre espace…</p>;
-  const { member, verifyUrl, discordUrl, transactions: tx, benefits, offers, membership, orders } = data;
+  const { member, verifyUrl, discord, transactions: tx, benefits, offers, membership, orders } = data;
   const minor = isMinor(member.birthDate, member.joinedAt.slice(0, 10));
   return (
     <div className="mt-12 space-y-16">
@@ -137,17 +209,7 @@ function MemberSpace({ welcome, adhesion }: { welcome: boolean; adhesion?: strin
 
       <AdhesionSection season={member.season} endsAt={membership?.endsAt ?? member.validUntil} flash={adhesion} />
 
-      <Section id="espace-prive" title="Mon espace privé">
-        <p className="max-w-xl text-mist t-lead">Rejoignez l’espace privé des Dames du Parc pour échanger avec les autres membres, organiser les déplacements et suivre les annonces du groupe.</p>
-        {discordUrl ? (
-          <a href={discordUrl} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex h-[52px] items-center justify-center gap-3 rounded-[10px] border border-[#8f9bff]/50 bg-[linear-gradient(180deg,#5865f2_0%,#4752c4_100%)] px-6 font-body text-[14.5px] font-medium text-white hover:brightness-110">
-            <MessagesSquare aria-hidden className="size-[20px]" strokeWidth={1.8} /> Rejoindre l’espace privé
-          </a>
-        ) : (
-          <p className="mt-4 max-w-xl font-body text-[14px] leading-[1.7] text-amber-100">Le lien d&rsquo;invitation sera disponible dès la validation de votre adhésion.</p>
-        )}
-        <p className="mt-4 max-w-xl font-body text-[13px] leading-[1.7] text-mist">Ce lien est réservé aux membres : merci de ne pas le partager.</p>
-      </Section>
+      <DiscordSection discord={discord} membershipActive={validated} flash={discordFlash} />
 
       <Section id="attestation" title="Mon attestation">
         <p className="max-w-xl text-mist t-lead">
@@ -321,7 +383,7 @@ function PasswordForm() {
   );
 }
 
-export function ProfilClient({ welcome, adhesion }: { welcome: boolean; adhesion?: string }) {
+export function ProfilClient({ welcome, adhesion, discord }: { welcome: boolean; adhesion?: string; discord?: string }) {
   const { session, logout } = useAuth();
   return (
     <main className="mx-auto max-w-[860px] px-[var(--gutter)] pb-32 pt-[200px] md:pt-[250px]">
@@ -342,7 +404,7 @@ export function ProfilClient({ welcome, adhesion }: { welcome: boolean; adhesion
         </>
       )}
 
-      {session.status === "member" && <MemberSpace welcome={welcome} adhesion={adhesion} />}
+      {session.status === "member" && <MemberSpace welcome={welcome} adhesion={adhesion} discordFlash={discord} />}
 
       {session.status === "admin" && (
         <>

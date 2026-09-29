@@ -1,11 +1,10 @@
 import { json, siteUrl } from "@/lib/server/http";
 import { getSession } from "@/lib/server/session";
 import { getMemberByNumber, listOrdersByMember, toPublic } from "@/lib/server/store";
-import { getTransactions, membershipsOf, syncMemberships } from "@/lib/server/business";
+import { getTransactions, membershipState, membershipsOf, syncMemberships } from "@/lib/server/business";
 import { invoices } from "@/lib/server/invoice";
 import { benefitsDb, offersDb, partnersDb } from "@/lib/server/content";
-import { settings } from "@/lib/server/admin-store";
-import { membershipState } from "@/lib/server/business";
+import { discordConfig } from "@/lib/server/discord/config";
 
 /** Espace de la membre connectée : fiche, lien de vérification, transactions (adhésion, événements, boutique) et avantages. */
 export async function GET(req: Request) {
@@ -17,12 +16,19 @@ export async function GET(req: Request) {
   const member = toPublic(stored);
   const today = new Date().toISOString().slice(0, 10);
   const [txs, ms, benefits, offers, partners, invs] = await Promise.all([getTransactions(), membershipsOf(member.id), benefitsDb.all(), offersDb.all(), partnersDb.all(), invoices.find((i) => i.memberNumber === member.memberNumber)]);
-  // Le lien Discord n'est jamais transmis tant que l'adhésion n'est pas validée (paiement reçu et période en cours).
-  const discordUrl = (await membershipState(member.id)) === "active" ? (await settings.get()).association.discord || undefined : undefined;
+  // Le compte Discord n'est jamais un simple lien : connecté ou non, actif ou non, jamais une adresse à partager.
+  const discordActive = (await membershipState(member.id)) === "active";
+  const c = discordConfig();
+  const discord = {
+    connected: Boolean(stored.discord),
+    username: stored.discord?.username,
+    active: discordActive && stored.discord?.status === "ACTIVE",
+    appUrl: discordActive && stored.discord?.status === "ACTIVE" && c.guildId ? `https://discord.com/channels/${c.guildId}` : undefined,
+  };
   const live = (v?: string, e?: string) => (!v || v <= today) && (!e || e >= today);
   return json({
     member: { ...member, authorizations: member.authorizations.map((f) => ({ id: f.id, name: f.name })) },
-    discordUrl,
+    discord,
     verifyUrl: `${siteUrl(req)}/verification/${member.token}`,
     orders: (await listOrdersByMember(member.memberNumber)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((o) => ({ id: o.id, number: o.orderNumber ?? o.id.slice(0, 8).toUpperCase(), at: o.createdAt, status: o.status, totalCents: o.totalCents, discountCents: o.discountCents ?? 0, promoCode: o.promoCode, shippingCents: o.shippingCents, lines: o.lines.map((l) => ({ name: l.name, size: l.size, qty: l.qty, unitCents: l.unitCents })), membership: o.membership ? { planName: o.membership.planName, amountCents: o.membership.amountCents } : undefined, invoiceId: invs.find((i) => i.txId === `order:${o.id}`)?.id, tracking: o.tracking, fulfilment: o.fulfilment, resumeToken: o.status === "awaiting_payment" || o.status === "failed" ? o.token : undefined })),
     membership: ms[0] ? { planName: ms[0].planName, season: ms[0].season, startsAt: ms[0].startsAt, endsAt: ms[0].endsAt, status: ms[0].status } : null,

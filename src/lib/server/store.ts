@@ -74,13 +74,31 @@ export const getOrder = (id: string) => readOrders().then((all) => all.find((o) 
 
 /* ---------- Membres (comptes, cartes, autorisations parentales) ---------- */
 
-export type StoredMember = MemberPublic & { passwordHash: string; reset?: { hash: string; exp: number } };
+export interface DiscordLink {
+  userId: string;
+  username: string;
+  connectedAt: string;
+  lastVerifiedAt: string;
+  status: "ACTIVE" | "INACTIVE" | "ERROR";
+  lastError?: string;
+}
+
+export type StoredMember = MemberPublic & {
+  passwordHash: string;
+  reset?: { hash: string; exp: number };
+  /** Compte Discord associé (OAuth2) : voir src/lib/server/discord/. */
+  discord?: DiscordLink;
+  /** Jeton d'état OAuth Discord en attente (courte durée, usage unique). */
+  discordState?: { hash: string; exp: number };
+};
 
 const readMembers = () => membersStore.read();
 
-export const toPublic = ({ passwordHash: _p, reset: _r, ...m }: StoredMember): MemberPublic => {
+export const toPublic = ({ passwordHash: _p, reset: _r, discord: _d, discordState: _ds, ...m }: StoredMember): MemberPublic => {
   void _p;
   void _r;
+  void _d;
+  void _ds;
   return m;
 };
 

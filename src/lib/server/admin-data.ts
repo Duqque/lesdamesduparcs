@@ -9,7 +9,7 @@ import { admins, loginEvents, resetRequests } from "./admin-store";
 import { effectiveStatus, getTransactions, memberships, payments, syncMemberships, type Membership, type Payment, type Tx, type TxStatus } from "./business";
 import { articlesDb } from "./content";
 import { getAllEventsAdmin } from "./events";
-import { listAllRegistrations, listOrders, listStoredMembers } from "./store";
+import { listAllRegistrations, listOrders, listStoredMembers, toPublic, type DiscordLink } from "./store";
 import { productsDb, shopConfig, totalStock } from "./shop";
 
 /* ---------- Adhérentes : vue jointe membre + adhésion + paiement ---------- */
@@ -116,6 +116,37 @@ export function filterMembers(rows: MemberRow[], f: MemberFilters): MemberRow[] 
   out = out.sort((a, b) => (val(a) < val(b) ? -1 : val(a) > val(b) ? 1 : 0) * dir);
   void in30;
   return out;
+}
+
+/* ---------- Discord : vue jointe membre + association ---------- */
+
+export interface DiscordRow {
+  member: MemberPublic;
+  status: MemberStatus;
+  discord: DiscordLink | null;
+}
+
+export async function loadDiscordRows(): Promise<DiscordRow[]> {
+  const [members, memberRows] = await Promise.all([listStoredMembers(), loadMemberRows()]);
+  const statusByMember = new Map(memberRows.map((r) => [r.member.id, r.status]));
+  return members.map((m) => ({ member: toPublic(m), status: statusByMember.get(m.id) ?? "expired", discord: m.discord ?? null }));
+}
+
+export interface DiscordFilters {
+  q?: string;
+  connecte?: string; // "oui" | "non"
+  statut?: string; // ACTIVE | INACTIVE | ERROR
+}
+
+export function filterDiscordRows(rows: DiscordRow[], f: DiscordFilters): DiscordRow[] {
+  const q = f.q?.trim().toLowerCase();
+  return rows.filter((r) => {
+    if (q && ![r.member.firstName, r.member.lastName, `${r.member.firstName} ${r.member.lastName}`, r.member.email, r.discord?.username].some((v) => v?.toLowerCase().includes(q))) return false;
+    if (f.connecte === "oui" && !r.discord) return false;
+    if (f.connecte === "non" && r.discord) return false;
+    if (f.statut && r.discord?.status !== f.statut) return false;
+    return true;
+  });
 }
 
 /* ---------- Tableau de bord ---------- */

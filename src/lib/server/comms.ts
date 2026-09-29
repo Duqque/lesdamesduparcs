@@ -15,6 +15,7 @@ import { listAllRegistrations, listOrders } from "./store";
 import { plans, reinstateDue, setTxStatus } from "./business";
 import { notifyNewContent } from "./notify";
 import { processEmailJobs } from "./email-jobs";
+import { syncAllDiscordRoles } from "./discord/sync";
 
 export const SEGMENTS = [
   { key: "all", label: "Toutes les adhérentes actives" },
@@ -107,7 +108,9 @@ export async function runScheduled() {
   await reinstateDue(true).catch(() => 0);
   // E-mails de paiement en attente ou en échec : envoi et nouvelles tentatives.
   await processEmailJobs().catch(() => 0);
-  const result = { campaigns: 0, renewals: 0, reminders: 0, releasedOrders: 0, announced: 0 };
+  // Rôle Discord des adhérentes liées : retiré si l'adhésion a expiré, réattribué si elle a été renouvelée.
+  const discordSynced = await syncAllDiscordRoles().catch(() => 0);
+  const result = { campaigns: 0, renewals: 0, reminders: 0, releasedOrders: 0, announced: 0, discordSynced };
   // Publications programmées arrivées à échéance : annonce aux adhérentes (une seule fois par élément).
   result.announced = (await notifyNewContent().catch(() => ({ announced: 0 }))).announced;
   // Commandes jamais réglées : au bout de 72 h, le stock réservé est remis en vente.

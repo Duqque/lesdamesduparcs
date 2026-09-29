@@ -87,6 +87,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { label: "Partenaires", href: "/admin/communaute/partenaires" },
       { label: "Offres", href: "/admin/communaute/offres" },
       { label: "Codes promotionnels", href: "/admin/communaute/codes-promo" },
+      { label: "Discord", href: "/admin/communaute/discord", perm: "discord.manage" },
     ],
   },
   {

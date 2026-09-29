@@ -100,8 +100,8 @@ export async function saveSettingsAction(section: "adhesions" | "payments" | "em
     await settings.set({ emails: { fromName: s(formData, "fromName"), fromEmail: s(formData, "fromEmail"), signature: s(formData, "signature") } });
   } else {
     const a = cur.association;
-    const keys = ["name", "legalName", "form", "siret", "rna", "address", "postalCode", "city", "phone", "email", "website", "president", "presidentTitle", "instagram", "tiktok", "discord"] as const;
-    await settings.set({ association: Object.fromEntries(keys.map((k) => [k, (["website", "instagram", "tiktok", "discord"].includes(k) ? safeUrl(s(formData, k)) : s(formData, k)) || (k === "name" || k === "legalName" ? a[k] : "")])) as unknown as typeof a });
+    const keys = ["name", "legalName", "form", "siret", "rna", "address", "postalCode", "city", "phone", "email", "website", "president", "presidentTitle", "instagram", "tiktok"] as const;
+    await settings.set({ association: Object.fromEntries(keys.map((k) => [k, (["website", "instagram", "tiktok"].includes(k) ? safeUrl(s(formData, k)) : s(formData, k)) || (k === "name" || k === "legalName" ? a[k] : "")])) as unknown as typeof a });
   }
   await audit(ctx, "modification", "paramètres", `Paramètres « ${section} » modifiés`);
   revalidatePath("/", "layout");

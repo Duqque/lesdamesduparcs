@@ -72,19 +72,15 @@ export const auditLog = collection<AuditEntry>("audit_log");
 
 /* ---------- Paramètres de l'association et du site ---------- */
 
-const DEFAULT_DISCORD = "https://discord.com/invite/XTmbz3GWu";
-
 export interface AssociationInfo {
   name: string; legalName: string; form: string; siret: string; rna: string; address: string; postalCode: string; city: string;
   phone: string; email: string; website: string; president: string; presidentTitle: string;
   instagram: string; tiktok: string;
-  /** Invitation au serveur Discord, réservée aux membres dont l'adhésion est valide. */
-  discord: string;
 }
 
 export const DEFAULT_AUTOMATIONS = {
   welcome: true,
-  /** E-mail de bienvenue envoyé à la nouvelle adhérente une fois son adhésion validée (avec le lien Discord) */
+  /** E-mail de bienvenue envoyé à la nouvelle adhérente une fois son adhésion validée (avec l'invitation à connecter Discord) */
   membershipWelcome: true,
   paymentConfirmation: true,
   paymentFailedReminder: true,
@@ -120,7 +116,6 @@ const settingsStore = singleton("settings", {
     presidentTitle: assoDefaults.presidentTitle,
     instagram: "https://www.instagram.com/lesdamesduparc/",
     tiktok: "https://www.tiktok.com/@lesdamesduparc",
-    discord: DEFAULT_DISCORD,
   },
   site: { title: "Les Dames du Parc", description: "Plus qu'un groupe, une famille.", footerText: "Paris toujours, ensemble !", favicon: "" },
   emails: { fromName: "Les Dames du Parc", fromEmail: assoDefaults.email as string, signature: "Avec toute notre passion,\nLes Dames du Parc" },
@@ -141,8 +136,7 @@ export const settings = {
   ...settingsStore,
   get: async () => {
     const s = await settingsStore.get();
-    // Un réglage enregistré avant l'ajout du champ Discord reçoit le lien par défaut ; vidé volontairement, il reste vide.
-    return { ...s, association: { ...s.association, discord: s.association.discord ?? DEFAULT_DISCORD }, automations: { ...DEFAULT_AUTOMATIONS, ...s.automations } };
+    return { ...s, automations: { ...DEFAULT_AUTOMATIONS, ...s.automations } };
   },
 };
 
