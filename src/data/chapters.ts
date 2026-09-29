@@ -12,13 +12,12 @@ export interface Chapter {
   icon: ChapterIconName;
 }
 
+/**
+ * Les six premiers chapitres du dossier d'origine (lettre, histoire, qui sommes-nous, valeurs, pourquoi un fan club féminin, ce que
+ * nous voulons construire) ont été réunis dans une seule page « Qui sommes-nous » (voir src/data/groupe.ts et
+ * src/components/group/QuiSommesNousBody.tsx) : ils n'existent plus comme sous-pages séparées.
+ */
 const all: readonly Chapter[] = [
-  { slug: "lettre-d-introduction", number: "01", title: "Lettre d’introduction", sub: "Qui nous sommes, en quelques lignes.", icon: "Mail" },
-  { slug: "notre-histoire", number: "02", title: "Notre histoire", sub: "D’un message à une communauté.", icon: "BookOpen" },
-  { slug: "qui-sommes-nous", number: "03", title: "Qui sommes-nous ?", sub: "15 membres historiques, de 19 à 40 ans, une même passion.", icon: "Users" },
-  { slug: "nos-valeurs", number: "04", title: "Nos valeurs", sub: "Six mots.", icon: "Heart" },
-  { slug: "pourquoi-un-fan-club-feminin", number: "05", title: "Pourquoi un fan club 100 % féminin", sub: "Pas pour se séparer, pour se rencontrer.", icon: "Venus" },
-  { slug: "ce-que-nous-voulons-construire", number: "06", title: "Ce que nous voulons construire", sub: "Quatre ambitions.", icon: "Map" },
   { slug: "la-voix-des-supportrices", number: "07", title: "La voix des supportrices", sub: h.voices.sub, icon: "Megaphone" },
   { slug: "notre-communaute-au-quotidien", number: "08", title: "Notre communauté au quotidien", sub: h.daily.sub, icon: "MessagesSquare" },
   { slug: "en-dehors-des-jours-de-match", number: "09", title: "En dehors des jours de match", sub: h.offMatch.sub, icon: "Route" },
@@ -27,13 +26,13 @@ const all: readonly Chapter[] = [
   { slug: "adhesion", number: null, title: "Communauté & adhésion", sub: "Les Dames du Parc sont une communauté ouverte à toutes les supportrices du Paris Saint-Germain. Pour celles qui souhaitent aller plus loin, l’adhésion permet de devenir officiellement membre de la communauté et de bénéficier d’avantages réservés aux adhérentes tout au long de la saison.", icon: "IdCard" },
 ];
 
-/** « Le groupe » : six parties seulement. */
-export const chapters: readonly Chapter[] = all.slice(0, 6);
+/** Plus aucun chapitre navigable sous « Qui sommes-nous » : la page est désormais unique (voir ci-dessus). */
+export const chapters: readonly Chapter[] = [];
 
-/** Chapitres retirés de la rubrique (contenu conservé dans histoire.ts et bodies.tsx), au cas où ils reviendraient. */
-export const retiredChapters: readonly Chapter[] = all.slice(6, 11);
+/** Chapitres retirés de la navigation (contenu conservé dans histoire.ts et bodies.tsx), au cas où ils reviendraient. */
+export const retiredChapters: readonly Chapter[] = all.slice(0, 5);
 
-/** Page d'adhésion, désormais sous « Rejoindre le groupe ». */
-export const adhesionChapter: Chapter = all[11];
+/** Page d'adhésion, sous « Rejoindre le groupe ». */
+export const adhesionChapter: Chapter = all[5];
 
 export const getChapter = (slug: string) => chapters.find((c) => c.slug === slug);

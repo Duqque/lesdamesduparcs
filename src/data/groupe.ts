@@ -1,55 +1,63 @@
-/** « Le groupe » en six parties courtes : qui nous sommes, sans détour. */
+/**
+ * Contenus de la page « Qui sommes-nous » (ex-« Le groupe ») : une seule page qui réunit ce qui était réparti en six chapitres —
+ * chiffres clés, origine du projet, raison d'être d'un fan club 100 % féminin, valeurs et ambitions.
+ */
 export const groupe = {
-  letter: {
-    statement: "Nous étions 15 supportrices du Paris Saint-Germain. Nous ne nous connaissions pas. Le PSG nous a réunies.",
-    pull: "Sans le savoir, le Paris Saint-Germain nous avait déjà réunies.",
+  hero: {
+    intro: "Les Dames du Parc sont la première communauté 100 % féminine de supportrices du Paris Saint-Germain : des femmes réunies par une même passion pour le club de la capitale, au Parc des Princes et bien au-delà.",
+    button: "Découvrir notre histoire",
+  },
+  bento: {
+    eyebrow: "En bref",
+    title: "Une communauté née de 15 fondatrices",
+    lead: "Avant d’ouvrir ses portes à toutes les supportrices du PSG, l’aventure des Dames du Parc s’est construite en petit comité. Voici, en quelques chiffres, ce qui nous définit aujourd’hui.",
+    stats: [
+      { value: "15", label: "fondatrices, réunies avant l’ouverture au public" },
+      { value: "19–40", label: "ans : l’âge des fondatrices" },
+      { value: "2026", label: "année de naissance du projet" },
+      { value: "6", label: "valeurs qui nous rassemblent" },
+    ],
+  },
+  origin: {
+    eyebrow: "Notre histoire",
+    title: "D’un message à une communauté : comment tout a commencé",
     paragraphs: [
-      "Un message a suffi : « Et si on créait un groupe de supportrices du PSG ? » Les conversations sont devenues des habitudes, les soirs de match des rendez-vous.",
-      "Avant de devenir publique, l’aventure des Dames du Parc s’est construite autour de 15 membres historiques, réunies par la même passion pour le Paris Saint-Germain.",
-      "Aujourd’hui, nous nous retrouvons au Parc, devant l’écran, et bien au-delà des jours de match. La communauté a vocation à accueillir de nouvelles adhérentes.",
+      "Tout est parti d’une question posée en quelques mots, un soir, sur les réseaux sociaux : « Et si on créait un groupe de supportrices du PSG ? » Une idée simple, presque anodine, qui allait pourtant donner naissance à la première communauté 100 % féminine de supportrices du Paris Saint-Germain.",
+      "Quinze femmes ont répondu présentes. Des étudiantes, des cadres, des salariées, des mères — toutes différentes par leur âge, leur métier, leur parcours, mais unies par la même émotion quand Paris entre sur la pelouse. Les échanges se sont vite transformés en habitudes, et les soirs de match en rendez-vous.",
+      "Puis est venue la finale de la Ligue des Champions 2025, vécue ensemble : au stade, devant un écran ou en watch party. Un moment qui a scellé ce qui n’était encore qu’un groupe de discussion. Les retrouvailles autour d’un restaurant ou d’une terrasse ont mis des visages sur les prénoms, et une véritable communauté est née — bien avant de porter officiellement le nom des Dames du Parc.",
+      "Aujourd’hui, ces 15 fondatrices ouvrent la communauté à toutes les supportrices qui partagent leur passion pour le Paris Saint-Germain, avec une ambition claire : la faire grandir sans jamais perdre ce qui a fait sa force, la rencontre.",
     ],
   },
-  /** Ouverture de « Notre histoire » : la construction du projet avant son ouverture au public. */
-  storyIntro: "Avant de devenir publique, l’aventure des Dames du Parc s’est construite autour de 15 membres historiques, réunies par la même passion pour le Paris Saint-Germain.",
-  story: [
-    { title: "Un message", text: "« Et si on créait un groupe de supportrices du PSG ? »" },
-    { title: "Un groupe", text: "Les discussions dépassent le football : nous apprenons à nous connaître." },
-    { title: "La finale", text: "Au stade, devant un écran ou en watch party, nous vivons la finale de la Ligue des Champions ensemble." },
-    { title: "Les retrouvailles", text: "Un restaurant, une terrasse : nous mettons enfin des visages sur les prénoms." },
-    { title: "Une communauté", text: "Watch parties, sorties au Parc, Stadium Tour : la communauté vit bien au-delà des réseaux, et s’ouvre aujourd’hui à de nouvelles adhérentes." },
-  ],
-  who: {
-    lead: "Étudiantes, cadres, salariées, mères, créatrices de contenu. Différentes par l’âge, le métier, le parcours. Unies par la même émotion quand le PSG entre sur la pelouse.",
-    /** Chiffres des seules membres historiques (présentes dans la construction du projet, avant son ouverture au public). */
-    figures: [
-      { count: 15, label: "membres historiques, présentes dès la construction du projet" },
-      { count: null, value: "19–40", label: "ans : l’âge des membres historiques" },
-      { count: null, value: "2026", label: "année de fondation" },
-    ],
-    passion: "Une même passion pour le Paris Saint-Germain.",
-    note: "Ces 15 femmes étaient là avant l’ouverture au public. Aujourd’hui, la communauté a vocation à accueillir de nouvelles adhérentes.",
-  },
-  values: [
-    { title: "Passion", text: "Le PSG n’est pas un loisir, c’est un rendez-vous." },
-    { title: "Fidélité", text: "Présentes quand ça gagne, présentes quand c’est difficile." },
-    { title: "Bienveillance", text: "Ici, chacune a sa place." },
-    { title: "Sororité", text: "On vient pour le PSG, on reste pour elles." },
-    { title: "Transmission", text: "Une passion qui se partage, d’une génération à l’autre." },
-    { title: "Engagement", text: "On ne se contente pas de regarder : on organise, on crée, on rassemble." },
-  ],
   why: {
+    eyebrow: "Notre positionnement",
+    title: "Pourquoi un fan club 100 % féminin du Paris Saint-Germain ?",
     pull: "L’amour du club ne connaît pas de genre.",
-    items: [
-      { title: "Un espace pour elles", text: "Les supportrices existent depuis toujours, mais restent souvent invisibles. Une communauté donne une forme à ce qui existe déjà." },
-      { title: "Un espace de rencontre", text: "Beaucoup vivent leur passion seules. Ici, plus besoin de franchir seule les portes du Parc." },
-      { title: "Un espace qui dure", text: "Un repère pour les jeunes supportrices d’aujourd’hui et de demain." },
-      { title: "Un modèle éprouvé", text: "Les Bayern Red Ladies réunissent plus de 350 membres dans plus de 20 pays." },
+    paragraphs: [
+      "Les supportrices du PSG existent depuis toujours : dans les tribunes, devant leur écran, dans les rues de Paris un soir de match. Pourtant, elles restent souvent invisibles, sans espace qui leur ressemble ni communauté organisée pour les rassembler. Les Dames du Parc ne sont pas nées d’une volonté de se séparer des autres supporters, mais de donner enfin une forme à ce qui existait déjà.",
+      "Beaucoup de femmes vivent encore leur passion seules : difficile de trouver quelqu’un avec qui commenter un match, d’oser pousser les portes du Parc des Princes sans se sentir en décalage, ou simplement d’assumer sa passion sans avoir à se justifier. Notre communauté répond à ce besoin très concret : un espace de rencontre où chacune peut vivre le PSG pleinement, entourée d’autres supportrices.",
+      "C’est aussi un repère pour les jeunes filles qui grandissent avec cette passion et qui, faute de représentation féminine dans les tribunes, pourraient croire que cet univers ne leur est pas destiné. En Europe, le modèle a déjà fait ses preuves : les Bayern Red Ladies rassemblent plus de 350 membres dans plus de 20 pays. Les Dames du Parc s’inscrivent dans cette même dynamique, aux couleurs de Paris.",
     ],
   },
-  build: [
-    { title: "Se retrouver", text: "Des rendez-vous réguliers autour des matchs : au Parc, en déplacement, en watch party." },
-    { title: "Participer à la vie du club", text: "Participer aux initiatives du Paris Saint-Germain et représenter ses valeurs avec fierté." },
-    { title: "Grandir sans frontières", text: "De la région parisienne à la France, puis au monde, avec les réseaux et un espace privé." },
-    { title: "Changer le regard", text: "Normaliser la place des supportrices dans les tribunes et dans la culture du club." },
-  ],
+  values: {
+    eyebrow: "Ce qui nous rassemble",
+    title: "Nos valeurs",
+    items: [
+      { title: "Passion", text: "Le PSG n’est pas un loisir, c’est un rendez-vous." },
+      { title: "Fidélité", text: "Présentes quand ça gagne, présentes quand c’est difficile." },
+      { title: "Bienveillance", text: "Ici, chacune a sa place." },
+      { title: "Sororité", text: "On vient pour le PSG, on reste pour elles." },
+      { title: "Transmission", text: "Une passion qui se partage, d’une génération à l’autre." },
+      { title: "Engagement", text: "On ne se contente pas de regarder : on organise, on crée, on rassemble." },
+    ],
+  },
+  build: {
+    eyebrow: "Notre ambition",
+    title: "Ce que nous voulons construire",
+    items: [
+      { title: "Se retrouver", text: "Des rendez-vous réguliers autour des matchs : au Parc, en déplacement, en watch party." },
+      { title: "Participer à la vie du club", text: "Participer aux initiatives du Paris Saint-Germain et représenter ses valeurs avec fierté." },
+      { title: "Grandir sans frontières", text: "De la région parisienne à la France, puis au monde, avec les réseaux et un espace privé." },
+      { title: "Changer le regard", text: "Normaliser la place des supportrices dans les tribunes et dans la culture du club." },
+    ],
+  },
 } as const;

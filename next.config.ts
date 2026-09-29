@@ -20,7 +20,15 @@ const nextConfig: NextConfig = {
   experimental: { cpus: 1, serverActions: { bodySizeLimit: "26mb", ...(siteHost ? { allowedOrigins: [siteHost] } : {}) } },
   serverExternalPackages: ["mysql2"],
   async redirects() {
-    return [{ source: "/abonnement", destination: "/rejoindre-le-groupe", permanent: true }];
+    return [
+      { source: "/abonnement", destination: "/rejoindre-le-groupe", permanent: true },
+      // Anciennes sous-pages de « Le groupe », réunies depuis dans la page unique « Qui sommes-nous » (/groupe).
+      {
+        source: "/groupe/:slug(lettre-d-introduction|notre-histoire|qui-sommes-nous|nos-valeurs|pourquoi-un-fan-club-feminin|ce-que-nous-voulons-construire)",
+        destination: "/groupe",
+        permanent: true,
+      },
+    ];
   },
 };
 

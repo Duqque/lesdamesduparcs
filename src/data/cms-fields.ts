@@ -11,7 +11,7 @@ export interface CmsField {
 
 export const CMS_PAGES: Array<{ path: string; label: string }> = [
   { path: "/", label: "Accueil" },
-  { path: "/groupe", label: "Le groupe" },
+  { path: "/groupe", label: "Qui sommes-nous" },
   { path: "/evenements", label: "Événements" },
   { path: "/actualites", label: "Actualités" },
   { path: "/contact", label: "Contact" },
@@ -20,8 +20,8 @@ export const CMS_PAGES: Array<{ path: string; label: string }> = [
 export const CMS_FIELDS: CmsField[] = [
   { key: "accueil.manifeste", page: "/", label: "Manifeste (grand texte écrit au défilement)", type: "textarea", default: manifesto.text },
   { key: "groupe.titre", page: "/groupe", label: "Titre (une ligne par retour à la ligne)", type: "textarea", default: "Les Dames\ndu Parc" },
-  { key: "groupe.intro", page: "/groupe", label: "Phrase d'introduction", type: "textarea", default: "Une communauté de supportrices réunies par la même passion : le Paris Saint-Germain." },
-  { key: "groupe.bouton", page: "/groupe", label: "Bouton principal", type: "text", default: "Lire notre histoire" },
+  { key: "groupe.intro", page: "/groupe", label: "Phrase d'introduction", type: "textarea", default: "Les Dames du Parc sont la première communauté 100 % féminine de supportrices du Paris Saint-Germain : des femmes réunies par une même passion pour le club de la capitale, au Parc des Princes et bien au-delà." },
+  { key: "groupe.bouton", page: "/groupe", label: "Bouton principal", type: "text", default: "Découvrir notre histoire" },
   { key: "evenements.titre", page: "/evenements", label: "Titre de la page", type: "text", default: "Événements" },
   { key: "evenements.intro", page: "/evenements", label: "Introduction", type: "textarea", default: "Matchs au Parc, soirées, ateliers et déplacements : les rendez-vous des Dames du Parc se succèdent tout au long de la saison." },
   { key: "evenements.prochains", page: "/evenements", label: "Titre « Prochains événements »", type: "text", default: "Prochains événements" },

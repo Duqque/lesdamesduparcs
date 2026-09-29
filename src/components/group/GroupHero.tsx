@@ -12,7 +12,7 @@ export function GroupHero({ title = "Les Dames\ndu Parc", intro = "Une communaut
       <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_60%_at_72%_45%,rgba(26,52,112,0.5),transparent_70%)]" />
       <div className="mx-auto grid max-w-[1400px] items-center gap-10 md:min-h-[calc(100svh-190px)] md:grid-cols-[1.05fr_0.95fr] md:gap-6">
         <div className="order-2 md:order-1">
-          <p className="t-eyebrow">Le groupe</p>
+          <p className="t-eyebrow">Qui sommes-nous</p>
           <h1 id="group-title" className="mt-4 t-display">
             {title.split("\n").map((line, i) => (
               <span key={i}>
@@ -25,7 +25,7 @@ export function GroupHero({ title = "Les Dames\ndu Parc", intro = "Une communaut
             {intro}
           </p>
           <div className="mt-12 flex flex-col gap-4 sm:flex-row">
-            <Button size="lg" href="/groupe/notre-histoire">
+            <Button size="lg" href="#origine">
               {button}
             </Button>
             <JoinGate>
