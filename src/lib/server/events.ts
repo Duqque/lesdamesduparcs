@@ -1,5 +1,5 @@
 import "server-only";
-import { events as seedEvents, pastEvents as seedPast } from "@/data/events";
+import { events as seedEvents, pastEvents as seedPast, watchParties as seedWatchParties } from "@/data/events";
 import type { ClubEvent } from "@/types";
 import { collection, type Row } from "./db";
 
@@ -7,7 +7,7 @@ export type EventRow = ClubEvent & Row & { origin?: "seed" };
 
 /** Événements : les contenus d'origine servent de base ; tout se gère ensuite depuis le back-office. */
 export const eventsDb = collection<EventRow>("events", () =>
-  [...seedEvents, ...seedPast].map((e) => ({ ...e, status: "published" as const, origin: "seed" as const })) as unknown as Array<Omit<EventRow, "createdAt" | "updatedAt">>,
+  [...seedEvents, ...seedWatchParties, ...seedPast].map((e) => ({ ...e, status: "published" as const, origin: "seed" as const })) as unknown as Array<Omit<EventRow, "createdAt" | "updatedAt">>,
 );
 
 const isLive = (e: ClubEvent, now = Date.now()) => e.status === "published" || (e.status === "scheduled" && e.publishAt !== undefined && new Date(e.publishAt).getTime() <= now) || e.status === undefined;

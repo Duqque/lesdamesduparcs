@@ -20,6 +20,18 @@ export interface PsgMatchRow extends Row, ParsedMatch {
   hidden?: boolean;
 }
 
+/** Soir\u00e9es \u00ab on regarde le match ensemble \u00bb des Dames du Parc reli\u00e9es \u00e0 un match du calendrier (voir data/events.ts, watchParties). */
+const WATCH_PARTY_EVENT_IDS: Record<string, string> = {
+  "2026-10-10": "watch-party-le-mans",
+  "2026-10-14": "watch-party-manchester-city",
+  "2026-10-20": "watch-party-fc-barcelone",
+  "2026-10-25": "watch-party-lyon",
+  "2026-11-03": "watch-party-villarreal",
+  "2026-11-25": "watch-party-as-roma",
+  "2026-12-08": "watch-party-aston-villa",
+  "2026-12-12": "watch-party-paris-fc",
+};
+
 export const psgMatches = collection<PsgMatchRow>("psg_matches", () =>
   PSG_CALENDAR_SEED.map(([date, time, homeTeam, awayTeam, competition]) => ({
     id: `match-${date}-${(isPsg(homeTeam) ? awayTeam : homeTeam).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
@@ -30,6 +42,7 @@ export const psgMatches = collection<PsgMatchRow>("psg_matches", () =>
     competition,
     stadium: isPsg(homeTeam) ? PARC : "",
     source: "calendrier" as const,
+    relatedEventId: WATCH_PARTY_EVENT_IDS[date],
   })),
 );
 

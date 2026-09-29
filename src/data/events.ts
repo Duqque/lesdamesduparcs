@@ -235,6 +235,62 @@ export const events: ClubEvent[] = [
   },
 ];
 
+/*
+ * ---------- Soirées « on regarde le match ensemble » (Watch Parties), saison 2026-2027 ----------
+ * Source : calendrier « Watch_parties_PSG » transmis par l'association. Seules les rencontres confirmées sont reprises ; les
+ * rencontres annulées (PSG-Strasbourg, PSG-Le Havre, PSG-Troyes, OGC Nice-PSG, PSG-Lorient, Toulouse-PSG) ne sont pas publiées.
+ * Chaque soirée liée à un match du calendrier officiel (voir psg-calendar.ts) est reliée automatiquement à ce match
+ * (src/lib/server/matches.ts, WATCH_PARTY_EVENT_IDS) : sa carte affiche alors un lien vers cette page.
+ * PSG Féminine - OL (18/10) n'a pas de match correspondant dans le calendrier (masculin) du club : pas de lien.
+ * Écart constaté avec le calendrier officiel pour PSG - OL (20h45 dans le document transmis, 21h45 dans psg-calendar.ts) : à vérifier
+ * auprès du club avant publication, l'heure du document transmis est reprise ici en attendant.
+ */
+type WatchPartySeed = { id: string; label: string; date: string; time: string; venue: string; stadium?: boolean; image: string; imageAlt: string };
+
+const addMinutes = (time: string, minutes: number) => {
+  const [h, m] = time.split(":").map(Number);
+  const total = (h * 60 + m + minutes) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+};
+
+const watchParty = (e: WatchPartySeed): ClubEvent => ({
+  id: e.id,
+  title: e.stadium ? e.label : `Watch party : ${e.label}`,
+  subtitle: e.stadium ? `Vivre ${e.label} ensemble, au Parc des Princes.` : `Suivre ${e.label} ensemble, avec les Dames du Parc.`,
+  tag: "Matchday",
+  date: e.date,
+  time: e.time,
+  endTime: addMinutes(e.time, 150),
+  venue: e.venue,
+  address: e.stadium ? "24 rue du Commandant Guilbaud, 75016 Paris" : "Adresse communiquée aux inscrites",
+  image: e.image,
+  imageAlt: e.imageAlt,
+  variant: "photo",
+  access: e.stadium ? "Billetterie membres" : "Sur inscription",
+  summary: e.stadium ? `Un rendez-vous au Parc des Princes pour vivre ${e.label} ensemble.` : `Retrouvez les Dames du Parc pour suivre ${e.label} toutes ensemble.`,
+  registration: e.stadium ? { mode: "external", priceCents: 0, capacity: 0 } : { mode: "form", priceCents: 0, capacity: 0 },
+  description: e.stadium
+    ? [`${e.label}, au Parc des Princes. Les Dames du Parc s'y retrouvent pour vivre la rencontre ensemble, en tribune.`, "Informations de rendez-vous communiquées aux inscrites."]
+    : [`Rendez-vous pour suivre ${e.label} toutes ensemble, dans la bonne humeur.`, "Lieu précis et détails pratiques communiqués aux inscrites avant le match."],
+  program: [],
+  speakers: [],
+  // « Lieu » n'est pas répété ici : la page l'affiche déjà à partir de venue/address.
+  practical: [{ label: "Public", value: e.stadium ? "Membres, billetterie du club" : "Toutes les supportrices, sur inscription" }],
+  href: "/billetterie",
+});
+
+export const watchParties: ClubEvent[] = [
+  { id: "watch-party-le-mans", label: "PSG - Le Mans", date: "2026-10-10", time: "20:45", venue: "Bar bistrot 79", image: "/images/tunnel-ici-cest-paris.webp", imageAlt: "Le couloir lumineux du Parc des Princes, Ici c'est Paris" },
+  { id: "watch-party-manchester-city", label: "Manchester City - PSG", date: "2026-10-14", time: "21:00", venue: "Bar bistrot 79", image: "/images/sieges-rouges-bleus.webp", imageAlt: "Sièges rouges et bleus floqués Paris Saint-Germain" },
+  { id: "watch-party-feminines-ol", label: "PSG Féminine - OL", date: "2026-10-18", time: "21:00", venue: "Parc des Princes", stadium: true, image: "/images/parc-pelouse-tribunes.webp", imageAlt: "La pelouse du Parc des Princes face aux tribunes" },
+  { id: "watch-party-fc-barcelone", label: "PSG - FC Barcelone", date: "2026-10-20", time: "21:00", venue: "Salle des Dames", image: "/images/identite-logo.webp", imageAlt: "Logo des Dames du Parc sur fond bleu nuit" },
+  { id: "watch-party-lyon", label: "PSG - OL", date: "2026-10-25", time: "20:45", venue: "Salle des Dames", image: "/images/vestiaire-fauteuils.webp", imageAlt: "Rangée de fauteuils bleus dans un vestiaire du PSG" },
+  { id: "watch-party-villarreal", label: "Villarreal - PSG", date: "2026-11-03", time: "21:00", venue: "Bar bistrot 79", image: "/images/parc-des-princes-facade.webp", imageAlt: "Façade en béton du Parc des Princes" },
+  { id: "watch-party-as-roma", label: "PSG - AS Roma", date: "2026-11-25", time: "21:00", venue: "Salle des Dames", image: "/images/drapeau-paris-gros-plan.webp", imageAlt: "Gros plan sur un drapeau Paris Saint-Germain porté par la foule" },
+  { id: "watch-party-aston-villa", label: "Aston Villa - PSG", date: "2026-12-08", time: "21:00", venue: "Salle des Dames", image: "/images/echarpe-fiere-parisienne.webp", imageAlt: "Écharpe « Fière d'être Parisienne » des Dames du Parc" },
+  { id: "watch-party-paris-fc", label: "PSG - Paris FC", date: "2026-12-12", time: "20:45", venue: "Parc des Princes", stadium: true, image: "/images/parc-pelouse-tribunes.webp", imageAlt: "La pelouse du Parc des Princes face aux tribunes" },
+].map(watchParty);
+
 /* ---------- Événements passés (fictifs) ---------- */
 
 type PastSeed = { id: string; title: string; date: string; venue: string; image: string; imageAlt: string; text: string };
@@ -280,7 +336,7 @@ export const eventTags = ["Tous", "Programme", "Matchday", "Soirée", "Atelier",
 
 export const highlightedEventId = "allez-les-filles-dojo";
 
-export const allEvents = () => [...events, ...pastEvents];
+export const allEvents = () => [...events, ...watchParties, ...pastEvents];
 export const getEvent = (id: string) => allEvents().find((e) => e.id === id);
 
 /** Un événement est passé si sa date est antérieure à aujourd'hui (heure de Paris). */
