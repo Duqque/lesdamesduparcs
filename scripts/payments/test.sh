@@ -10,6 +10,11 @@ mkdir -p $V
 rsync -a --delete --exclude .next --exclude node_modules --exclude .data --exclude .git --exclude '.env*' "$ROOT/" $V/
 [ -d $V/node_modules ] || cp -cR "$ROOT/node_modules" $V/node_modules 2>/dev/null || cp -R "$ROOT/node_modules" $V/node_modules
 cd $V && rm -rf .data && npm run build > /tmp/ddp-pay-build.log 2>&1 || { tail -20 /tmp/ddp-pay-build.log; exit 1; }
+# Campagne d'adhésion active (illimitée) : sans elle, les nouvelles adhésions sont fermées par défaut.
+mkdir -p $V/.data
+cat > $V/.data/settings.json <<'EOF'
+{"adhesions":{"seasonStartMonth":9,"renewalReminderDays":[30,7],"autoRenew":false,"openToAll":true,"campaign":{"label":"Campagne de test","limit":null,"startedAt":"2026-01-01T00:00:00.000Z","baseline":0},"pastCampaigns":[]}}
+EOF
 node "$V/scripts/payments/mock-services.mjs" > /tmp/ddp-pay-mocks.log 2>&1 &
 env SESSION_INSECURE_COOKIE=1 CRON_SECRET=cron-secret-1234567890 \
   HELLOASSO_ENV=sandbox HELLOASSO_CLIENT_ID=id HELLOASSO_CLIENT_SECRET=secret HELLOASSO_ORGANIZATION_SLUG=lesdames HELLOASSO_API_BASE=http://127.0.0.1:4599 \

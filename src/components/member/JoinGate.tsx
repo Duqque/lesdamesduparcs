@@ -6,18 +6,19 @@ import { useAuth } from "@/components/auth/AuthProvider";
 /** Page où la membre renouvelle ou finalise son adhésion (bouton de paiement HelloAsso). */
 export const ADHESION_HREF = "/rejoindre-le-groupe/paiement";
 
-export type JoinMode = "join" | "adhere" | "renew" | "pay" | "hidden";
+export type JoinMode = "join" | "adhere" | "renew" | "pay" | "hidden" | "full";
 
 /**
  * Comportement des appels à l'action d'adhésion selon l'abonnement :
- *  - visiteuse (ou administratrice) : « Adhérer » vers le formulaire d'inscription ;
+ *  - visiteuse (ou administratrice) : « Adhérer » vers le formulaire d'inscription, ou « Adhésions complètes » si le plafond
+ *    de la première vague est atteint (Configuration > Adhésions) — jamais pour une adhérente qui renouvelle ;
  *  - membre connectée sans adhésion : adhérer depuis son espace ; adhésion à régler : « Finaliser » ;
  *  - adhésion terminée : « Renouveler mon adhésion » ;
  *  - adhésion active (ou compte suspendu) : le bouton disparaît.
  */
 export function useJoinMode(): JoinMode {
-  const { session } = useAuth();
-  if (session.status !== "member") return "join";
+  const { session, capReached } = useAuth();
+  if (session.status !== "member") return capReached ? "full" : "join";
   switch (session.membership) {
     case "active":
     case "suspended":
@@ -37,13 +38,16 @@ export const JOIN_LABELS: Record<Exclude<JoinMode, "hidden">, string | null> = {
   adhere: null,
   renew: "Renouveler mon adhésion",
   pay: "Finaliser mon adhésion",
+  full: "Adhésions complètes",
 };
 
 /** Habille un bouton ou un lien d'adhésion existant : garde son style, adapte le texte et la destination, ou le retire. */
-export function JoinGate({ children }: { children: ReactElement<{ href?: string; children?: ReactNode }> }) {
+export function JoinGate({ children }: { children: ReactElement<{ href?: string; disabled?: boolean; children?: ReactNode }> }) {
   const mode = useJoinMode();
   if (mode === "hidden") return null;
-  if (mode === "join" || !isValidElement(children)) return children;
+  if (!isValidElement(children)) return mode === "full" ? null : children;
+  if (mode === "full") return cloneElement(children, { href: undefined, disabled: true, children: JOIN_LABELS.full });
+  if (mode === "join") return children;
   const label = JOIN_LABELS[mode];
   return cloneElement(children, { href: ADHESION_HREF, ...(label ? { children: label } : {}) });
 }

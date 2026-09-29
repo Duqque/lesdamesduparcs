@@ -78,6 +78,18 @@ export interface AssociationInfo {
   instagram: string; tiktok: string;
 }
 
+export interface AdhesionCampaign {
+  label: string;
+  /** null = illimité. */
+  limit: number | null;
+  startedAt: string;
+  /** Nombre d'adhésions déjà réglées au moment de l'activation : « places restantes » repart de zéro à chaque campagne. */
+  baseline: number;
+  /** Renseigné une fois le mail de relance envoyé aux comptes sans adhésion active (une seule fois par campagne). */
+  emailedAt?: string;
+  stoppedAt?: string;
+}
+
 export const DEFAULT_AUTOMATIONS = {
   welcome: true,
   /** E-mail de bienvenue envoyé à la nouvelle adhérente une fois son adhésion validée (avec l'invitation à connecter Discord) */
@@ -120,7 +132,21 @@ const settingsStore = singleton("settings", {
   site: { title: "Les Dames du Parc", description: "Plus qu'un groupe, une famille.", footerText: "Paris toujours, ensemble !", favicon: "" },
   emails: { fromName: "Les Dames du Parc", fromEmail: assoDefaults.email as string, signature: "Avec toute notre passion,\nLes Dames du Parc" },
   payments: { currency: "EUR", refundPolicy: "Remboursement sur demande, au cas par cas.", onlinePayment: true },
-  adhesions: { seasonStartMonth: 9, renewalReminderDays: [30, 7], autoRenew: false, openToAll: true },
+  /**
+   * campaign : campagne d'adhésion en cours (nouvelles adhérentes uniquement, jamais les renouvellements) — sans campagne active,
+   * les adhésions sont fermées. limit=null : illimité. baseline : nombre d'adhésions déjà réglées au moment de l'activation,
+   * pour que « places restantes » reparte de zéro à chaque campagne. pastCampaigns : historique, pour mémoire dans l'administration.
+   */
+  adhesions: {
+    seasonStartMonth: 9,
+    renewalReminderDays: [30, 7],
+    autoRenew: false,
+    openToAll: true,
+    campaign: null as AdhesionCampaign | null,
+    pastCampaigns: [] as AdhesionCampaign[],
+  },
+  /** Bannière d'information au-dessus de l'en-tête, sur tout le site ; absente ou expirée (until) = rien à afficher. */
+  flash: null as { message: string; until: string } | null,
   automations: { ...DEFAULT_AUTOMATIONS },
   security: { sessionTimeoutMin: 30, maxAttempts: 5, lockoutMin: 15, require2fa: true },
   retention: { inactiveMonths: 36 },

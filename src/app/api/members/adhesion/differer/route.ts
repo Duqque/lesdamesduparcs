@@ -1,4 +1,4 @@
-import { membershipState, currentMembership, paymentOfMembership, payments, renewMembership, type Membership } from "@/lib/server/business";
+import { ADHESION_CAP_MESSAGE, adhesionCapStatus, hasPaidMembership, membershipState, currentMembership, paymentOfMembership, payments, renewMembership, type Membership } from "@/lib/server/business";
 import { sendTemplate } from "@/lib/server/email";
 import { json, siteOrigin, throttled, tooMany } from "@/lib/server/http";
 import { getSession } from "@/lib/server/session";
@@ -20,6 +20,7 @@ export async function POST(req: Request) {
   const state = await membershipState(member.id);
   if (state === "active") return json({ ok: true, state: "active" });
   if (state === "suspended" || state === "expelled") return json({ error: "Votre compte ne peut pas adhérer pour le moment : contactez l'association." }, 403);
+  if (!(await hasPaidMembership(member.id)) && (await adhesionCapStatus()).blocked) return json({ error: ADHESION_CAP_MESSAGE }, 403);
   let ms: Membership | null = await currentMembership(member.id);
   if (state === "expired" || state === "none" || !ms) ms = await renewMembership(member);
   const pay = ms ? await paymentOfMembership(ms.id) : null;

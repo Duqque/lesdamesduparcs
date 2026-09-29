@@ -61,6 +61,7 @@ export const ADMIN_NAV: NavGroup[] = [
   {
     label: "Site internet", icon: "globe", perm: "site.content", children: [
       { label: "Accueil", href: "/admin/site/accueil" },
+      { label: "Bannière flash", href: "/admin/site/flash" },
       { label: "Photos du groupe", href: "/admin/site/groupe" },
       { label: "Pages : affichage et maintenance", href: "/admin/site/pages" },
       { label: "Contenus des pages", href: "/admin/site/contenus" },

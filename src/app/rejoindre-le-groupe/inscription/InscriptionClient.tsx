@@ -41,7 +41,7 @@ const FIELD_OF: Record<string, string> = Object.fromEntries(Object.entries(ERR_M
 
 const kb = (n: number) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} Ko` : `${(n / 1024 / 1024).toFixed(1)} Mo`);
 
-export function InscriptionClient() {
+export function InscriptionClient({ capReached }: { capReached: boolean }) {
   const router = useRouter();
   const { session, refresh } = useAuth();
   const [step, setStep] = useState(0);
@@ -144,13 +144,16 @@ export function InscriptionClient() {
   }
 
   const alreadyMember = session.status === "member";
+  const full = !alreadyMember && capReached;
 
   return (
     <main className="mx-auto max-w-[860px] px-[var(--gutter)] pb-32 pt-[200px] md:pt-[250px]">
       <p className="t-eyebrow">Rejoindre le groupe</p>
       <h1 className="mt-4 t-h1">Devenir membre</h1>
       <p className="mt-5 max-w-xl text-mist t-lead">
-        Créez votre compte en quelques minutes : votre carte membre {membership.season}, son QR code de vérification et votre attestation PDF sont générés automatiquement.
+        {full
+          ? `Les adhésions pour la saison ${membership.season} sont actuellement complètes.`
+          : `Créez votre compte en quelques minutes : votre carte membre ${membership.season}, son QR code de vérification et votre attestation PDF sont générés automatiquement.`}
       </p>
 
       {alreadyMember ? (
@@ -159,6 +162,15 @@ export function InscriptionClient() {
             {session.membership === "expired" ? `Vous avez déjà un compte (carte ${session.memberNumber}) mais votre adhésion est terminée.` : session.membership === "pending" ? `Votre compte existe (carte ${session.memberNumber}), il reste à régler votre adhésion.` : `Vous êtes déjà membre, connectée avec la carte ${session.memberNumber}.`}
           </p>
           <Link href={session.membership === "expired" || session.membership === "pending" ? "/profil#adhesion" : "/profil"} className="mt-4 inline-block font-body text-[14px] text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">{session.membership === "expired" ? "Renouveler mon adhésion" : session.membership === "pending" ? "Finaliser mon adhésion" : "Ouvrir mon espace"}</Link>
+        </div>
+      ) : full ? (
+        <div className="mt-10 rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-7">
+          <p className="font-body text-[15.5px] leading-[1.7] text-white">
+            Les adhésions pour la saison {membership.season} sont actuellement complètes. Une nouvelle vague d&rsquo;adhésions ouvrira ultérieurement.
+          </p>
+          <p className="mt-3 font-body text-[15.5px] leading-[1.7] text-white">
+            Restez connectées à nos réseaux sociaux pour être informées de la réouverture. 🔴🔵
+          </p>
         </div>
       ) : (
         <>

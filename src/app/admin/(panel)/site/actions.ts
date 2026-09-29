@@ -41,6 +41,26 @@ export async function saveHomeContentAction(formData: FormData) {
   done("/admin/site/accueil", "Page d'accueil enregistrée.");
 }
 
+/** Bannière d'information au-dessus de l'en-tête, sur tout le site (message + date de validité). */
+export async function saveFlashAction(formData: FormData) {
+  const ctx = await requireAdmin("site.content");
+  const message = s(formData, "message");
+  const until = s(formData, "until");
+  const flash = message && until ? { message: message.slice(0, 300), until: new Date(until).toISOString() } : null;
+  await settings.set({ flash });
+  await audit(ctx, "modification", "bannière", flash ? "Bannière flash enregistrée" : "Bannière flash retirée");
+  refreshSite();
+  done("/admin/site/flash", flash ? "Bannière enregistrée." : "Bannière retirée.");
+}
+
+export async function clearFlashAction() {
+  const ctx = await requireAdmin("site.content");
+  await settings.set({ flash: null });
+  await audit(ctx, "modification", "bannière", "Bannière flash retirée");
+  refreshSite();
+  done("/admin/site/flash", "Bannière retirée.");
+}
+
 export async function moveSectionAction(key: string, dir: "up" | "down") {
   const ctx = await requireAdmin("site.structure");
   const home = (await siteConfig.get()).home;

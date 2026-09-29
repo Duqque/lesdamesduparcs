@@ -10,6 +10,7 @@ import { getMemberById, listAllRegistrations, listOrders, listStoredMembers, upd
 import { releaseStock } from "./shop";
 import { paymentConfigured, refundCheckout } from "./helloasso";
 import { getAllEventsAdmin } from "./events";
+import { settings } from "./admin-store";
 
 /* ---------- Formules d'adhésion ---------- */
 
@@ -185,6 +186,47 @@ export async function membershipState(memberId: string): Promise<MembershipState
   const pay = await paymentOfMembership(ms.id);
   if (!pay || pay.status === "paid") return "active";
   return pay.status === "pending" || pay.status === "failed" ? "pending" : "expired";
+}
+
+/* ---------- Plafond de la première vague d'adhésions ---------- */
+
+export const ADHESION_CAP_MESSAGE = "Les adhésions pour cette saison sont actuellement complètes. Une nouvelle vague d'adhésions ouvrira ultérieurement. Restez connectées à nos réseaux sociaux pour être informées de la réouverture. 🔴🔵";
+
+/** Une adhésion compte-t-elle encore ? Réglée (ou offerte), pas annulée. */
+const countsMembership = (m: Membership, payByMs: Map<string, Payment>) => m.status !== "cancelled" && (m.amountCents === 0 || payByMs.get(m.id)?.status === "paid");
+
+/** Une adhérente a-t-elle déjà réglé (ou obtenu gratuitement) au moins une adhésion, un jour ? Détermine si elle « renouvelle » (jamais bloquée par le plafond) ou « rejoint » (soumise au plafond). */
+export async function hasPaidMembership(memberId: string): Promise<boolean> {
+  const [ms, pays] = await Promise.all([membershipsOf(memberId), payments.all()]);
+  const payByMs = new Map(pays.filter((p): p is Payment & { membershipId: string } => Boolean(p.membershipId)).map((p) => [p.membershipId, p]));
+  return ms.some((m) => countsMembership(m, payByMs));
+}
+
+/**
+ * Nombre d'adhérentes distinctes ayant une adhésion « active » au sens du plafond : réglée ou offerte, ni annulée, ni le
+ * compte effacé (RGPD). Les adhésions annulées et les comptes supprimés libèrent leur place.
+ */
+export async function paidAdhesionCount(): Promise<number> {
+  const [ms, pays, members] = await Promise.all([memberships.all(), payments.all(), listStoredMembers()]);
+  const payByMs = new Map(pays.filter((p): p is Payment & { membershipId: string } => Boolean(p.membershipId)).map((p) => [p.membershipId, p]));
+  const liveMemberIds = new Set(members.filter((m) => m.status !== "anonymized").map((m) => m.id));
+  const ids = new Set(ms.filter((m) => liveMemberIds.has(m.memberId) && countsMembership(m, payByMs)).map((m) => m.memberId));
+  return ids.size;
+}
+
+/**
+ * État de la campagne d'adhésion en cours (Configuration > Adhésions) : sans campagne active, les nouvelles adhésions sont
+ * fermées. `remaining` (places restantes de CETTE campagne, indépendamment du nombre total d'adhérentes) n'a de sens que pour
+ * une campagne à places limitées ; jamais bloquant pour un renouvellement.
+ */
+export async function adhesionCapStatus() {
+  const { adhesions } = await settings.get();
+  const c = adhesions.campaign;
+  if (!c) return { blocked: true, campaign: null as null, remaining: 0 };
+  if (c.limit === null) return { blocked: false, campaign: c, remaining: null as number | null };
+  const count = await paidAdhesionCount();
+  const remaining = Math.max(0, c.limit - (count - c.baseline));
+  return { blocked: remaining <= 0, campaign: c, remaining };
 }
 
 let lastReinstate = 0;

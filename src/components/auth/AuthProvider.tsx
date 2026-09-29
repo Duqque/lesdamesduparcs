@@ -13,6 +13,8 @@ export type Session =
 
 interface AuthCtx {
   session: Session;
+  /** Plafond de la première vague d'adhésions (Configuration > Adhésions) : `null` tant que l'information n'est pas connue. */
+  capReached: boolean | null;
   refresh: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -26,17 +28,19 @@ export function useAuth() {
 }
 
 /** Par défaut, le visiteur n'est jamais connecté : la session est lue depuis un cookie signé côté serveur. */
-export function AuthProvider({ children, initial }: { children: ReactNode; initial?: Session }) {
+export function AuthProvider({ children, initial, initialCapReached }: { children: ReactNode; initial?: Session; initialCapReached?: boolean }) {
   // `initial` : la membre connectée est connue dès le rendu serveur, les appels à l'action d'adhésion n'apparaissent donc jamais à tort.
   const [session, setSession] = useState<Session>(initial ?? { status: "loading" });
+  const [capReached, setCapReached] = useState<boolean | null>(initialCapReached ?? null);
 
   const refresh = useCallback(async () => {
     try {
       const res = await fetch("/api/auth/session", { cache: "no-store" });
-      const data = (await res.json()) as { role: "anon" | "member" | "admin"; membership?: MembershipState } & Record<string, string>;
+      const data = (await res.json()) as { role: "anon" | "member" | "admin"; membership?: MembershipState; capReached?: boolean } & Record<string, string>;
       if (data.role === "member") setSession({ status: "member", firstName: data.firstName, lastName: data.lastName, email: data.email, memberNumber: data.memberNumber, membership: data.membership ?? "none" });
       else if (data.role === "admin") setSession({ status: "admin", firstName: data.firstName, lastName: data.lastName, email: data.email });
       else setSession({ status: "anon" });
+      setCapReached(Boolean(data.capReached));
     } catch {
       setSession({ status: "anon" });
     }
@@ -52,6 +56,6 @@ export function AuthProvider({ children, initial }: { children: ReactNode; initi
     void refresh();
   }, [refresh]);
 
-  const value = useMemo(() => ({ session, refresh, logout }), [session, refresh, logout]);
+  const value = useMemo(() => ({ session, capReached, refresh, logout }), [session, capReached, refresh, logout]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

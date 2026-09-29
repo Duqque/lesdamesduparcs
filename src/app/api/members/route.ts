@@ -6,7 +6,7 @@ import { hashPassword } from "@/lib/server/password";
 import { addMember, listMembers, type StoredMember } from "@/lib/server/store";
 import { MAX_AUTH_FILE_BYTES, generateMemberNumber, MAX_AUTH_FILES, isMinor, validateMember, type Guardian, type MemberInput } from "@/lib/members";
 import { seasonOf } from "@/lib/season";
-import { createMembership, defaultPlan } from "@/lib/server/business";
+import { ADHESION_CAP_MESSAGE, adhesionCapStatus, createMembership, defaultPlan } from "@/lib/server/business";
 import { sendTemplate } from "@/lib/server/email";
 
 const MAX_BODY = MAX_AUTH_FILES * MAX_AUTH_FILE_BYTES + 256 * 1024;
@@ -34,6 +34,8 @@ export async function POST(req: Request) {
   if (!(await authConfigured())) return json({ error: "L'authentification n'est pas disponible sur ce serveur." }, 503);
   if (await throttled(req, "signup", 8, 3_600_000)) return tooMany();
   if (Number(req.headers.get("content-length") ?? 0) > MAX_BODY) return json({ error: "Fichiers trop volumineux." }, 413);
+  // Plafond de la première vague (Configuration > Adhésions) : une nouvelle inscription compte toujours comme une nouvelle adhésion.
+  if ((await adhesionCapStatus()).blocked) return json({ error: ADHESION_CAP_MESSAGE }, 403);
 
   const form = await req.formData().catch(() => null);
   let raw: Record<string, unknown> | null = null;

@@ -103,7 +103,7 @@ export function Header({ navConfig }: { navConfig?: NavConfig }) {
     <>
       <header
         className={cn(
-          "fixed inset-x-0 top-0 z-50 hidden transition-[background-color,border-color] duration-300 lg:block",
+          "fixed inset-x-0 top-[var(--flash-h,0px)] z-50 hidden transition-[background-color,border-color] duration-300 lg:block",
           "lg:h-[var(--header-h)]",
           scrolled || open
             ? "border-b border-white/[0.07] bg-night-950/95"

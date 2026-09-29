@@ -17,7 +17,7 @@ import { settings } from "@/lib/server/admin-store";
 import { getPublicCatalog } from "@/lib/server/shop";
 import { getSession } from "@/lib/server/session";
 import { getMemberByNumber } from "@/lib/server/store";
-import { membershipState } from "@/lib/server/business";
+import { adhesionCapStatus, membershipState } from "@/lib/server/business";
 import type { Session } from "@/components/auth/AuthProvider";
 
 /**
@@ -55,6 +55,23 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const stored = s?.role === "member" ? await getMemberByNumber(s.memberNumber) : null;
   const initialSession: Session | undefined =
     s?.role === "member" ? { status: "member", firstName: s.firstName, lastName: s.lastName, email: s.email, memberNumber: s.memberNumber, membership: stored ? await membershipState(stored.id) : "none" } : undefined;
+  const capStatus = await adhesionCapStatus();
+  const initialCapReached = capStatus.blocked;
+  // Bannière : la campagne d'adhésion en cours (places restantes en direct) prime sur le message libre de l'administration.
+  const campaign = capStatus.campaign;
+  const campaignFlash = campaign
+    ? {
+        message:
+          campaign.limit === null
+            ? `Les adhésions « ${campaign.label} » sont ouvertes, sans limite de places !`
+            : capStatus.blocked
+              ? `Les adhésions « ${campaign.label} » sont complètes.`
+              : `Les adhésions « ${campaign.label} » sont ouvertes : ${capStatus.remaining} place${(capStatus.remaining ?? 0) > 1 ? "s" : ""} restante${(capStatus.remaining ?? 0) > 1 ? "s" : ""} !`,
+        id: campaign.startedAt,
+      }
+    : null;
+  const genericFlash = conf.flash && new Date(conf.flash.until) > new Date() ? { message: conf.flash.message, id: conf.flash.until } : null;
+  const flash = campaignFlash ?? genericFlash;
   return (
     <html lang="fr" className={`${geomini.variable} ${gothic.variable}`} suppressHydrationWarning>
       <head>
@@ -65,6 +82,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
         {accent && <style>{`:root{--color-psg-red:${accent};--color-psg-red-bright:${accent}}`}</style>}
+        {flash && <style>{`:root{--flash-h:44px}`}</style>}
         <noscript>
           <style>{".intro-root{display:none}"}</style>
         </noscript>
@@ -83,8 +101,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             photo={await errorPhotoFor(siteState.state === "maintenance" ? "maintenance" : "bientot-disponible")}
           />
         ) : (
-        <Providers shop={shop} initialSession={initialSession}>
-          <SiteFrame header={<Header navConfig={navConfig} />} footer={<Footer />} contactEmail={contactEmail}>
+        <Providers shop={shop} initialSession={initialSession} initialCapReached={initialCapReached}>
+          <SiteFrame header={<Header navConfig={navConfig} />} footer={<Footer />} contactEmail={contactEmail} flash={flash}>
             {children}
           </SiteFrame>
         </Providers>

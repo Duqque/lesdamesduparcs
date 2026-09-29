@@ -12,12 +12,12 @@ import type { ShopCatalog } from "@/lib/shop";
 import { featuredChant } from "@/data/chants";
 import { CustomCursor } from "./CustomCursor";
 
-export function Providers({ children, shop, initialSession }: { children: ReactNode; shop: ShopCatalog; initialSession?: Session }) {
+export function Providers({ children, shop, initialSession, initialCapReached }: { children: ReactNode; shop: ShopCatalog; initialSession?: Session; initialCapReached?: boolean }) {
   const admin = usePathname().startsWith("/admin");
   if (admin) return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
   return (
     <MotionConfig reducedMotion="user">
-      <AuthProvider initial={initialSession}>
+      <AuthProvider initial={initialSession} initialCapReached={initialCapReached}>
         <AudioProvider chant={featuredChant}>
           <ShopProvider catalog={shop}>
             <IntroLoader />

@@ -1,4 +1,4 @@
-import { type Membership, membershipState, currentMembership, paymentOfMembership, payments, renewMembership } from "@/lib/server/business";
+import { ADHESION_CAP_MESSAGE, type Membership, adhesionCapStatus, hasPaidMembership, membershipState, currentMembership, paymentOfMembership, payments, renewMembership } from "@/lib/server/business";
 import { startMembershipPayment } from "@/lib/server/checkout";
 import { paymentConfigured } from "@/lib/server/helloasso";
 import { json, readJson, throttled, tooMany } from "@/lib/server/http";
@@ -26,6 +26,8 @@ export async function POST(req: Request) {
   const state = await membershipState(member.id);
   if (state === "active") return json({ error: "Votre adhésion est déjà active." }, 409);
   if (state === "suspended" || state === "expelled") return json({ error: "Votre compte ne peut pas adhérer pour le moment : contactez l'association." }, 403);
+  // Plafond de la première vague : ne concerne jamais un renouvellement (adhérente ayant déjà réglé une adhésion, un jour).
+  if (!(await hasPaidMembership(member.id)) && (await adhesionCapStatus()).blocked) return json({ error: ADHESION_CAP_MESSAGE }, 403);
 
   let ms: Membership | null = await currentMembership(member.id);
   if (state === "expired" || state === "none" || !ms) ms = await renewMembership(member);

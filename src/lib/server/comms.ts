@@ -47,6 +47,25 @@ export async function recipientsFor(audience: string[]) {
   return [...out.values()];
 }
 
+/**
+ * Relance envoyée une fois à l'activation d'une campagne d'adhésion (Configuration > Adhésions) : tous les comptes créés
+ * mais sans adhésion active (jamais réglée, ou terminée), qui n'ont pas quitté la liste de diffusion.
+ */
+export async function sendAdhesionCampaignEmail(campaign: { label: string; limit: number | null }) {
+  const list = await recipientsFor(["expired"]);
+  if (!list.length) return { sent: 0, total: 0 };
+  const origin = await siteOrigin().catch(() => process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com");
+  const withUnsub = await Promise.all(list.map(async (r) => ({ email: r.email, firstName: r.firstName, unsubscribeUrl: `${origin}/desabonnement?t=${encodeURIComponent(await unsubscribeToken(r.id))}` })));
+  const places = campaign.limit !== null ? ` (${campaign.limit} places${campaign.limit > 1 ? "s" : ""})` : "";
+  const res = await sendBulk(withUnsub, {
+    subject: "Les adhésions sont ouvertes !",
+    kind: "campagne",
+    body: `Bonjour {{prenom}},\n\nLes adhésions Les Dames du Parc viennent de rouvrir${places} : c'est le moment de rejoindre officiellement la communauté !\n\nFinalisez votre adhésion dès maintenant depuis votre espace membre.`,
+    cta: { label: "Finaliser mon adhésion", url: `${origin}/rejoindre-le-groupe/paiement` },
+  });
+  return { sent: res.sent, total: list.length };
+}
+
 /** Envoi HTML d'une campagne : un e-mail personnalisé par personne, photo d'en-tête, photos, liens (boutons), désabonnement inclus. */
 async function sendCampaign(list: Array<{ id: string; email: string; firstName: string }>, c: Campaign) {
   let origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com";
