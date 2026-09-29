@@ -41,7 +41,7 @@ export function ChapterShell({ chapter, art, children, standalone }: Props) {
                 </span>
                 {standalone ? standalone.eyebrow : chapter.number ? `Chapitre ${chapter.number}` : "Pour finir"}
               </p>
-              <h1 id="chapitre-titre" className="mt-5 break-words text-balance font-display text-[clamp(32px,6vw,84px)] font-semibold uppercase leading-[1.02] tracking-[0.04em] text-white">
+              <h1 id="chapitre-titre" className="mt-5 break-words text-balance font-display text-[clamp(32px,6vw,64px)] font-semibold uppercase leading-[1.02] tracking-[0.04em] text-white">
                 {chapter.title}
               </h1>
               <p className="mt-6 max-w-[46ch] break-words text-white/80 t-lead">{chapter.sub}</p>

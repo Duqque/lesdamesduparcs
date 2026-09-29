@@ -294,7 +294,7 @@ html[data-intro-seen] .intro-root { display: none; }
 }
 @utility t-display {
   font-family: var(--font-display);
-  font-size: clamp(28px, 5.4vw, 84px);
+  font-size: clamp(28px, 5.4vw, 64px);
   font-weight: 400;
   text-transform: uppercase;
   line-height: 1;
@@ -304,7 +304,7 @@ html[data-intro-seen] .intro-root { display: none; }
 }
 @utility t-h1 {
   font-family: var(--font-display);
-  font-size: clamp(26px, 4vw, 56px);
+  font-size: clamp(26px, 4vw, 64px);
   font-weight: 400;
   text-transform: uppercase;
   line-height: 1.04;
