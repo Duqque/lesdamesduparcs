@@ -5,6 +5,7 @@ export interface GroupPhoto {
 }
 
 export const GROUP_SLOTS = [
+  { slug: "hero", label: "Qui sommes-nous : photo d'arrière-plan de l'en-tête" },
   { slug: "bento-1", label: "Qui sommes-nous : grande photo" },
   { slug: "bento-2", label: "Qui sommes-nous : photo secondaire" },
   { slug: "pourquoi", label: "Qui sommes-nous : bandeau entre « Notre histoire » et « Notre positionnement »" },
@@ -13,6 +14,7 @@ export const GROUP_SLOTS = [
 ] as const;
 
 export const DEFAULT_GROUP_PHOTOS: Record<string, GroupPhoto> = {
+  hero: { src: "/images/parc-des-princes-interieur.webp", alt: "Tribunes bleues et rouges du Parc des Princes" },
   "bento-1": { src: "/images/supportrices-parc-des-princes.webp", alt: "Supportrices du Paris Saint-Germain chantant dans les tribunes du Parc des Princes" },
   "bento-2": { src: "/images/tunnel-ici-cest-paris.webp", alt: "Le couloir des joueurs du Parc des Princes, « Ici c'est Paris »" },
   pourquoi: { src: "/images/identite-silhouette.webp", alt: "Silhouette d’une supportrice, écharpe levée, sur fond bleu nuit" },

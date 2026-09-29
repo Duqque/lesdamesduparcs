@@ -20,7 +20,7 @@ export default async function GroupPage() {
   const [photos, cms] = await Promise.all([getGroupPhotos(), getCms()]);
   return (
     <main className="overflow-x-clip">
-      <GroupHero title={cms.t("groupe.titre", "Les Dames\ndu Parc")} intro={cms.t("groupe.intro", groupe.hero.intro)} button={cms.t("groupe.bouton", groupe.hero.button)} />
+      <GroupHero title={cms.t("groupe.titre", "Les Dames\ndu Parc")} intro={cms.t("groupe.intro", groupe.hero.intro)} button={cms.t("groupe.bouton", groupe.hero.button)} image={photos.hero.src} imageAlt={photos.hero.alt} />
 
       <div className="py-24 md:py-32">
         <QuiSommesNousBody photos={photos} cms={cms} />
