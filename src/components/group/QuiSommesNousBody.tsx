@@ -102,14 +102,14 @@ export function QuiSommesNousBody({ photos }: { photos: Record<string, GroupPhot
 
       {/* Notre histoire */}
       <section id="origine" aria-labelledby="origine-titre" className={`${wrap} scroll-mt-32`}>
-        <Reveal className="max-w-2xl">
-          <p className="t-eyebrow">{g.origin.eyebrow}</p>
-          <h2 id="origine-titre" className={`${h2c} mt-4`}>{g.origin.title}</h2>
-        </Reveal>
-        <div className="mt-10 grid gap-10 md:grid-cols-[1.1fr_0.9fr] md:gap-16">
-          <div className="min-w-0 space-y-6">
+        <div className="mx-auto max-w-[760px] text-center">
+          <Reveal>
+            <p className="t-eyebrow">{g.origin.eyebrow}</p>
+            <h2 id="origine-titre" className={`${h2c} mt-4`}>{g.origin.title}</h2>
+          </Reveal>
+          <div className="mt-10 space-y-6 text-left">
             {g.origin.paragraphs.map((p) => (
-              <Reveal key={p}><p className={body}>{p}</p></Reveal>
+              <Reveal key={p}><p className={`${body} max-w-none`}>{p}</p></Reveal>
             ))}
           </div>
         </div>
