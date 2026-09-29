@@ -164,18 +164,19 @@ export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, Grou
       {/* Ce que nous voulons construire */}
       <section aria-labelledby="construire-titre" className={wrap}>
         <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
-          <Reveal className="min-w-0">
+          <Reveal className="flex min-w-0 flex-col">
             <p className="t-eyebrow">{g.build.eyebrow}</p>
             <h2 id="construire-titre" className={`${h2c} mt-4`}>{cms.t("groupe.construire.titre", g.build.title)}</h2>
-            <div className="mt-10 hidden md:block"><BentoPhoto photo={photos.construire} className="aspect-[4/5] w-full" /></div>
+            {/* Pas de ratio fixe : la photo prend exactement la hauteur des quatre cartes en face, jamais plus, jamais moins. */}
+            <div className="mt-10 hidden min-h-[220px] flex-1 md:block"><BentoPhoto photo={photos.construire} className="h-full w-full" /></div>
           </Reveal>
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <ul className="grid content-start grid-cols-1 gap-4 self-start sm:grid-cols-2">
             {g.build.items.map((b, i) => {
               const Icon = buildIcons[i] ?? Sparkles;
               return (
                 <li key={b.title} className="min-w-0">
-                  <Reveal delay={(i % 2) * 0.06} className="h-full">
-                    <div className={`${card} flex h-full flex-col gap-4 p-7`}>
+                  <Reveal delay={(i % 2) * 0.06}>
+                    <div className={`${card} flex flex-col gap-4 p-7`}>
                       <Icon aria-hidden className="size-7 text-psg-red-bright" strokeWidth={1.6} />
                       <h3 className="break-words font-display text-[19px] font-semibold uppercase tracking-[0.04em] text-white">{b.title}</h3>
                       <p className="break-words text-white/75 t-small">{b.text}</p>
