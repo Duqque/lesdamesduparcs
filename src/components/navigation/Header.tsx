@@ -82,7 +82,9 @@ export function Header({ navConfig }: { navConfig?: NavConfig }) {
   const apply = (items: typeof leftNav) =>
     applyNav(items, navConfig ?? { hidden: [], labels: {} }).flatMap((item) => {
       if (item.href !== "/rejoindre-le-groupe/inscription" || joinMode === "join") return [item];
-      if (joinMode === "hidden") return [];
+      // « full » (adhésions complètes) : jamais de lien actif vers le paiement, comme « hidden » — le bouton d'appel à
+      // l'action (JoinGate) porte déjà le message « Adhésions complètes » ailleurs sur la page.
+      if (joinMode === "hidden" || joinMode === "full") return [];
       return [{ ...item, href: ADHESION_HREF, label: JOIN_LABELS[joinMode] ?? item.label }];
     });
   const scrolled = useScrolled(24);

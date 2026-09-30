@@ -30,6 +30,7 @@ const gothic = localFont({ src: "../fonts/SpecialGothicExpandedOne-Regular.woff2
 export async function generateMetadata(): Promise<Metadata> {
   const site = await siteMeta();
   return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com"),
     title: { default: `${site.title} : plus qu'un groupe, une famille`, template: `%s · ${site.title}` },
     description: site.description || "Les Dames du Parc, communauté 100 % féminine de supportrices du Paris Saint-Germain : passion, partage, féminité. Au Parc des Princes et partout.",
     openGraph: { title: site.title, description: "Plus qu'un groupe, une famille. Supportrices du Paris Saint-Germain.", locale: "fr_FR", type: "website" },

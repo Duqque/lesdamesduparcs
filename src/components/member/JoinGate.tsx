@@ -46,7 +46,12 @@ export function JoinGate({ children }: { children: ReactElement<{ href?: string;
   const mode = useJoinMode();
   if (mode === "hidden") return null;
   if (!isValidElement(children)) return mode === "full" ? null : children;
-  if (mode === "full") return cloneElement(children, { href: undefined, disabled: true, children: JOIN_LABELS.full });
+  if (mode === "full") {
+    // Ne jamais retirer le `href` d'un <Link> ou <a> existant (cloneElement) : Next.js plante si un <Link> reçoit
+    // href=undefined. On rend un bouton neutre à la place, en reprenant juste la classe visuelle du composant enveloppé.
+    const { className } = children.props as { className?: string };
+    return <button type="button" disabled className={className}>{JOIN_LABELS.full}</button>;
+  }
   if (mode === "join") return children;
   const label = JOIN_LABELS[mode];
   return cloneElement(children, { href: ADHESION_HREF, ...(label ? { children: label } : {}) });
