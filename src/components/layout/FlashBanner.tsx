@@ -9,7 +9,8 @@ const KEY = "ddp-flash-dismissed";
 /**
  * Bannière d'information au-dessus de l'en-tête (place restantes d'une campagne d'adhésion, ou message libre publié depuis
  * Administration > Site internet > Bannière flash) : fond rouge, texte blanc en Special Gothic, défilant façon bandeau
- * d'actualité (deux copies du message dans un même rail, -50% ramène pile sur la seconde : boucle invisible). Se referme
+ * d'actualité (le message répété plusieurs fois par moitié, jamais de vide même sur un très grand écran ; les deux moitiés
+ * sont identiques, -50% ramène pile sur la seconde : boucle invisible). Se referme
  * avec la croix (mémorisé par visiteuse, par `id`) ; reparaît si `id` change (nouvelle campagne, nouveau message…), même si
  * le texte affiché change entre-temps (places restantes, mises à jour en direct). « Réduire les animations » : texte fixe,
  * centré, une seule copie. `--flash-h` (définie dans layout.tsx) décale l'en-tête et le contenu de sa hauteur.
@@ -39,15 +40,28 @@ export function FlashBanner({ message, id }: { message: string; id: string }) {
     } catch {}
   };
   const item = "font-display shrink-0 whitespace-nowrap px-6 text-[13px] uppercase tracking-[0.04em] text-white sm:text-[14px]";
+  // Répété plusieurs fois par moitié (pas juste une copie) : garantit qu'il n'y a jamais de vide, même sur un très grand écran
+  // ou avec un message court. Les deux moitiés sont identiques : -50% ramène pile sur la seconde, boucle invisible.
+  const REPEAT = 8;
+  const half = (
+    <div className="flex shrink-0 items-center">
+      {Array.from({ length: REPEAT }, (_, i) => (
+        <span key={i} className={item}>
+          {message} <span className="text-white/50">•</span>
+        </span>
+      ))}
+    </div>
+  );
   return (
     <div role="status" className="fixed inset-x-0 top-0 z-[70] h-11 overflow-hidden bg-psg-red">
       {reduce ? (
         <p className={`${item} flex h-11 items-center justify-center text-center`} style={{ fontFamily: "var(--font-display)" }}>{message}</p>
       ) : (
         <div className="absolute inset-y-0 left-0 right-11 flex items-center overflow-hidden">
-          <div className="flash-marquee-track flex shrink-0 items-center" style={{ fontFamily: "var(--font-display)" }}>
-            <span className={item}>{message}</span>
-            <span className={item} aria-hidden>{message}</span>
+          <span className="sr-only">{message}</span>
+          <div className="flash-marquee-track flex shrink-0 items-center" style={{ fontFamily: "var(--font-display)" }} aria-hidden>
+            {half}
+            {half}
           </div>
         </div>
       )}
