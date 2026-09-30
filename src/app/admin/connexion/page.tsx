@@ -9,7 +9,7 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
   const { reinit } = await searchParams;
   if (await getAdmin()) redirect("/admin");
   return (
-    <AuthCard title="Administration">
+    <AuthCard title="Administration" backToSite>
       <LoginForm reinit={reinit === "1"} />
     </AuthCard>
   );
