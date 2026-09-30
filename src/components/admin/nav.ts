@@ -19,6 +19,7 @@ export const ADMIN_NAV: NavGroup[] = [
   {
     label: "Adhérentes", icon: "users", perm: "members.view", children: [
       { label: "Toutes les adhérentes", href: "/admin/adherentes" },
+      { label: "Campagne d'adhésions", href: "/admin/adherentes/campagne", perm: "settings.edit" },
       { label: "Nouvelles adhésions", href: "/admin/adherentes?vue=nouvelles" },
       { label: "Renouvellements", href: "/admin/adherentes?vue=renouvellements" },
       { label: "Adhésions expirées", href: "/admin/adherentes?vue=expirees" },

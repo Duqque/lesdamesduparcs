@@ -57,19 +57,16 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     s?.role === "member" ? { status: "member", firstName: s.firstName, lastName: s.lastName, email: s.email, memberNumber: s.memberNumber, membership: stored ? await membershipState(stored.id) : "none" } : undefined;
   const capStatus = await adhesionCapStatus();
   const initialCapReached = capStatus.blocked;
-  // Bannière : la campagne d'adhésion en cours (places restantes en direct) prime sur le message libre de l'administration.
-  const campaign = capStatus.campaign;
-  const campaignFlash = campaign
-    ? {
-        message:
-          campaign.limit === null
-            ? `Les adhésions « ${campaign.label} » sont ouvertes, sans limite de places !`
-            : capStatus.blocked
-              ? `Les adhésions « ${campaign.label} » sont complètes.`
-              : `Les adhésions « ${campaign.label} » sont ouvertes : ${capStatus.remaining} place${(capStatus.remaining ?? 0) > 1 ? "s" : ""} restante${(capStatus.remaining ?? 0) > 1 ? "s" : ""} !`,
-        id: campaign.startedAt,
-      }
-    : null;
+  // Bannière : places restantes de la campagne d'adhésions en cours (en direct), prime sur le message libre de l'administration.
+  const campaignFlash = conf.adhesions.paused
+    ? { message: "Les adhésions sont actuellement en pause.", id: `paused:${conf.adhesions.limit}` }
+    : {
+        message: capStatus.blocked
+          ? "Les adhésions sont actuellement complètes."
+          : `Les adhésions sont ouvertes : ${capStatus.remaining} place${capStatus.remaining > 1 ? "s" : ""} restante${capStatus.remaining > 1 ? "s" : ""} !`,
+        id: `open:${conf.adhesions.limit}`,
+      };
+  // Le message libre (Site internet > Bannière flash) prend le relais uniquement si la bannière d'adhésions est un jour rendue facultative.
   const genericFlash = conf.flash && new Date(conf.flash.until) > new Date() ? { message: conf.flash.message, id: conf.flash.until } : null;
   const flash = campaignFlash ?? genericFlash;
   return (

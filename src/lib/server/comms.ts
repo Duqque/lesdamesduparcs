@@ -51,12 +51,12 @@ export async function recipientsFor(audience: string[]) {
  * Relance envoyée une fois à l'activation d'une campagne d'adhésion (Configuration > Adhésions) : tous les comptes créés
  * mais sans adhésion active (jamais réglée, ou terminée), qui n'ont pas quitté la liste de diffusion.
  */
-export async function sendAdhesionCampaignEmail(campaign: { label: string; limit: number | null }) {
+export async function sendAdhesionCampaignEmail(campaign: { label: string; limit: number }) {
   const list = await recipientsFor(["expired"]);
   if (!list.length) return { sent: 0, total: 0 };
   const origin = await siteOrigin().catch(() => process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com");
   const withUnsub = await Promise.all(list.map(async (r) => ({ email: r.email, firstName: r.firstName, unsubscribeUrl: `${origin}/desabonnement?t=${encodeURIComponent(await unsubscribeToken(r.id))}` })));
-  const places = campaign.limit !== null ? ` (${campaign.limit} places${campaign.limit > 1 ? "s" : ""})` : "";
+  const places = ` (${campaign.limit} places au total)`;
   const res = await sendBulk(withUnsub, {
     subject: "Les adhésions sont ouvertes !",
     kind: "campagne",

@@ -215,18 +215,16 @@ export async function paidAdhesionCount(): Promise<number> {
 }
 
 /**
- * État de la campagne d'adhésion en cours (Configuration > Adhésions) : sans campagne active, les nouvelles adhésions sont
- * fermées. `remaining` (places restantes de CETTE campagne, indépendamment du nombre total d'adhérentes) n'a de sens que pour
- * une campagne à places limitées ; jamais bloquant pour un renouvellement.
+ * État de la campagne d'adhésions (Adhérentes > Campagne d'adhésions) : ouvertes par défaut, jusqu'à `limit` adhésions
+ * réglées ou offertes au total ; `paused` les ferme entièrement, quel que soit le nombre. Jamais bloquant pour un
+ * renouvellement (voir hasPaidMembership). Augmenter `limit` rouvre aussitôt les adhésions.
  */
 export async function adhesionCapStatus() {
   const { adhesions } = await settings.get();
-  const c = adhesions.campaign;
-  if (!c) return { blocked: true, campaign: null as null, remaining: 0 };
-  if (c.limit === null) return { blocked: false, campaign: c, remaining: null as number | null };
+  if (adhesions.paused) return { blocked: true, limit: adhesions.limit, count: 0, remaining: 0 };
   const count = await paidAdhesionCount();
-  const remaining = Math.max(0, c.limit - (count - c.baseline));
-  return { blocked: remaining <= 0, campaign: c, remaining };
+  const remaining = Math.max(0, adhesions.limit - count);
+  return { blocked: remaining <= 0, limit: adhesions.limit, count, remaining };
 }
 
 let lastReinstate = 0;

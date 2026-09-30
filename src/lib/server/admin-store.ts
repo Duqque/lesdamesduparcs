@@ -78,17 +78,6 @@ export interface AssociationInfo {
   instagram: string; tiktok: string;
 }
 
-export interface AdhesionCampaign {
-  label: string;
-  /** null = illimité. */
-  limit: number | null;
-  startedAt: string;
-  /** Nombre d'adhésions déjà réglées au moment de l'activation : « places restantes » repart de zéro à chaque campagne. */
-  baseline: number;
-  /** Renseigné une fois le mail de relance envoyé aux comptes sans adhésion active (une seule fois par campagne). */
-  emailedAt?: string;
-  stoppedAt?: string;
-}
 
 export const DEFAULT_AUTOMATIONS = {
   welcome: true,
@@ -133,17 +122,17 @@ const settingsStore = singleton("settings", {
   emails: { fromName: "Les Dames du Parc", fromEmail: assoDefaults.email as string, signature: "Avec toute notre passion,\nLes Dames du Parc" },
   payments: { currency: "EUR", refundPolicy: "Remboursement sur demande, au cas par cas.", onlinePayment: true },
   /**
-   * campaign : campagne d'adhésion en cours (nouvelles adhérentes uniquement, jamais les renouvellements) — sans campagne active,
-   * les adhésions sont fermées. limit=null : illimité. baseline : nombre d'adhésions déjà réglées au moment de l'activation,
-   * pour que « places restantes » reparte de zéro à chaque campagne. pastCampaigns : historique, pour mémoire dans l'administration.
+   * paused/limit : campagne d'adhésions (Adhérentes > Campagne d'adhésions) — nouvelles adhérentes uniquement, jamais les
+   * renouvellements. Ouvertes par défaut (limit = 200) : `paused` les ferme totalement quel que soit le nombre ; sinon,
+   * bloquées automatiquement dès que `limit` est atteint (augmenter `limit` rouvre aussitôt).
    */
   adhesions: {
     seasonStartMonth: 9,
     renewalReminderDays: [30, 7],
     autoRenew: false,
     openToAll: true,
-    campaign: null as AdhesionCampaign | null,
-    pastCampaigns: [] as AdhesionCampaign[],
+    paused: false,
+    limit: 200,
   },
   /** Bannière d'information au-dessus de l'en-tête, sur tout le site ; absente ou expirée (until) = rien à afficher. */
   flash: null as { message: string; until: string } | null,

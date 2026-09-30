@@ -9,8 +9,6 @@ import { ROLE_LABELS, type Role } from "@/lib/admin/permissions";
 import { audit, createResetToken, logoutAllSessions, requireAdmin, requireFresh } from "@/lib/server/admin-auth";
 import { admins, resetRequests, settings } from "@/lib/server/admin-store";
 import { hashPassword } from "@/lib/server/password";
-import { paidAdhesionCount } from "@/lib/server/business";
-import { sendAdhesionCampaignEmail } from "@/lib/server/comms";
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const ROLES = Object.keys(ROLE_LABELS) as Role[];
@@ -116,41 +114,6 @@ export async function saveSettingsAction(section: "adhesions" | "payments" | "em
   await audit(ctx, "modification", "paramètres", `Paramètres « ${section} » modifiés`);
   revalidatePath("/", "layout");
   back("ok", "Paramètres enregistrés.", path);
-}
-
-/**
- * Active une campagne d'adhésion : ouvre les nouvelles adhésions (fermées sans campagne active), avec ou sans plafond de
- * places, et envoie une seule fois un mail de relance aux comptes déjà créés mais sans adhésion active. Remplace toute
- * campagne en cours (conservée dans l'historique).
- */
-export async function activateAdhesionCampaignAction(formData: FormData) {
-  const ctx = await requireAdmin("settings.edit");
-  const cur = await settings.get();
-  const label = s(formData, "label") || "Campagne d'adhésion";
-  const unlimited = formData.get("unlimited") === "on";
-  const limit = unlimited ? null : Math.max(1, Number(s(formData, "limit")) || 1);
-  const baseline = await paidAdhesionCount();
-  const campaign = { label, limit, startedAt: new Date().toISOString(), baseline };
-  const pastCampaigns = cur.adhesions.campaign ? [...cur.adhesions.pastCampaigns, { ...cur.adhesions.campaign, stoppedAt: new Date().toISOString() }] : cur.adhesions.pastCampaigns;
-  await settings.set({ adhesions: { ...cur.adhesions, campaign, pastCampaigns } });
-  const { sent, total } = await sendAdhesionCampaignEmail(campaign);
-  if (total) await settings.set({ adhesions: { ...cur.adhesions, campaign: { ...campaign, emailedAt: new Date().toISOString() }, pastCampaigns } });
-  await audit(ctx, "modification", "campagne", `Campagne d'adhésion activée : « ${label} »${limit ? ` (${limit} places)` : " (illimitée)"}`, { after: { sent, total } });
-  revalidatePath("/", "layout");
-  back("ok", total ? `Campagne activée, mail de relance envoyé à ${sent}/${total} compte${total > 1 ? "s" : ""}.` : "Campagne activée.", "/admin/configuration/adhesions");
-}
-
-/** Arrête la campagne en cours (conservée dans l'historique) : les nouvelles adhésions se referment. */
-export async function stopAdhesionCampaignAction() {
-  const ctx = await requireAdmin("settings.edit");
-  const cur = await settings.get();
-  if (cur.adhesions.campaign) {
-    const pastCampaigns = [...cur.adhesions.pastCampaigns, { ...cur.adhesions.campaign, stoppedAt: new Date().toISOString() }];
-    await settings.set({ adhesions: { ...cur.adhesions, campaign: null, pastCampaigns } });
-    await audit(ctx, "modification", "campagne", `Campagne d'adhésion arrêtée : « ${cur.adhesions.campaign.label} »`);
-  }
-  revalidatePath("/", "layout");
-  back("ok", "Campagne arrêtée : les adhésions sont refermées.", "/admin/configuration/adhesions");
 }
 
 /** Modèle de facture : numérotation, mention légale, signataire, tampon de l'association (photo) et signature. */
