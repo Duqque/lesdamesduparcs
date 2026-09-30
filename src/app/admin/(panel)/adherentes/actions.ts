@@ -18,6 +18,7 @@ import { cookies } from "next/headers";
 import { formatLongDate } from "@/lib/format";
 import { settings } from "@/lib/server/admin-store";
 import { revokeMemberSessions } from "@/lib/server/session";
+import { removePhoto, savePhoto } from "@/lib/server/photo";
 
 const s = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const back = (id: string, msg: { ok?: string; erreur?: string }) => redirect(`/admin/adherentes/${id}?${msg.ok ? `ok=${encodeURIComponent(msg.ok)}` : `erreur=${encodeURIComponent(msg.erreur!)}`}`);
@@ -438,6 +439,27 @@ export async function deleteProfileAction(id: string) {
   await audit(ctx, "suppression", "adhérente", `Profil supprimé : ${m.firstName} ${m.lastName} (${m.memberNumber})`, { entityId: id });
   revalidatePath("/admin/adherentes");
   redirect("/admin/adherentes?ok=" + encodeURIComponent(`Profil de ${m.firstName} ${m.lastName} supprimé.`));
+}
+
+/** Photo de profil facultative : dépôt, remplacement ou retrait depuis la fiche adhérente (déjà recadrée en 300×400 par le navigateur). */
+export async function setMemberPhotoAction(id: string, formData: FormData) {
+  const ctx = await requireAdmin("members.edit");
+  await requireFresh(ctx);
+  const m = await getMemberById(id);
+  if (!m) redirect("/admin/adherentes");
+  if (formData.get("remove") === "1") {
+    if (m.photo) await removePhoto(id);
+    await updateMember(id, { photo: undefined });
+    await audit(ctx, "modification", "adhérente", `Photo de profil retirée : ${m.firstName} ${m.lastName}`, { entityId: id });
+    back(id, { ok: "Photo retirée." });
+  }
+  const file = formData.get("photo");
+  if (!(file instanceof File) || file.size === 0) back(id, { erreur: "Aucune photo sélectionnée." });
+  const res = await savePhoto(id, file as File);
+  if (!res.ok) back(id, { erreur: res.error });
+  await updateMember(id, { photo: { updatedAt: new Date().toISOString() } });
+  await audit(ctx, "modification", "adhérente", `Photo de profil déposée : ${m.firstName} ${m.lastName}`, { entityId: id });
+  back(id, { ok: "Photo enregistrée." });
 }
 
 /**

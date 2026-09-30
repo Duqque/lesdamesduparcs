@@ -1,7 +1,7 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
 import { collection, type Row } from "./db";
-import { deleteBlob, authorizationKey } from "./blobs";
+import { deleteBlob, authorizationKey, photoKey } from "./blobs";
 import { memberships, payments, getTransactions } from "./business";
 import { contactMessages, emailLog } from "./content";
 import { revokeMemberSessions } from "./session";
@@ -106,6 +106,10 @@ export async function eraseMemberData(memberId: string): Promise<ErasureSummary 
 
   await revokeMemberSessions(m.id);
   await Promise.all(m.authorizations.map((f) => deleteBlob(authorizationKey(m.id, f.id))));
+  if (m.photo) {
+    await deleteBlob(photoKey(m.id));
+    summary.files++;
+  }
 
   for (const r of await listAllRegistrations()) {
     if (r.memberNumber !== oldNumber && r.email.toLowerCase() !== email) continue;
@@ -146,6 +150,7 @@ export async function eraseMemberData(memberId: string): Promise<ErasureSummary 
     address: { line1: "", postalCode: "", city: "", country: "" },
     guardian: undefined,
     authorizations: [],
+    photo: undefined,
     notes: undefined,
     status: "anonymized",
     passwordHash: "",

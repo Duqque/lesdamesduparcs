@@ -55,6 +55,8 @@ export interface MemberPublic {
   address: MemberAddress;
   guardian?: Guardian;
   authorizations: AuthorizationFile[];
+  /** Photo de profil facultative, portrait 300×400px (voir src/lib/server/photo.ts) ; absent = aucune photo déposée. */
+  photo?: { updatedAt: string };
   consents: MemberInput["consents"];
   /** ISO : date d'adhésion et fin de validité (fin de saison) */
   joinedAt: string;

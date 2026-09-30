@@ -11,6 +11,7 @@ import { formatEuros } from "@/lib/money";
 import { guardianRelations, isMinor } from "@/lib/members";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { PhotoCropField } from "@/components/member/PhotoCropField";
 
 const dateFr = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
@@ -110,6 +111,50 @@ function EmailPreference({ initial }: { initial: boolean }) {
   );
 }
 
+/** Photo de profil facultative (portrait 300×400, recadrée dans le navigateur) : ajoutée, changée ou retirée depuis « Mes informations ». */
+function PhotoSection({ member, refresh }: { member: MemberSpaceData["member"]; refresh: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function upload(file: File) {
+    setBusy(true);
+    setError(null);
+    try {
+      const body = new FormData();
+      body.append("photo", file);
+      const res = await fetch("/api/members/photo", { method: "POST", body });
+      const out = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) return setError(out?.error ?? "Impossible d'enregistrer la photo.");
+      refresh();
+    } catch {
+      setError("Impossible d'enregistrer la photo. Vérifiez votre connexion et réessayez.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/members/photo", { method: "DELETE" });
+      if (!res.ok) return setError("Impossible de retirer la photo.");
+      refresh();
+    } catch {
+      setError("Impossible de retirer la photo. Vérifiez votre connexion et réessayez.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mb-8">
+      <PhotoCropField previewUrl={member.photo ? `/api/members/${member.token}/photo?v=${encodeURIComponent(member.photo.updatedAt)}` : undefined} busy={busy} onPick={upload} onRemove={member.photo ? remove : undefined} />
+      {error && <p role="alert" className="mt-3 font-body text-[13px] text-red-300">{error}</p>}
+    </div>
+  );
+}
+
 /**
  * Espace Discord : jamais un simple lien à partager. Trois états possibles (cahier des charges, §16) : jamais connectée
  * (connexion OAuth2, qui vérifie l'adhésion côté serveur avant de rediriger vers Discord), connectée (pseudo affiché,
@@ -182,7 +227,7 @@ function DiscordSection({ discord, membershipActive, flash }: { discord: MemberS
 }
 
 function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; adhesion?: string; discordFlash?: string }) {
-  const data = useMemberData();
+  const { data, refresh } = useMemberData();
   const { session } = useAuth();
   const validated = session.status === "member" && session.membership === "active";
   if (!data) return <p className="mt-8 font-body text-mist">Chargement de votre espace…</p>;
@@ -318,6 +363,7 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
       </Section>
 
       <Section id="informations" title="Mes informations">
+        <PhotoSection member={member} refresh={refresh} />
         <dl className="divide-y divide-white/10 border-y border-white/10 font-body">
           {[
             ["Nom", `${member.firstName} ${member.lastName}`],

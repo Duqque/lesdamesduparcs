@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { MemberPublic } from "@/lib/members";
 
@@ -16,25 +16,25 @@ export interface MemberSpace {
   offers: Array<{ id: string; title: string; text: string; partner?: string; code?: string }>;
 }
 
-/** Fiche, carte, commandes et inscriptions de la membre connectée (null tant que non chargé ou si non connectée). */
+/** Fiche, carte, commandes et inscriptions de la membre connectée (data à null tant que non chargé ou si non connectée). `refresh` recharge après une modification (ex. photo de profil). */
 export function useMemberData() {
   const { session } = useAuth();
   const memberNumber = session.status === "member" ? session.memberNumber : null;
   const [state, setState] = useState<{ key: string; data: MemberSpace } | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!memberNumber) return;
-    let live = true;
     fetch("/api/members/me", { cache: "no-store" })
       .then((r) => (r.ok ? (r.json() as Promise<MemberSpace>) : null))
       .then((data) => {
-        if (live && data) setState({ key: memberNumber, data });
+        if (data) setState({ key: memberNumber, data });
       })
       .catch(() => undefined);
-    return () => {
-      live = false;
-    };
   }, [memberNumber]);
 
-  return memberNumber && state?.key === memberNumber ? state.data : null;
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  return { data: memberNumber && state?.key === memberNumber ? state.data : null, refresh: load };
 }

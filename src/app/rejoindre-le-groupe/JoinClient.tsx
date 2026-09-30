@@ -7,7 +7,7 @@ import { useMemberData } from "@/components/member/useMemberData";
 /** Carte d'exemple pour une visiteuse ; carte personnalisée (avec son vrai QR code) pour une membre connectée. */
 export function JoinClient({ season }: { season: string }) {
   const { session } = useAuth();
-  const data = useMemberData();
+  const { data } = useMemberData();
   const member = session.status === "member" ? session : null;
   return (
     <MembershipExperience

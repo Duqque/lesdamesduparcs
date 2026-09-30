@@ -43,3 +43,4 @@ export async function deleteBlob(key: string) {
 
 export const authorizationKey = (memberId: string, fileId: string) => `auth-${memberId}-${fileId}`;
 export const mediaKey = (id: string) => `media-${id}`;
+export const photoKey = (memberId: string) => `photo-${memberId}`;

@@ -18,7 +18,8 @@ import { invoices } from "@/lib/server/invoice";
 import { BirthDateInput } from "@/components/forms/BirthDateInput";
 import { LocalityGroup } from "@/components/forms/LocalityGroup";
 import { PhoneInput } from "@/components/forms/PhoneInput";
-import { addManualLineAction, deleteProfileAction, deleteTestProfileAction, sendMemberResetEmailAction, setMembershipDatesAction, validateMemberCardAction, addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
+import { PhotoCropField } from "@/components/member/PhotoCropField";
+import { addManualLineAction, deleteProfileAction, deleteTestProfileAction, sendMemberResetEmailAction, setMemberPhotoAction, setMembershipDatesAction, validateMemberCardAction, addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
 
 export const metadata = { title: "Fiche adhérente" };
 
@@ -87,6 +88,29 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <Panel title="Informations personnelles">
+          {pii && (
+            <div className="mb-6 border-b border-white/[0.08] pb-6">
+              {ctx.can("members.edit") && !anonymized ? (
+                <>
+                  <form action={setMemberPhotoAction.bind(null, id)}>
+                    <PhotoCropField name="photo" previewUrl={m.photo ? `/api/members/${m.token}/photo?v=${encodeURIComponent(m.photo.updatedAt)}` : undefined} />
+                    <SubmitButton variant="outline" className="mt-3">Enregistrer la photo</SubmitButton>
+                  </form>
+                  {m.photo && (
+                    <form action={setMemberPhotoAction.bind(null, id)} className="mt-2">
+                      <input type="hidden" name="remove" value="1" />
+                      <SubmitButton variant="danger" confirm="Retirer la photo de profil de cette personne ?">Retirer la photo</SubmitButton>
+                    </form>
+                  )}
+                </>
+              ) : (
+                m.photo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={`/api/members/${m.token}/photo?v=${encodeURIComponent(m.photo.updatedAt)}`} alt="" className="h-[106px] w-20 rounded-[10px] border border-white/[0.14] object-cover" />
+                )
+              )}
+            </div>
+          )}
           <form action={updateMemberAction.bind(null, id)} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Prénom"><input name="firstName" defaultValue={m.firstName} className={inp} disabled={anonymized} /></Field>
             <Field label="Nom"><input name="lastName" defaultValue={m.lastName} className={inp} disabled={anonymized} /></Field>

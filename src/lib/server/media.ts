@@ -17,7 +17,7 @@ const TYPES: Record<string, { ext: string; folder: MediaFile["folder"] }> = {
 };
 
 /** Contrôle du contenu réel du fichier (et non de son nom) : évite de déposer autre chose qu'une image, une vidéo ou un PDF. */
-function sniff(b: Buffer): string | null {
+export function sniff(b: Buffer): string | null {
   if (b.length < 12) return null;
   if (b[0] === 0xff && b[1] === 0xd8) return "image/jpeg";
   if (b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return "image/png";
@@ -31,7 +31,7 @@ function sniff(b: Buffer): string | null {
   return null;
 }
 
-function dimensions(b: Buffer, mime: string): { width?: number; height?: number } {
+export function dimensions(b: Buffer, mime: string): { width?: number; height?: number } {
   try {
     if (mime === "image/png") return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
     if (mime === "image/gif") return { width: b.readUInt16LE(6), height: b.readUInt16LE(8) };

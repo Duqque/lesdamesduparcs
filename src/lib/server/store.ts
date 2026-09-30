@@ -1,7 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { listStore, locked } from "./db";
-import { authorizationKey, deleteBlob, putBlob } from "./blobs";
+import { authorizationKey, deleteBlob, photoKey, putBlob } from "./blobs";
 import type { MemberPublic } from "@/lib/members";
 import type { Registration } from "@/lib/registration";
 
@@ -180,12 +180,14 @@ export const anonymizeMember = (id: string) =>
       address: { line1: "", postalCode: "", city: "", country: "" },
       guardian: undefined,
       authorizations: [],
+      photo: undefined,
       notes: undefined,
       status: "anonymized",
       passwordHash: "",
     };
     await membersStore.upsert(next);
     await Promise.all(m.authorizations.map((f) => deleteBlob(authorizationKey(m.id, f.id))));
+    if (m.photo) await deleteBlob(photoKey(m.id));
     return next;
   });
 
@@ -213,6 +215,7 @@ export const deleteMemberHard = (id: string) =>
     const m = await membersStore.get(id);
     if (!m) return false;
     await Promise.all(m.authorizations.map((f) => deleteBlob(authorizationKey(m.id, f.id))));
+    if (m.photo) await deleteBlob(photoKey(m.id));
     await membersStore.remove(id);
     return true;
   });
