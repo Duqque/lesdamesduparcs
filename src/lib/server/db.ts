@@ -109,28 +109,40 @@ export function collection<T extends Row>(name: string, seed?: () => Array<Omit<
       : undefined,
   );
   const read = () => store.read();
+
+  /**
+   * Variantes « Unlocked » : mêmes opérations, mais sans acquérir `locked()` — réservées à un appelant qui détient
+   * déjà le verrou (ex. src/lib/server/discord/store.ts::linkDiscordAccount). Les utiliser hors d'un `locked()` déjà
+   * actif retire la protection contre les accès concurrents ; les méthodes publiques ci-dessous restent le seul
+   * point d'entrée normal.
+   */
+  const insertUnlocked = async (data: Omit<T, keyof Row> & Partial<Row>) => {
+    const t = nowIso();
+    const row = { id: newId(), createdAt: t, updatedAt: t, ...data } as T;
+    if (sqlEnabled()) await store.get(row.id); // initialise le jeu de départ éventuel
+    await store.upsert(row);
+    return row;
+  };
+  const updateUnlocked = async (id: string, patch: Partial<Omit<T, "id" | "createdAt">>) => {
+    const cur = await store.get(id);
+    if (!cur) return null;
+    const next = { ...cur, ...patch, updatedAt: nowIso() } as T;
+    await store.upsert(next);
+    return next;
+  };
+  const removeUnlocked = (id: string) => store.remove(id);
+
   return {
     all: () => read(),
     get: (id: string) => store.get(id),
     find: (pred: (x: T) => boolean) => read().then((r) => r.filter(pred)),
     findOne: (pred: (x: T) => boolean) => read().then((r) => r.find(pred) ?? null),
-    insert: (data: Omit<T, keyof Row> & Partial<Row>) =>
-      locked(async () => {
-        const t = nowIso();
-        const row = { id: newId(), createdAt: t, updatedAt: t, ...data } as T;
-        if (sqlEnabled()) await store.get(row.id); // initialise le jeu de départ éventuel
-        await store.upsert(row);
-        return row;
-      }),
-    update: (id: string, patch: Partial<Omit<T, "id" | "createdAt">>) =>
-      locked(async () => {
-        const cur = await store.get(id);
-        if (!cur) return null;
-        const next = { ...cur, ...patch, updatedAt: nowIso() } as T;
-        await store.upsert(next);
-        return next;
-      }),
-    remove: (id: string) => locked(() => store.remove(id)),
+    insert: (data: Omit<T, keyof Row> & Partial<Row>) => locked(() => insertUnlocked(data)),
+    insertUnlocked,
+    update: (id: string, patch: Partial<Omit<T, "id" | "createdAt">>) => locked(() => updateUnlocked(id, patch)),
+    updateUnlocked,
+    remove: (id: string) => locked(() => removeUnlocked(id)),
+    removeUnlocked,
     /** Modification atomique de toute la collection (ex. purge, réordonnancement). */
     mutate: (fn: (rows: T[]) => T[]) =>
       locked(async () => {

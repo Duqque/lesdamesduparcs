@@ -143,14 +143,15 @@ export const listAllRegistrations = () => readAll();
 export const listOrders = () => readOrders();
 export const listStoredMembers = () => readMembers();
 
-export const updateMember = (id: string, patch: Partial<StoredMember>) =>
-  locked(async () => {
-    const cur = await membersStore.get(id);
-    if (!cur) return null;
-    const next = { ...cur, ...patch };
-    await membersStore.upsert(next);
-    return next;
-  });
+/** Sans `locked()` : réservée à un appelant qui détient déjà le verrou (ex. discord/store.ts::linkDiscordAccount). */
+export const updateMemberUnlocked = async (id: string, patch: Partial<StoredMember>) => {
+  const cur = await membersStore.get(id);
+  if (!cur) return null;
+  const next = { ...cur, ...patch };
+  await membersStore.upsert(next);
+  return next;
+};
+export const updateMember = (id: string, patch: Partial<StoredMember>) => locked(() => updateMemberUnlocked(id, patch));
 
 export const getMemberById = (id: string) => membersStore.get(id);
 
