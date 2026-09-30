@@ -124,15 +124,15 @@ export function FlipScene({ p }: SceneProps) {
 /* ---------- 4 · Avantages : orbite qui ne croise jamais la carte ---------- */
 
 const MOBILE_SLOTS = [
-  { x: -22, y: -22 },
-  { x: 22, y: -22 },
-  { x: -22, y: 22 },
-  { x: 22, y: 22 },
+  { x: 0, y: -24 },
+  { x: -24, y: 20 },
+  { x: 24, y: 20 },
 ];
 
 function Satellite({ p, desk, i }: SceneProps & { i: number }) {
   const item = benefits[i];
-  const angle = useTransform(p, (v) => ((i * 90 - 90 + (v - 0.43) * 520) * Math.PI) / 180);
+  const step = 360 / benefits.length;
+  const angle = useTransform(p, (v) => ((i * step - 90 + (v - 0.43) * 520) * Math.PI) / 180);
   const vis = useWindow(p, 0.43 + i * 0.005, 0.465 + i * 0.005, 0.545, 0.58);
   const x = useTransform([angle, desk], ([a, k]) => `${(k as number) ? Math.cos(a as number) * 36 : MOBILE_SLOTS[i].x}vw`);
   const y = useTransform([angle, desk], ([a, k]) => `${(k as number) ? Math.sin(a as number) * 30 : MOBILE_SLOTS[i].y}svh`);
@@ -153,8 +153,8 @@ function Satellite({ p, desk, i }: SceneProps & { i: number }) {
 export function BenefitsScene({ p, desk }: SceneProps) {
   return (
     <>
-      {[0, 1, 2, 3].map((i) => (
-        <Satellite key={i} p={p} desk={desk} i={i} />
+      {benefits.map((item, i) => (
+        <Satellite key={item.id} p={p} desk={desk} i={i} />
       ))}
     </>
   );

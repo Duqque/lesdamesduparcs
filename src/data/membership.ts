@@ -10,7 +10,6 @@ export const membership = {
 /** Avantages de l'adhésion (proposition 2026-2027). */
 export const benefits = [
   { id: "events", kicker: "Événements", big: "Accès membres", sub: "soirées, afterworks, matchs" },
-  { id: "priority", kicker: "Inscriptions", big: "Priorité", sub: "avant l’ouverture à toutes" },
   { id: "card", kicker: "Carte", big: "Virtuelle", sub: "avec son QR code" },
   { id: "private", kicker: "Espace privé", big: "Entre membres", sub: "annonces et échanges" },
 ] as const;
