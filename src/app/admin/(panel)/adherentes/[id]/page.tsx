@@ -18,7 +18,7 @@ import { invoices } from "@/lib/server/invoice";
 import { BirthDateInput } from "@/components/forms/BirthDateInput";
 import { LocalityGroup } from "@/components/forms/LocalityGroup";
 import { PhoneInput } from "@/components/forms/PhoneInput";
-import { addManualLineAction, deleteProfileAction, sendMemberResetEmailAction, setMembershipDatesAction, validateMemberCardAction, addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
+import { addManualLineAction, deleteProfileAction, deleteTestProfileAction, sendMemberResetEmailAction, setMembershipDatesAction, validateMemberCardAction, addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
 
 export const metadata = { title: "Fiche adhérente" };
 
@@ -240,6 +240,9 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
             {ctx.can("members.export") && !anonymized && <a href={`/admin/export/membre/${id}`} className={btn.outline}><Download aria-hidden className="size-4" /> Exporter ses données</a>}
             {(ctx.can("members.delete") || ctx.can("privacy.manage")) && !anonymized && (
               <form action={anonymizeMemberAction.bind(null, id)}><SubmitButton variant="danger" confirm="Effacer définitivement les données de cette personne ? Fiche, coordonnées, pièces jointes, inscriptions et commandes sont rendues anonymes (seules les pièces comptables sont conservées). Cette action est irréversible.">Effacer les données (RGPD)</SubmitButton></form>
+            )}
+            {ctx.admin.role === "super" && !anonymized && row.kind !== "profil" && (
+              <form action={deleteTestProfileAction.bind(null, id)}><SubmitButton variant="danger" confirm="Supprimer ce compte comme s'il n'avait jamais existé, y compris ses paiements marqués payés ? Réservé aux comptes de test : pour une vraie adhérente, utilisez plutôt « Effacer les données (RGPD) », qui conserve les pièces comptables. Cette action est irréversible.">Supprimer (compte de test)</SubmitButton></form>
             )}
           </div>
         </div>

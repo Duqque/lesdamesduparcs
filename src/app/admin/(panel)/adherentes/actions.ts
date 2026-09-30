@@ -439,3 +439,25 @@ export async function deleteProfileAction(id: string) {
   revalidatePath("/admin/adherentes");
   redirect("/admin/adherentes?ok=" + encodeURIComponent(`Profil de ${m.firstName} ${m.lastName} supprimé.`));
 }
+
+/**
+ * Suppression définitive d'un compte de test, y compris ses paiements marqués « payés » : contrairement à `deleteProfileAction`,
+ * ignore la protection comptable (une vraie adhérente passe par l'effacement RGPD, qui conserve les pièces comptables).
+ * Réservée au rôle « super » : ne jamais utiliser sur une vraie adhérente.
+ */
+export async function deleteTestProfileAction(id: string) {
+  const ctx = await requireAdmin("members.delete");
+  if (ctx.admin.role !== "super") redirect("/admin/acces-refuse");
+  await requireFresh(ctx);
+  const m = await getMemberById(id);
+  if (!m) redirect("/admin/adherentes");
+  const list = await memberships.find((x) => x.memberId === id);
+  const pays = await payments.find((p) => p.memberNumber === m.memberNumber);
+  for (const x of list) await memberships.remove(x.id);
+  for (const p of pays) await payments.remove(p.id);
+  await revokeMemberSessions(id);
+  await deleteMemberHard(id);
+  await audit(ctx, "suppression", "adhérente", `Compte de test supprimé (dont paiements) : ${m.firstName} ${m.lastName} (${m.memberNumber})`, { entityId: id });
+  revalidatePath("/admin/adherentes");
+  redirect("/admin/adherentes?ok=" + encodeURIComponent(`Compte de test de ${m.firstName} ${m.lastName} supprimé.`));
+}
