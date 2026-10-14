@@ -125,7 +125,7 @@ const dashed = (c: Ctx, top: number) => c.page.drawLine({ start: { x: 40, y: y(t
 function footer(c: Ctx, asso: Asso) {
   c.page.drawLine({ start: { x: 40, y: y(768) }, end: { x: W - 40, y: y(768) }, thickness: 0.6, color: GREY });
   const line1 = `${asso.legalName.toUpperCase()} - ${asso.address} - ${asso.postalCode} ${asso.city.toUpperCase()}`;
-  const line2 = `SIRET ${asso.siret} - ${asso.form} - RNA ${asso.rna} - Tél : ${asso.phone} - ${asso.website} - ${asso.email}`;
+  const line2 = `SIRET ${asso.siret} - ${asso.form} - RNA ${asso.rna} - ${asso.phone ? `Tél : ${asso.phone} - ` : ""}${asso.website} - ${asso.email}`;
   text(c, line1, W / 2, 778, 7.5, { align: "center", color: BLUE });
   text(c, line2, W / 2, 790, 7.5, { align: "center", color: BLUE });
   text(c, "Coordonnées et numéros fictifs, à remplacer par les informations officielles de l'association.", W / 2, 806, 6.5, { align: "center", color: GREY, font: c.oblique });

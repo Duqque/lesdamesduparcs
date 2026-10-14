@@ -19,14 +19,14 @@ export default async function MentionsLegalesPage() {
           body: (
             <>
               <Ul>
-                <li><strong className="text-white">Dénomination :</strong> {v(a.legalName || a.name)} (« {a.name} »)</li>
+                <li><strong className="text-white">Dénomination :</strong> {v(a.legalName || a.name)}{a.legalName && a.legalName !== a.name ? ` (« ${a.name} »)` : ""}</li>
                 <li><strong className="text-white">Forme juridique :</strong> {v(a.form)}</li>
                 <li><strong className="text-white">Siège social :</strong> {fullAddress}</li>
                 <li><strong className="text-white">SIRET :</strong> {v(a.siret)}</li>
                 <li><strong className="text-white">N° RNA :</strong> {v(a.rna)}</li>
                 <li><strong className="text-white">Adresse e-mail :</strong> {v(a.email)}</li>
-                <li><strong className="text-white">Téléphone :</strong> {v(a.phone)}</li>
-                <li><strong className="text-white">Directrice de la publication :</strong> {v(a.president)}{a.presidentTitle ? `, ${a.presidentTitle}` : ""}</li>
+                {a.phone && <li><strong className="text-white">Téléphone :</strong> {a.phone}</li>}
+                <li><strong className="text-white">Directrice de la publication :</strong> {v(a.publicationDirector)}</li>
               </Ul>
             </>
           ),
@@ -39,6 +39,7 @@ export default async function MentionsLegalesPage() {
               <Ul>
                 <li><strong className="text-white">Société :</strong> {HOST.name}</li>
                 <li><strong className="text-white">Adresse :</strong> {HOST.address}</li>
+                <li><strong className="text-white">Téléphone :</strong> {HOST.phone}</li>
                 <li><strong className="text-white">Numéro d&rsquo;identification des entreprises (IDE / TVA) :</strong> {HOST.id}</li>
                 <li><strong className="text-white">Site :</strong> <A href={HOST.site}>{HOST.site.replace("https://", "")}</A></li>
               </Ul>

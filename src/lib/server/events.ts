@@ -1,9 +1,9 @@
 import "server-only";
 import { events as seedEvents, pastEvents as seedPast, watchParties as seedWatchParties } from "@/data/events";
 import type { ClubEvent } from "@/types";
-import { collection, singleton, type Row } from "./db";
+import { collection, type Row } from "./db";
 import { listAllRegistrations } from "./store";
-import { auditLog } from "./admin-store";
+import { auditLog, dataMigrations } from "./admin-store";
 
 export type EventRow = ClubEvent & Row & { origin?: "seed" };
 
@@ -24,7 +24,6 @@ const today = () => new Date().toISOString().slice(0, 10);
  * déjà publiés sont retirés du site (archivés s'ils ont des inscriptions, comme depuis le back-office, sinon supprimés),
  * puis les soirées confirmées du document (src/data/events.ts, watchParties) sont publiées ou remises à jour.
  */
-const dataMigrations = singleton("data_migrations", { done: [] as string[] });
 const WATCH_PARTIES_2026_10 = "calendrier-watch-parties-2026-10";
 let migrating: Promise<void> | null = null;
 

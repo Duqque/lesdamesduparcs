@@ -10,7 +10,7 @@ export const metadata = { title: "Données de l'association" };
 const FIELDS: Array<[string, string]> = [
   ["name", "Nom"], ["legalName", "Dénomination légale"], ["form", "Forme juridique"], ["siret", "SIRET"], ["rna", "Numéro RNA"],
   ["address", "Adresse"], ["postalCode", "Code postal"], ["city", "Ville"], ["phone", "Téléphone"], ["email", "E-mail de contact"],
-  ["website", "Site internet"], ["president", "Présidente"], ["presidentTitle", "Fonction de la signataire"],
+  ["website", "Site internet"], ["president", "Présidente"], ["presidentTitle", "Fonction de la signataire"], ["publicationDirector", "Directrice de la publication"],
   ["instagram", "Instagram (adresse)"], ["tiktok", "TikTok (adresse)"],
 ];
 
@@ -20,7 +20,7 @@ export default async function AssociationPage({ searchParams }: { searchParams: 
   const { association } = await settings.get();
   return (
     <>
-      <PageHeader title="Données de l'association" subtitle="Ces informations apparaissent sur l'attestation d'adhésion PDF, la page de vérification et le pied de page. Les valeurs de départ sont fictives : renseignez les vraies." />
+      <PageHeader title="Données de l'association" subtitle="Ces informations apparaissent sur l'attestation d'adhésion PDF, la page de vérification et le pied de page. La directrice de la publication figure dans les mentions légales." />
       <Flash ok={first(sp.ok)} error={first(sp.erreur)} />
       <Panel>
         <form action={saveSettingsAction.bind(null, "association")} className="grid grid-cols-1 gap-4 sm:grid-cols-2">

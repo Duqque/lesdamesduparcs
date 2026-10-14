@@ -1,5 +1,5 @@
 import "server-only";
-import { settings, type AssociationInfo } from "./admin-store";
+import { applyLegalInfoOnce, settings, type AssociationInfo } from "./admin-store";
 import { TBD } from "@/lib/legal-info";
 
 export interface LegalContext {
@@ -12,6 +12,7 @@ export interface LegalContext {
 }
 
 export async function getLegalContext(): Promise<LegalContext> {
+  await applyLegalInfoOnce();
   const conf = await settings.get();
   const a = conf.association;
   const v = (value?: string) => (value && value.trim() ? value.trim() : `[${TBD}]`);

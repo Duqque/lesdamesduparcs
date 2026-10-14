@@ -75,6 +75,8 @@ export const auditLog = collection<AuditEntry>("audit_log");
 export interface AssociationInfo {
   name: string; legalName: string; form: string; siret: string; rna: string; address: string; postalCode: string; city: string;
   phone: string; email: string; website: string; president: string; presidentTitle: string;
+  /** Directrice de la publication (mentions légales). */
+  publicationDirector: string;
   instagram: string; tiktok: string;
 }
 
@@ -115,6 +117,7 @@ const settingsStore = singleton("settings", {
     website: assoDefaults.website,
     president: assoDefaults.president,
     presidentTitle: assoDefaults.presidentTitle,
+    publicationDirector: assoDefaults.publicationDirector,
     instagram: "https://www.instagram.com/lesdamesduparc/",
     tiktok: "https://www.tiktok.com/@lesdamesduparc",
   },
@@ -151,8 +154,49 @@ export const settings = {
   ...settingsStore,
   get: async () => {
     const s = await settingsStore.get();
-    return { ...s, automations: { ...DEFAULT_AUTOMATIONS, ...s.automations } };
+    // Champs ajoutés après coup (ex. directrice de la publication) : valeur par défaut tant qu'ils n'ont pas été enregistrés.
+    return { ...s, association: { ...s.association, publicationDirector: s.association.publicationDirector ?? assoDefaults.publicationDirector }, automations: { ...DEFAULT_AUTOMATIONS, ...s.automations } };
   },
 };
+
+/** Mises à jour ponctuelles des données, appliquées une seule fois (repérées par leur nom). */
+export const dataMigrations = singleton("data_migrations", { done: [] as string[] });
+
+const LEGAL_2026_10 = "infos-legales-sirene-2026-10";
+let legalMigration: Promise<void> | null = null;
+
+/**
+ * « infos-legales-sirene-2026-10 » : identité légale de l'association reprise de l'avis de situation SIRENE (SIRET, RNA,
+ * siège), adresse de contact et directrice de la publication. Les valeurs fictives de départ (téléphone, présidente) sont
+ * effacées ; une valeur réelle déjà saisie dans l'administration est conservée.
+ * À appeler hors de tout verrou (rendu d'une page), jamais depuis settings.get().
+ */
+export function applyLegalInfoOnce() {
+  legalMigration ??= (async () => {
+    const { done } = await dataMigrations.get();
+    if (done.includes(LEGAL_2026_10)) return;
+    const cur = (await settingsStore.get()).association;
+    await settingsStore.set({
+      association: {
+        ...cur,
+        legalName: assoDefaults.legalName,
+        siret: assoDefaults.siret,
+        rna: assoDefaults.rna,
+        address: assoDefaults.address,
+        postalCode: assoDefaults.postalCode,
+        city: assoDefaults.city,
+        email: assoDefaults.email,
+        publicationDirector: assoDefaults.publicationDirector,
+        phone: cur.phone === "01 23 45 67 89" ? "" : cur.phone,
+        president: cur.president === "Camille Fictive" ? "" : cur.president,
+      },
+    });
+    await dataMigrations.set({ done: [...done, LEGAL_2026_10] });
+  })().catch((err) => {
+    legalMigration = null;
+    console.error("[paramètres] mise à jour des informations légales impossible", err);
+  });
+  return legalMigration;
+}
 
 export type Settings = Awaited<ReturnType<typeof settings.get>>;

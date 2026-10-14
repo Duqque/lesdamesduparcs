@@ -1,16 +1,17 @@
-/** Informations légales de l'association. Valeurs FICTIVES : à remplacer par les coordonnées réelles. */
+/** Informations légales de l'association (avis de situation SIRENE du 29/09/2026). Modifiables dans Configuration > Données de l'association. */
 export const association = {
   name: "Les Dames du Parc",
-  legalName: "Association Les Dames du Parc",
+  legalName: "Les Dames du Parc",
   form: "Association loi 1901",
-  siret: "123 456 789 00012",
-  rna: "W751234567",
-  address: "12 rue des Supportrices",
-  postalCode: "75016",
-  city: "Paris",
-  phone: "01 23 45 67 89",
+  siret: "130 704 109 00011",
+  rna: "W922023737",
+  address: "9 quai Aulagnier",
+  postalCode: "92600",
+  city: "Asnières-sur-Seine",
+  phone: "",
   email: "contact@lesdamesduparc.com",
   website: "lesdamesduparc.com",
-  president: "Camille Fictive",
+  president: "",
   presidentTitle: "Présidente",
+  publicationDirector: "Bénédicte Ndeke Mukunay",
 } as const;
