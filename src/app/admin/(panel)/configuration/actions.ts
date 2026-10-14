@@ -171,3 +171,13 @@ export async function resetRolePermissionsAction() {
   revalidatePath("/admin", "layout");
   back("ok", "Permissions d'origine rétablies.", "/admin/configuration/roles");
 }
+
+/** Teste la chaîne de paiement HelloAsso et affiche le résultat de chaque étape sur la page Paiements. */
+export async function testHelloAssoAction() {
+  const ctx = await requireAdmin("settings.edit");
+  const { diagnoseHelloAsso } = await import("@/lib/server/helloasso/diagnose");
+  const { siteOrigin } = await import("@/lib/server/http");
+  const steps = await diagnoseHelloAsso(await siteOrigin());
+  await audit(ctx, "test", "paiements", `Test de la connexion HelloAsso : ${steps.every((st) => st.ok) ? "réussi" : `échec à l'étape « ${steps.find((st) => !st.ok)?.label} »`}`);
+  redirect(`/admin/configuration/paiements?diag=${Buffer.from(JSON.stringify(steps)).toString("base64url")}`);
+}

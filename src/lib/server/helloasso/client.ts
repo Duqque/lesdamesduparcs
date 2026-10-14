@@ -31,7 +31,9 @@ export async function haFetch<T>(pathname: string, init?: { method?: string; bod
       return haFetch<T>(pathname, init, true);
     }
     const d = data as { message?: string; errors?: Array<{ code?: string; message?: string }> } | null;
-    throw new HelloAssoError(d?.errors?.[0]?.message ?? d?.message ?? `Erreur HelloAsso (${res.status}).`, res.status, d?.errors?.[0]?.code);
+    // Tous les messages renvoyés (HelloAsso en liste souvent plusieurs, un par champ refusé).
+    const messages = (d?.errors ?? []).map((e) => e.message).filter(Boolean).join(" · ");
+    throw new HelloAssoError(messages || d?.message || text.slice(0, 300) || `Erreur HelloAsso (${res.status}).`, res.status, d?.errors?.[0]?.code);
   }
   return data as T;
 }

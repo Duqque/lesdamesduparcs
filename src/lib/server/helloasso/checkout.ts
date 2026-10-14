@@ -23,22 +23,42 @@ export async function createCheckoutIntent(opts: {
   if (!Number.isInteger(opts.totalCents) || opts.totalCents < 1) throw new Error("Montant invalide.");
   const c = helloAssoConfig();
   const type = opts.kind === "order" ? "SHOP_ORDER" : opts.kind === "membership" ? "MEMBERSHIP" : "EVENT_REGISTRATION";
-  const data = await haFetch<{ id?: number; redirectUrl?: string }>(`/organizations/${encodeURIComponent(c.organizationSlug)}/checkout-intents`, {
-    method: "POST",
-    body: {
-      totalAmount: opts.totalCents,
-      initialAmount: opts.totalCents,
-      itemName: opts.itemName.slice(0, 250),
-      backUrl: opts.backUrl,
-      errorUrl: opts.errorUrl,
-      returnUrl: opts.returnUrl,
-      containsDonation: false,
-      payer: { firstName: opts.payer.firstName.slice(0, 80), lastName: opts.payer.lastName.slice(0, 80), email: opts.payer.email },
-      metadata: { kind: opts.kind, ref: opts.refId, type, env: c.env, ...opts.extra },
-    },
-  });
-  if (!data.id || !data.redirectUrl) throw new HelloAssoError("Réponse HelloAsso incomplète.", 502);
+  const body = {
+    totalAmount: opts.totalCents,
+    initialAmount: opts.totalCents,
+    itemName: opts.itemName.slice(0, 250),
+    backUrl: opts.backUrl,
+    errorUrl: opts.errorUrl,
+    returnUrl: opts.returnUrl,
+    containsDonation: false,
+    payer: { firstName: opts.payer.firstName.slice(0, 80), lastName: opts.payer.lastName.slice(0, 80), email: opts.payer.email },
+    metadata: { kind: opts.kind, ref: opts.refId, type, env: c.env, ...opts.extra },
+  };
+  const post = (b: object) => haFetch<{ id?: number; redirectUrl?: string }>(`/organizations/${encodeURIComponent(c.organizationSlug)}/checkout-intents`, { method: "POST", body: b });
+  let data: { id?: number; redirectUrl?: string };
+  try {
+    data = await post(body);
+  } catch (e) {
+    // HelloAsso valide strictement le payeur (pas de chiffre, prénom différent du nom…) : plutôt que de bloquer le paiement,
+    // on relance sans pré-remplir le payeur, qui saisira son nom sur la page HelloAsso.
+    if (!(e instanceof HelloAssoError && e.status === 400)) throw logCheckoutError(e, opts);
+    console.warn(`[HelloAsso] Payeur refusé (${e.message}) : nouvelle tentative sans pré-remplir le payeur (${opts.kind} ${opts.refId}).`);
+    try {
+      data = await post({ ...body, payer: undefined });
+    } catch (e2) {
+      throw logCheckoutError(e2, opts);
+    }
+  }
+  if (!data.id || !data.redirectUrl) throw logCheckoutError(new HelloAssoError("Réponse HelloAsso incomplète.", 502), opts);
   return { id: String(data.id), url: data.redirectUrl };
+}
+
+/** Écrit la vraie réponse de HelloAsso dans le journal du serveur (jamais de donnée personnelle), puis renvoie l'erreur. */
+function logCheckoutError(e: unknown, opts: { kind: PaymentKind; refId: string }) {
+  const c = helloAssoConfig();
+  const detail = e instanceof HelloAssoError ? `HTTP ${e.status}${e.code ? ` ${e.code}` : ""} : ${e.message}` : e instanceof Error ? e.message : String(e);
+  console.error(`[HelloAsso] Création du paiement impossible (${c.env}, organisation « ${c.organizationSlug} », ${opts.kind} ${opts.refId}) — ${detail}`);
+  return e;
 }
 
 /** Relit l'intention de paiement chez HelloAsso : seule source de vérité (jamais l'adresse de retour ni le corps d'une notification). */

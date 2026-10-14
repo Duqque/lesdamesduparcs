@@ -20,7 +20,10 @@ export async function getAccessToken(): Promise<string> {
     cache: "no-store",
     signal: AbortSignal.timeout(15_000),
   });
-  if (!res.ok) throw new Error("Authentification HelloAsso refusée.");
+  if (!res.ok) {
+    const detail = (await res.text().catch(() => "")).slice(0, 300);
+    throw new Error(`Authentification HelloAsso refusée (HTTP ${res.status}${detail ? ` : ${detail}` : ""}).`);
+  }
   const data = (await res.json()) as { access_token?: string; expires_in?: number };
   if (!data.access_token) throw new Error("Authentification HelloAsso refusée.");
   (g.__haTokens ??= {})[c.env] = { value: data.access_token, exp: Date.now() + (data.expires_in ?? 1800) * 1000 };
