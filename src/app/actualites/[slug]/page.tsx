@@ -48,8 +48,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           <Tone />
         </div>
         <div className="mt-14 space-y-8 font-body text-[17px] leading-[1.95] text-white/80">
-          {item.content.map((p) => (
-            <p key={p}>{p}</p>
+          {item.content.map((p, i) => (
+            <p key={i} className="whitespace-pre-line">{p}</p>
           ))}
         </div>
         {item.tags && item.tags.length > 0 && (

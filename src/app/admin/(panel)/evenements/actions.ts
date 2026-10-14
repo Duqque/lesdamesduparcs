@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import type { ClubEvent, EventStatus, EventTag } from "@/types";
 import { audit, requireAdmin, requireFresh } from "@/lib/server/admin-auth";
 import { slugify } from "@/lib/server/content";
+import { toParagraphs } from "@/lib/paragraphs";
 import { sendTemplate } from "@/lib/server/email";
 import { promoteWaitlist } from "@/lib/server/event-ops";
 import { eventsDb, getEventAdmin, type EventRow } from "@/lib/server/events";
@@ -71,7 +72,7 @@ function parseEvent(f: FormData, id: string): Omit<EventRow, "createdAt" | "upda
       maxAge: Number(s(f, "maxAge")) || undefined,
       singlePlace: f.get("singlePlace") === "on" || undefined,
     },
-    description: s(f, "description").split(/\n{2,}/).map((x) => x.trim()).filter(Boolean),
+    description: toParagraphs(s(f, "description")),
     program: lines(s(f, "program")).map((l) => {
       const [time, t, ...rest] = l.split("|").map((x) => x.trim());
       return { time: time ?? "", title: t ?? "", text: rest.join(" | ") };

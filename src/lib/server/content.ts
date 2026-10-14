@@ -2,6 +2,7 @@ import "server-only";
 import { adhesion } from "@/data/adhesion";
 import { news as seedNews } from "@/data/news";
 import type { NewsItem } from "@/types";
+import { toParagraphs } from "@/lib/paragraphs";
 import { collection, singleton, type Row } from "./db";
 
 /* ---------- Articles ---------- */
@@ -62,7 +63,7 @@ export const toNewsItem = (a: Article): NewsItem => ({
   image: a.image,
   imageAlt: a.imageAlt,
   excerpt: a.summary,
-  content: a.content.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean),
+  content: toParagraphs(a.content),
   href: `/actualites/${a.id}`,
   tags: a.tags ?? [],
   authorName: a.hideAuthor ? undefined : a.authorName || undefined,

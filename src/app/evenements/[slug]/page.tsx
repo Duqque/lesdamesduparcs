@@ -14,6 +14,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { isPast } from "@/data/events";
 import { getEvent, getPublishedEvents } from "@/lib/server/events";
 import { formatLongDate, formatTime } from "@/lib/format";
+import { toParagraphs } from "@/lib/paragraphs";
 
 export async function generateStaticParams() {
   return (await getPublishedEvents()).map((e) => ({ slug: e.id }));
@@ -110,8 +111,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             <p className={label}>L&rsquo;événement</p>
             <h2 className={h2}>{event.summary}</h2>
             <div className="mt-8 space-y-7 font-body text-[16px] leading-[1.9] text-white/80 md:text-[17px]">
-              {event.description.map((p) => (
-                <p key={p}>{p}</p>
+              {event.description.flatMap(toParagraphs).map((p, i) => (
+                <p key={i} className="whitespace-pre-line">{p}</p>
               ))}
             </div>
           </Reveal>
