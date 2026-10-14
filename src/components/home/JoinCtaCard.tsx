@@ -27,7 +27,7 @@ export function JoinCtaCard({ image, alt, title, text, button }: { image?: strin
             </div>
           </div>
           <div className="relative order-1 aspect-[16/10] md:order-2 md:aspect-auto">
-            <Image src={src} alt={alt || DEFAULT_CTA.alt} fill sizes="(min-width: 768px) 46vw, 100vw" unoptimized={src.startsWith("/medias/") || src.startsWith("http")} className="object-cover object-[50%_35%]" />
+            <Image src={src} alt={alt || DEFAULT_CTA.alt} fill sizes="(min-width: 768px) 46vw, 100vw" unoptimized={src.startsWith("http")} className="object-cover object-[50%_35%]" />
             {/* Photo fondue dans le rouge de la carte */}
             <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgba(143,10,31,0.05)_50%,rgba(143,10,31,0.85)_100%)] md:bg-[linear-gradient(90deg,rgba(193,16,43,0.95)_0%,rgba(193,16,43,0.35)_28%,rgba(143,10,31,0.05)_60%)]" />
           </div>

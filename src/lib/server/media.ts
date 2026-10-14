@@ -56,12 +56,35 @@ export function dimensions(b: Buffer, mime: string): { width?: number; height?: 
   return {};
 }
 
+/** Au-delà, une photo est réduite à l'envoi (une photo de téléphone dépasse souvent 5 Mo pour un affichage plein écran). */
+const MAX_SIDE = 2560;
+const SHRINK_ABOVE_BYTES = 1.5 * 1024 * 1024;
+
+/**
+ * Allège une photo à l'envoi : redimensionnée à 2560 px au plus grand côté et convertie en WebP (qualité 82), seulement si
+ * elle dépasse cette taille ou 1,5 Mo. Les SVG, GIF (animations) et petites images sont gardés tels quels. Sans `sharp`
+ * sur le serveur, l'original est conservé (l'optimiseur d'images réduit de toute façon ce qui est affiché).
+ */
+async function shrinkImage(bytes: Buffer, mime: string): Promise<{ bytes: Buffer; mime: string }> {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(mime)) return { bytes, mime };
+  const { width = 0, height = 0 } = dimensions(bytes, mime);
+  if (Math.max(width, height) <= MAX_SIDE && bytes.length <= SHRINK_ABOVE_BYTES) return { bytes, mime };
+  try {
+    const sharp = (await import("sharp")).default;
+    const out = await sharp(bytes).rotate().resize({ width: MAX_SIDE, height: MAX_SIDE, fit: "inside", withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
+    return out.length < bytes.length ? { bytes: out, mime: "image/webp" } : { bytes, mime };
+  } catch {
+    return { bytes, mime };
+  }
+}
+
 export async function saveMedia(file: File): Promise<{ ok: true; media: MediaFile } | { ok: false; error: string }> {
   if (file.size === 0) return { ok: false, error: "Fichier vide." };
   if (file.size > MAX_MEDIA_BYTES) return { ok: false, error: "Fichier trop volumineux (12 Mo maximum)." };
-  const bytes = Buffer.from(await file.arrayBuffer());
-  const mime = sniff(bytes);
-  if (!mime || !TYPES[mime]) return { ok: false, error: `« ${file.name} » : type de fichier non accepté (images, vidéos MP4/WebM, PDF).` };
+  const raw = Buffer.from(await file.arrayBuffer());
+  const sniffed = sniff(raw);
+  if (!sniffed || !TYPES[sniffed]) return { ok: false, error: `« ${file.name} » : type de fichier non accepté (images, vidéos MP4/WebM, PDF).` };
+  const { bytes, mime } = await shrinkImage(raw, sniffed);
   const id = randomUUID().replace(/-/g, "").slice(0, 16);
   await putBlob(mediaKey(id), bytes, mime);
   const lower = file.name.toLowerCase();
@@ -75,9 +98,10 @@ export async function replaceMedia(id: string, file: File): Promise<{ ok: true }
   const old = await mediaDb.get(id);
   if (!old) return { ok: false, error: "Média introuvable." };
   if (file.size === 0 || file.size > MAX_MEDIA_BYTES) return { ok: false, error: "Fichier vide ou trop volumineux (12 Mo maximum)." };
-  const bytes = Buffer.from(await file.arrayBuffer());
-  const mime = sniff(bytes);
-  if (!mime || !TYPES[mime]) return { ok: false, error: "Type de fichier non accepté." };
+  const raw = Buffer.from(await file.arrayBuffer());
+  const sniffed = sniff(raw);
+  if (!sniffed || !TYPES[sniffed]) return { ok: false, error: "Type de fichier non accepté." };
+  const { bytes, mime } = await shrinkImage(raw, sniffed);
   await putBlob(mediaKey(id), bytes, mime);
   await mediaDb.update(id, { mime, ext: TYPES[mime].ext, size: bytes.length, width: undefined, height: undefined, ...dimensions(bytes, mime) } as never);
   return { ok: true };

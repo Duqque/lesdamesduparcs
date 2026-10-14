@@ -12,7 +12,7 @@ export async function ChapterPhoto({ slug, priority = true }: { slug: string; pr
         alt={photo.alt}
         fill
         priority={priority}
-        unoptimized={photo.src.startsWith("/medias/") || photo.src.startsWith("http")}
+        unoptimized={photo.src.startsWith("http")}
         sizes="(min-width: 768px) 45vw, 100vw"
         className="object-cover saturate-[0.85]"
       />

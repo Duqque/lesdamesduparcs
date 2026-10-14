@@ -20,7 +20,7 @@ function BentoPhoto({ photo, className }: { photo: GroupPhoto; className: string
         src={photo.src}
         alt={photo.alt}
         fill
-        unoptimized={photo.src.startsWith("/medias/") || photo.src.startsWith("http")}
+        unoptimized={photo.src.startsWith("http")}
         sizes="(min-width: 1024px) 45vw, 100vw"
         className="object-cover saturate-[0.85]"
       />

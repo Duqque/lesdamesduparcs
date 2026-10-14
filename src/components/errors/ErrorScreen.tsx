@@ -31,7 +31,7 @@ export function ErrorScreen({ page, photo, fetchPhoto = false, digest }: { page:
 
   return (
     <main className="relative isolate flex min-h-[100svh] items-center overflow-hidden bg-night-950 px-[var(--gutter)] pb-32 pt-[150px] md:pt-[170px]">
-      <Image src={src} alt="" fill priority sizes="100vw" unoptimized={src.startsWith("/medias/") || src.startsWith("http")} className="-z-20 object-cover opacity-45 saturate-[0.8]" />
+      <Image src={src} alt="" fill priority sizes="100vw" unoptimized={src.startsWith("http")} className="-z-20 object-cover opacity-45 saturate-[0.8]" />
       <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgba(3,9,25,0.96)_0%,rgba(3,9,25,0.7)_45%,rgba(3,9,25,0.55)_100%),linear-gradient(90deg,rgba(3,9,25,0.85)_0%,rgba(3,9,25,0.2)_70%)]" />
       <div className="mx-auto flex w-full max-w-[1100px] flex-col items-center text-center">
         <p className="font-display text-[clamp(64px,16vw,190px)] uppercase leading-[0.9] text-transparent [-webkit-text-stroke:2px_rgba(240,22,52,0.9)]" aria-hidden>{page.code}</p>

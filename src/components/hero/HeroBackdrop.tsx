@@ -36,7 +36,7 @@ export function HeroBackdrop({ src = DEFAULT_HERO_IMAGE, alt = "" }: { src?: str
         <Image
           src={src}
           alt={alt}
-          unoptimized={src.startsWith("/medias/") || src.startsWith("http")}
+          unoptimized={src.startsWith("http")}
           fill
           priority
           sizes="(min-width: 1280px) 80vw, 100vw"

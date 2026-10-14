@@ -140,7 +140,8 @@ export function AudioProvider({ chant, children }: { chant: Chant; children: Rea
 
   return (
     <Ctx.Provider value={value}>
-      <audio ref={ref} src={chant.audioSrc} preload="auto" loop />
+      {/* Chargé au premier « lecture » : 780 Ko de moins à l'ouverture de chaque page (la durée affichée vient des données). */}
+      <audio ref={ref} src={chant.audioSrc} preload="none" loop />
       {children}
     </Ctx.Provider>
   );
