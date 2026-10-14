@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useTransform, type MotionValue } from "framer-motion";
+import { m as motion, useTransform, type MotionValue } from "framer-motion";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { agenda, benefits, membership, privateSpace } from "@/data/membership";

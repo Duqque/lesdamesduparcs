@@ -11,7 +11,8 @@ import { cn } from "@/lib/cn";
 export const MOBILE_LOGO = "/logos/dames-du-parc-mobile.webp";
 
 /** Silhouette féminine blanche : icône de connexion / de compte. */
-const Woman = () => <Image src="/icons/femme-blanc.webp" alt="" width={360} height={540} aria-hidden className="h-[32px] w-auto" />;
+// Taille AFFICHÉE (32 px de haut, proportions 2:3) : déclarer 360×540 faisait télécharger une image de 750 px pour une icône.
+const Woman = () => <Image src="/icons/femme-blanc.webp" alt="" width={22} height={32} aria-hidden className="h-[32px] w-auto" />;
 
 const square = "relative grid size-[52px] shrink-0 place-items-center rounded-[14px] border text-white transition-[background-color,border-color] duration-300";
 const dark = "border-white/[0.12] bg-[#0d0f13] hover:border-white/30 hover:bg-[#161a20]";
@@ -48,7 +49,7 @@ export function MobileDock({ open, onToggle, onClose, hideCart }: { hideCart?: b
           <CartButton className={cn(square, dark, "size-[52px]")} />
         )}
         <Link href="/" aria-label="Les Dames du Parc, accueil" onClick={onClose} className="relative mx-1 block h-[46px] min-w-0 flex-1 transition-transform duration-300 active:scale-95">
-          <Image src={MOBILE_LOGO} alt="" fill sizes="(min-width: 640px) 200px, 40vw" className="object-contain" />
+          <Image src={MOBILE_LOGO} alt="" fill sizes="96px" className="object-contain" />
         </Link>
         <button
           type="button"

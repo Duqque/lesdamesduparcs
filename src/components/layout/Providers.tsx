@@ -1,6 +1,6 @@
 "use client";
 
-import { MotionConfig } from "framer-motion";
+import { LazyMotion, MotionConfig, domAnimation } from "framer-motion";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { AuthProvider, type Session } from "@/components/auth/AuthProvider";
@@ -14,8 +14,11 @@ import { CustomCursor } from "./CustomCursor";
 
 export function Providers({ children, shop, initialSession, initialCapReached }: { children: ReactNode; shop: ShopCatalog; initialSession?: Session; initialCapReached?: boolean }) {
   const admin = usePathname().startsWith("/admin");
-  if (admin) return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
+  // Éco-conception : les composants « m » (importés sous le nom « motion ») ne chargent que les animations simples
+  // (domAnimation) : ni glisser-déposer ni animations de mise en page, inutilisés sur le site.
+  if (admin) return <LazyMotion features={domAnimation} strict><MotionConfig reducedMotion="user">{children}</MotionConfig></LazyMotion>;
   return (
+    <LazyMotion features={domAnimation} strict>
     <MotionConfig reducedMotion="user">
       <AuthProvider initial={initialSession} initialCapReached={initialCapReached}>
         <AudioProvider chant={featuredChant}>
@@ -28,5 +31,6 @@ export function Providers({ children, shop, initialSession, initialCapReached }:
         </AudioProvider>
       </AuthProvider>
     </MotionConfig>
+    </LazyMotion>
   );
 }

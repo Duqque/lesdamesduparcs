@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { ClubEvent } from "@/types";
-import { EventGridCard } from "./EventGridCard";
+import { EventGridCard, type EventCardData } from "./EventGridCard";
 
-export function PastEvents({ events, initial = 4 }: { events: ClubEvent[]; initial?: number }) {
+export function PastEvents({ events, initial = 4 }: { events: EventCardData[]; initial?: number }) {
   const [all, setAll] = useState(false);
   const shown = all ? events : events.slice(0, initial);
   return (

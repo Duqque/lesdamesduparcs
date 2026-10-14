@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { User as UserIcon } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MemberPanel } from "@/components/member/MemberPanel";

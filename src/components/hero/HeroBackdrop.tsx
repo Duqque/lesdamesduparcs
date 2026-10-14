@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
+import { m as motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
 import { useIntroDone } from "@/lib/intro";
 import { DEFAULT_HERO_IMAGE } from "@/lib/hero";
@@ -39,6 +39,8 @@ export function HeroBackdrop({ src = DEFAULT_HERO_IMAGE, alt = "" }: { src?: str
           unoptimized={src.startsWith("http")}
           fill
           priority
+          // Photo de fond assombrie par un dégradé : une compression un peu plus forte n'y est pas visible (environ 35 % plus légère).
+          quality={60}
           sizes="(min-width: 1280px) 80vw, 100vw"
           className="object-cover object-[68%_30%] xl:object-[50%_35%]"
         />

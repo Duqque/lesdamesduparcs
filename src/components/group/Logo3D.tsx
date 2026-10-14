@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useAnimationFrame, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform, type MotionStyle } from "framer-motion";
+import { m as motion, useAnimationFrame, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform, type MotionStyle } from "framer-motion";
 import { useEffect, useRef, type RefObject } from "react";
 
 const LAYERS = 16;

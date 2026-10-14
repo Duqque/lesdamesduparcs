@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { motion, type MotionStyle, type MotionValue } from "framer-motion";
+import { m as motion, type MotionStyle, type MotionValue } from "framer-motion";
 
 const EDGE_LAYERS = [-1.65, -1.1, -0.55, 0, 0.55, 1.1, 1.65];
 

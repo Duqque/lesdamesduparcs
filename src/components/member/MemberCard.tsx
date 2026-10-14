@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, useMotionValue, useSpring, type MotionStyle } from "framer-motion";
+import { m as motion, useMotionValue, useSpring, type MotionStyle } from "framer-motion";
 import { RotateCw } from "lucide-react";
 import { CardObject, type CardMotion } from "@/components/membership/CardObject";
 import { QrCode } from "@/components/membership/QrCode";

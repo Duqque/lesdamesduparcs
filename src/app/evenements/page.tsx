@@ -4,12 +4,13 @@ import { getCms } from "@/lib/server/cms";
 import { seoFor } from "@/lib/server/site";
 import Link from "next/link";
 import { Download } from "lucide-react";
-import { EventGridCard } from "@/components/events/EventGridCard";
+import { toEventCard } from "@/components/events/EventGridCard";
+import { EventGridCard, MatchEventCard } from "@/components/events/ClientCards";
 import { PastEvents } from "@/components/events/PastEvents";
 import { getPublishedEvents } from "@/lib/server/events";
 import { isPast } from "@/data/events";
 import { MatchWithEventCard } from "@/components/matches/MatchWithEventCard";
-import { MatchEventCard } from "@/components/matches/MatchEventCard";
+import { MatchCalendarList } from "@/components/matches/MatchCalendarList";
 import { getUpcomingMatchViews } from "@/lib/server/matches";
 import { Button } from "@/components/ui/Button";
 import { formatCompactDate as formatShortDate } from "@/lib/format";
@@ -62,7 +63,7 @@ export default async function EventsPage() {
           <ul className="mt-10 -mx-[var(--gutter)] flex snap-x gap-4 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
             {timeline.map((it) => (
               <li key={it.kind === "event" ? it.event.id : `${it.kind}-${it.match.id}`} className={it.kind === "merged" ? "contents md:col-span-2 md:block lg:col-span-2" : "contents md:block"}>
-                {it.kind === "event" ? <EventGridCard event={it.event} /> : it.kind === "merged" ? <MatchWithEventCard match={it.match} event={it.event} /> : <MatchEventCard match={it.match} next />}
+                {it.kind === "event" ? <EventGridCard event={toEventCard(it.event)} /> : it.kind === "merged" ? <MatchWithEventCard match={it.match} event={it.event} /> : <MatchEventCard match={it.match} next />}
               </li>
             ))}
           </ul>
@@ -72,7 +73,7 @@ export default async function EventsPage() {
           <section aria-labelledby="past" className="mt-28 md:mt-40">
             <h2 id="past" className="font-body text-[20px] font-medium text-white">Événements passés</h2>
             <div className="mt-10">
-              <PastEvents events={past} />
+              <PastEvents events={past.map(toEventCard)} />
             </div>
           </section>
         )}
@@ -96,27 +97,17 @@ export default async function EventsPage() {
               ))}
             </ul>
             {otherMatches.length > 4 && (
-              <details className="group mt-6 rounded-[8px] border border-line bg-night-900/60">
-                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-5 font-body text-[14px] font-medium text-white [&::-webkit-details-marker]:hidden">
-                  Tout le calendrier ({otherMatches.length - 4} autres matchs)
-                  <span aria-hidden className="text-mist transition-transform duration-300 group-open:rotate-180">⌄</span>
-                </summary>
-                <ul className="divide-y divide-white/10 border-t border-white/10">
-                  {otherMatches.slice(4).map((m) => (
-                    <li key={m.id} className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 px-5 py-3 sm:grid-cols-[150px_1fr_auto]">
-                      <time dateTime={m.date} className="font-body text-[13px] tabular-nums text-white/80">{formatShortDate(m.date)}{m.time ? ` · ${m.time.replace(":", "h")}` : ""}</time>
-                      <span className="min-w-0 font-body text-[14px] text-white">
-                        <span className="font-medium">{m.isHome ? `PSG – ${m.opponent}` : `${m.opponent} – PSG`}</span>
-                        {m.competition && <span className="ml-2 text-[12px] text-mist">{m.competition}</span>}
-                      </span>
-                      <span className="col-span-2 flex flex-wrap items-center gap-3 sm:col-span-1 sm:justify-end">
-                        {m.related && <Link href={`/evenements/${m.related.id}`} className="font-body text-[12.5px] font-medium text-psg-red-bright underline underline-offset-4">Vivre le match avec les Dames</Link>}
-                        <a href={m.ticketHref} target="_blank" rel="noopener noreferrer" className="font-body text-[12.5px] text-white/75 underline underline-offset-4 hover:text-white">Billetterie</a>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </details>
+              <MatchCalendarList
+                rows={otherMatches.slice(4).map((m) => ({
+                  id: m.id,
+                  date: m.date,
+                  label: `${formatShortDate(m.date)}${m.time ? ` · ${m.time.replace(":", "h")}` : ""}`,
+                  title: m.isHome ? `PSG – ${m.opponent}` : `${m.opponent} – PSG`,
+                  ...(m.competition ? { competition: m.competition } : {}),
+                  ...(m.related ? { relatedId: m.related.id } : {}),
+                  ticketHref: m.ticketHref,
+                }))}
+              />
             )}
           </section>
         )}

@@ -340,7 +340,7 @@ export const allEvents = () => [...events, ...watchParties, ...pastEvents];
 export const getEvent = (id: string) => allEvents().find((e) => e.id === id);
 
 /** Un événement est passé si sa date est antérieure à aujourd'hui (heure de Paris). */
-export const isPast = (e: ClubEvent, now = new Date()) => e.date < new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Paris" }).format(now);
+export const isPast = (e: Pick<ClubEvent, "date">, now = new Date()) => e.date < new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Paris" }).format(now);
 
 /** Événement mis en avant sur la page d'accueil. */
 export const featuredEvent: ClubEvent = events.find((e) => e.id === "soiree-des-dames")!;

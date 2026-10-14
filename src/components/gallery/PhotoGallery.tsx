@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { Camera, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { CardLabel } from "@/components/ui/CardLabel";
 import { Reveal } from "@/components/ui/Reveal";

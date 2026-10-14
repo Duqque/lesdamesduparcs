@@ -9,7 +9,11 @@ import { Tone } from "@/components/news/NewsCard";
 const monthName = (iso: string) => new Intl.DateTimeFormat("fr-FR", { month: "long", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
 
 /** Carte d'événement : titre, date en grand, visuel et barre d'actions (S'inscrire | Plus d'infos). */
-export function EventGridCard({ event, className }: { event: ClubEvent; className?: string }) {
+/** Ce qu'affiche la carte, et rien de plus : la liste interactive des événements passés n'envoie que ces champs au navigateur. */
+export type EventCardData = Pick<ClubEvent, "id" | "title" | "date" | "image" | "imageAlt" | "href"> & { registration: Pick<ClubEvent["registration"], "mode"> };
+export const toEventCard = (e: ClubEvent): EventCardData => ({ id: e.id, title: e.title, date: e.date, image: e.image, imageAlt: e.imageAlt, href: e.href, registration: { mode: e.registration.mode } });
+
+export function EventGridCard({ event, className }: { event: EventCardData; className?: string }) {
   const past = isPast(event);
   const month = monthName(event.date);
   const href = `/evenements/${event.id}`;

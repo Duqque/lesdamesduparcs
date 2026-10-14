@@ -25,6 +25,13 @@ const nextConfig: NextConfig = {
     contentSecurityPolicy: "default-src 'none'; style-src 'unsafe-inline'; sandbox;",
     // Les photos changent rarement : le résultat optimisé reste en cache une semaine.
     minimumCacheTTL: 604800,
+    // Éco-conception : AVIF d'abord (environ 35 % plus léger que le WebP à qualité visuelle équivalente), WebP pour les
+    // navigateurs qui ne le lisent pas. Largeurs proposées resserrées : les photos du site ne dépassent pas 1 800 px, et
+    // chaque largeur en moins raccourcit le « srcset » répété sur chaque image de chaque page.
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [640, 828, 1080, 1200, 1920, 2560],
+    // 60 : photos de fond d'en-tête, assombries par un dégradé (HeroBackdrop) ; 75 : toutes les autres.
+    qualities: [60, 75],
   },
   /** Envoi de fichiers depuis le back-office (médiathèque : 12 Mo par fichier). */
   experimental: { cpus: 1, serverActions: { bodySizeLimit: "26mb", ...(siteHost ? { allowedOrigins: [siteHost] } : {}) } },

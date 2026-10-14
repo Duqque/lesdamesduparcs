@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { m as motion, type Variants } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { useIntroDone } from "@/lib/intro";
 import { JoinGate, JoinSectionGate } from "@/components/member/JoinGate";

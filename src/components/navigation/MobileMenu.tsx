@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { ChevronDown, IdCard } from "lucide-react";
 import { joinLink, socialLinks } from "@/data/navigation";
 import type { NavItem } from "@/types";

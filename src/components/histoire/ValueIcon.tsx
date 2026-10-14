@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m as motion, useInView, useReducedMotion } from "framer-motion";
 import { Flame, HeartHandshake, Infinity as InfinityIcon, Megaphone, Sprout, Users, type LucideIcon } from "lucide-react";
 import { useRef } from "react";
 

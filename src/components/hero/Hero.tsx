@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { m as motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { HeroBackdrop } from "./HeroBackdrop";

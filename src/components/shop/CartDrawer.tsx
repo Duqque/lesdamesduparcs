@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { ShoppingBag, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { computeTotals, setDrawer, useCartLines, useDrawerOpen } from "@/lib/cart";
