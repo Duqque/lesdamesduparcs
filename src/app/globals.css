@@ -302,7 +302,8 @@ html[data-intro-seen] .intro-root { display: none; }
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3em;
-  color: var(--color-psg-red-bright);
+  /* Rouge d'accent éclairci de 10 % : à 12 px, le rouge pur n'atteint pas le contraste minimal de 4,5 sur le fond nuit (accessibilité). */
+  color: color-mix(in srgb, var(--color-psg-red-bright) 90%, white);
 }
 @utility t-display {
   font-family: var(--font-display);
