@@ -10,6 +10,33 @@ export const metadata = { title: "Journal d'activité" };
 
 const PAGE = 40;
 
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+/** Noms de champs techniques traduits pour la lecture. */
+const KEYWORD: Record<string, string> = { src: "photo", alt: "texte alternatif", title: "titre", text: "texte", status: "statut", time: "heure", priceCents: "prix", price: "prix", label: "libellé", email: "e-mail" };
+const word = (k: string) => KEYWORD[k] ?? k;
+
+/**
+ * Ce qui a changé, en deux mots-clés au plus (ex. « bento-1, pourquoi », « statut », « draft → published »),
+ * au lieu des deux valeurs complètes.
+ */
+function changed(before: unknown, after: unknown): string {
+  if (before === undefined && after === undefined) return "";
+  if (isObj(before) && isObj(after)) {
+    const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])].filter((k) => !same(before[k], after[k]));
+    // Un seul bloc modifié : on précise le champ touché à l'intérieur (ex. « pourquoi › texte alternatif »).
+    if (keys.length === 1 && isObj(before[keys[0]]) && isObj(after[keys[0]])) {
+      const inner = changed(before[keys[0]], after[keys[0]]).split(", ")[0];
+      return inner ? `${word(keys[0])} › ${inner}` : word(keys[0]);
+    }
+    return keys.slice(0, 2).map(word).join(", ");
+  }
+  const short = (v: unknown) => (v === null || v === undefined ? "—" : typeof v === "string" || typeof v === "number" || typeof v === "boolean" ? String(v) : null);
+  const a = short(before), b = short(after);
+  if (a !== null && b !== null && a.length <= 20 && b.length <= 20) return `${a} → ${b}`;
+  return before === undefined || before === null ? "ajout" : after === undefined || after === null ? "retrait" : "contenu";
+}
+
 export default async function JournalPage({ searchParams }: { searchParams: Promise<SP> }) {
   await requireAdmin("audit.view");
   const sp = await searchParams;
@@ -26,7 +53,7 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
   const entities = [...new Set(log.map((e) => e.entity))];
   return (
     <>
-      <PageHeader title="Journal d'activité" subtitle="Qui a fait quoi, quand, sur quel élément, avec l'ancienne et la nouvelle valeur. Les connexions (réussies ou non) sont aussi conservées." />
+      <PageHeader title="Journal d'activité" subtitle="Qui a fait quoi, quand, sur quel élément, et ce qui a été modifié. Les connexions (réussies ou non) sont aussi conservées." />
       <nav className="mb-4 flex gap-1">
         {([["actions", "Actions"], ["connexions", "Connexions"]] as const).map(([k, l]) => <Link key={k} href={href("/admin/configuration/journal", { vue: k })} aria-current={vue === k ? "true" : undefined} className={cn("rounded-[7px] px-3 py-1.5 font-body text-[13px]", vue === k ? "bg-white/[0.12] text-white" : "text-mist hover:text-white")}>{l}</Link>)}
       </nav>
@@ -44,14 +71,14 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
         {list.length === 0 ? <Empty>Aucune entrée.</Empty> : vue === "actions" ? (
           <>
             <TableWrap>
-              <thead><tr><Th>Date</Th><Th>Utilisatrice</Th><Th>Action</Th><Th>Élément</Th><Th>Détail</Th><Th>Avant → après</Th></tr></thead>
+              <thead><tr><Th>Date</Th><Th>Utilisatrice</Th><Th>Action</Th><Th>Élément</Th><Th>Détail</Th><Th>Modifié</Th></tr></thead>
               <tbody>
                 {rows.slice((page - 1) * PAGE, page * PAGE).map((e) => (
                   <tr key={e.id} className="align-top">
                     <Td className="tabular-nums text-[12.5px]">{fmtDateTime(e.createdAt)}</Td>
                     <Td>{e.actorName}</Td><Td><Badge>{e.action}</Badge></Td><Td>{e.entity}</Td>
                     <Td className="max-w-[320px]">{e.label}</Td>
-                    <Td className="max-w-[260px] break-words font-mono text-[11.5px] text-mist">{e.before !== undefined || e.after !== undefined ? `${JSON.stringify(e.before ?? null)} → ${JSON.stringify(e.after ?? null)}` : ""}</Td>
+                    <Td className="max-w-[220px] break-words text-[12.5px] text-mist">{changed(e.before, e.after)}</Td>
                   </tr>
                 ))}
               </tbody>
