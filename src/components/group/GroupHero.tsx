@@ -7,15 +7,19 @@ import { Logo3D } from "./Logo3D";
 import { JoinGate } from "@/components/member/JoinGate";
 
 export function GroupHero({
+  eyebrow = "Qui sommes-nous",
   title = "Les Dames\ndu Parc",
   intro = "Une communauté de supportrices réunies par la même passion : le Paris Saint-Germain.",
   button = "Lire notre histoire",
+  joinButton = "Devenir membre",
   image,
   imageAlt,
 }: {
+  eyebrow?: string;
   title?: string;
   intro?: string;
   button?: string;
+  joinButton?: string;
   image?: string;
   imageAlt?: string;
 }) {
@@ -30,7 +34,7 @@ export function GroupHero({
       />
       <div className="relative z-10 mx-auto grid max-w-[1400px] items-center gap-10 md:min-h-[calc(100svh-190px)] md:grid-cols-[1.05fr_0.95fr] md:gap-6">
         <div className="order-2 md:order-1">
-          <p className="t-eyebrow">Qui sommes-nous</p>
+          <p className="t-eyebrow">{eyebrow}</p>
           <h1 id="group-title" className="mt-4 t-display">
             {title.split("\n").map((line, i) => (
               <span key={i}>
@@ -48,7 +52,7 @@ export function GroupHero({
             </Button>
             <JoinGate>
               <Button size="lg" variant="outline" href="/rejoindre-le-groupe">
-                Devenir membre
+                {joinButton}
               </Button>
             </JoinGate>
           </div>

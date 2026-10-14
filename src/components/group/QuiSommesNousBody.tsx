@@ -7,6 +7,7 @@ import { CountUp } from "@/components/histoire/CountUp";
 import { body, card, h2c, pullc, wrap } from "@/components/histoire/styles";
 import { groupe as g } from "@/data/groupe";
 import { toParagraphs } from "@/lib/paragraphs";
+import { cmsDefault } from "@/data/cms-fields";
 import { socialLinks } from "@/data/navigation";
 import type { GroupPhoto } from "@/lib/group-photos";
 
@@ -42,17 +43,23 @@ function StatCard({ value, label, dark }: { value: string; label: string; dark?:
 
 /** Page unique « Qui sommes-nous » (ex-« Le groupe ») : chiffres clés, origine du projet, positionnement, valeurs, ambitions. */
 export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, GroupPhoto>; cms: { t: (key: string, fallback: string) => string } }) {
-  const origineParagraphs = toParagraphs(cms.t("groupe.origine.texte", g.origin.paragraphs.join("\n\n")));
-  const pourquoiParagraphs = toParagraphs(cms.t("groupe.pourquoi.texte", g.why.paragraphs.join("\n\n")));
-  const stats = g.bento.stats.map((s, i) => ({ value: cms.t(`groupe.bento.chiffre${i + 1}.valeur`, s.value), label: cms.t(`groupe.bento.chiffre${i + 1}.legende`, s.label) }));
+  // Chaque texte de la page : celui saisi dans l'administration, sinon celui d'origine (src/data/cms-fields.ts).
+  const t = (key: string) => cms.t(key, cmsDefault(key));
+  const origineParagraphs = toParagraphs(t("groupe.origine.texte"));
+  const pourquoiParagraphs = toParagraphs(t("groupe.pourquoi.texte"));
+  const stats = g.bento.stats.map((_, i) => ({ value: t(`groupe.bento.chiffre${i + 1}.valeur`), label: t(`groupe.bento.chiffre${i + 1}.legende`) }));
+  // L'icône d'une valeur reste liée à son nom d'origine : renommer « Passion » ne doit pas lui faire perdre sa flamme.
+  const values = g.values.items.map((v, i) => ({ icon: v.title, title: t(`groupe.valeurs.${i + 1}.titre`), text: t(`groupe.valeurs.${i + 1}.texte`) }));
+  const build = g.build.items.map((_, i) => ({ title: t(`groupe.construire.${i + 1}.titre`), text: t(`groupe.construire.${i + 1}.texte`) }));
+  const followLabel = t("groupe.bento.reseaux");
   return (
     <div className="space-y-28 md:space-y-40">
       {/* Bento : chiffres clés + réseaux, en un coup d'œil */}
       <section aria-labelledby="en-bref" className={wrap}>
         <Reveal className="max-w-2xl">
-          <p className="t-eyebrow">{g.bento.eyebrow}</p>
-          <h2 id="en-bref" className={`${h2c} mt-4`}>{cms.t("groupe.bento.titre", g.bento.title)}</h2>
-          <p className="mt-5 max-w-[62ch] break-words text-white/80 t-lead">{cms.t("groupe.bento.texte", g.bento.lead)}</p>
+          <p className="t-eyebrow">{t("groupe.bento.etiquette")}</p>
+          <h2 id="en-bref" className={`${h2c} mt-4`}>{t("groupe.bento.titre")}</h2>
+          <p className="mt-5 max-w-[62ch] break-words text-white/80 t-lead">{t("groupe.bento.texte")}</p>
         </Reveal>
 
         {/* Grille en damier à partir de lg ; empilée verticalement en dessous. */}
@@ -63,7 +70,7 @@ export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, Grou
           <div style={{ gridArea: "social" }}>
             <Reveal delay={0.15} className="h-full">
               <div className="flex h-full min-h-[140px] flex-col justify-between gap-4 rounded-[10px] border border-line bg-night-900/85 p-6">
-                <p className="t-eyebrow">Nous suivre</p>
+                <p className="t-eyebrow">{followLabel}</p>
                 <div className="flex gap-3">
                   {socialLinks.map((s) => {
                     const Icon = s.id === "instagram" ? InstagramIcon : TikTokIcon;
@@ -88,7 +95,7 @@ export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, Grou
             <Reveal key={i} delay={i * 0.05}><StatCard value={s.value} label={s.label} dark={i % 2 === 0} /></Reveal>
           ))}
           <div className="col-span-2 flex items-center justify-between gap-4 rounded-[10px] border border-line bg-night-900/85 p-6">
-            <p className="t-eyebrow">Nous suivre</p>
+            <p className="t-eyebrow">{followLabel}</p>
             <div className="flex gap-3">
               {socialLinks.map((s) => {
                 const Icon = s.id === "instagram" ? InstagramIcon : TikTokIcon;
@@ -108,8 +115,8 @@ export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, Grou
       <section id="origine" aria-labelledby="origine-titre" className={`${wrap} scroll-mt-32`}>
         <div className="mx-auto max-w-[760px] text-center">
           <Reveal>
-            <p className="t-eyebrow">{g.origin.eyebrow}</p>
-            <h2 id="origine-titre" className={`${h2c} mt-4`}>{cms.t("groupe.origine.titre", g.origin.title)}</h2>
+            <p className="t-eyebrow">{t("groupe.origine.etiquette")}</p>
+            <h2 id="origine-titre" className={`${h2c} mt-4`}>{t("groupe.origine.titre")}</h2>
           </Reveal>
           <div className="mt-10 space-y-6 text-left">
             {origineParagraphs.map((p, i) => (
@@ -128,9 +135,9 @@ export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, Grou
       <section aria-labelledby="pourquoi-titre" className={wrap}>
         <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
           <Reveal className="min-w-0">
-            <p className="t-eyebrow">{g.why.eyebrow}</p>
-            <h2 id="pourquoi-titre" className={`${h2c} mt-4`}>{cms.t("groupe.pourquoi.titre", g.why.title)}</h2>
-            <p className={`${pullc} mt-8 max-w-[18ch]`}>{cms.t("groupe.pourquoi.accroche", g.why.pull)}</p>
+            <p className="t-eyebrow">{t("groupe.pourquoi.etiquette")}</p>
+            <h2 id="pourquoi-titre" className={`${h2c} mt-4`}>{t("groupe.pourquoi.titre")}</h2>
+            <p className={`${pullc} mt-8 max-w-[18ch]`}>{t("groupe.pourquoi.accroche")}</p>
           </Reveal>
           <div className="min-w-0 space-y-6">
             {pourquoiParagraphs.map((p, i) => (
@@ -143,15 +150,15 @@ export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, Grou
       {/* Nos valeurs */}
       <section aria-labelledby="valeurs-titre" className={wrap}>
         <Reveal className="max-w-2xl">
-          <p className="t-eyebrow">{g.values.eyebrow}</p>
-          <h2 id="valeurs-titre" className={`${h2c} mt-4`}>{cms.t("groupe.valeurs.titre", g.values.title)}</h2>
+          <p className="t-eyebrow">{t("groupe.valeurs.etiquette")}</p>
+          <h2 id="valeurs-titre" className={`${h2c} mt-4`}>{t("groupe.valeurs.titre")}</h2>
         </Reveal>
         <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {g.values.items.map((v, i) => (
-            <li key={v.title} className="min-w-0">
+          {values.map((v, i) => (
+            <li key={i} className="min-w-0">
               <Reveal delay={(i % 3) * 0.06} className="h-full">
                 <div className={`${card} flex h-full flex-col gap-5 p-7`}>
-                  <ValueIcon name={v.title} />
+                  <ValueIcon name={v.icon} />
                   <div>
                     <h3 className="break-words font-display text-[22px] font-semibold uppercase tracking-[0.04em] text-white">{v.title}</h3>
                     <p className="mt-2 break-words text-white/75 t-small">{v.text}</p>
@@ -167,16 +174,16 @@ export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, Grou
       <section aria-labelledby="construire-titre" className={wrap}>
         <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-stretch md:gap-16">
           <Reveal className="flex min-w-0 flex-col">
-            <p className="t-eyebrow">{g.build.eyebrow}</p>
-            <h2 id="construire-titre" className={`${h2c} mt-4`}>{cms.t("groupe.construire.titre", g.build.title)}</h2>
+            <p className="t-eyebrow">{t("groupe.construire.etiquette")}</p>
+            <h2 id="construire-titre" className={`${h2c} mt-4`}>{t("groupe.construire.titre")}</h2>
             {/* Pas de ratio fixe : la photo s'étire exactement à la hauteur des quatre cartes en face, quel que soit l'écran. */}
             <div className="mt-10 hidden min-h-[220px] flex-1 md:block"><BentoPhoto photo={photos.construire} className="h-full w-full" /></div>
           </Reveal>
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {g.build.items.map((b, i) => {
+            {build.map((b, i) => {
               const Icon = buildIcons[i] ?? Sparkles;
               return (
-                <li key={b.title} className="min-w-0">
+                <li key={i} className="min-w-0">
                   <Reveal delay={(i % 2) * 0.06} className="h-full">
                     {/* justify-between : la carte peut être étirée (pour égaler la photo) sans jamais laisser un vide après le texte,
                         l'espace en trop se répartit avant le paragraphe, jamais après. */}

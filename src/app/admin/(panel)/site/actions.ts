@@ -256,7 +256,8 @@ export async function saveCmsAction(page: string, formData: FormData) {
   const cur = (await siteConfig.get()).cms ?? {};
   const next = { ...cur };
   for (const f of CMS_FIELDS.filter((x) => x.page === page)) {
-    const v = s(formData, f.key);
+    // Un formulaire envoie les retours à la ligne en \r\n : on les ramène à \n, comme les textes d'origine.
+    const v = s(formData, f.key).replace(/\r\n?/g, "\n");
     if (v && v !== f.default) next[f.key] = v.slice(0, 2000);
     else delete next[f.key];
   }

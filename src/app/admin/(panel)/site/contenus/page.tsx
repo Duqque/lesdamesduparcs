@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { SubmitButton } from "@/components/admin/SubmitButton";
 import { Field, Flash, PageHeader, Panel, area, inp } from "@/components/admin/ui";
 import { first, type SP } from "@/lib/admin/params";
@@ -25,12 +26,17 @@ export default async function CmsPage({ searchParams }: { searchParams: Promise<
       </nav>
       <Panel title={CMS_PAGES.find((p) => p.path === page)?.label}>
         <form action={saveCmsAction.bind(null, page)} className="grid gap-5">
-          {fields.map((f) => (
-            <Field key={f.key} label={f.label} hint={f.default ? `Texte d'origine : ${f.default.replace(/\n/g, " / ")}` : "Vide : texte d'origine du site."}>
-              {f.type === "textarea" ? <textarea name={f.key} rows={3} defaultValue={cms?.[f.key] ?? ""} placeholder={f.default} className={area} /> : <input name={f.key} defaultValue={cms?.[f.key] ?? ""} placeholder={f.default} className={inp} />}
-            </Field>
+          {fields.map((f, i) => (
+            <Fragment key={f.key}>
+              {f.section && f.section !== fields[i - 1]?.section && (
+                <h3 className={cn("font-body text-[12px] font-semibold uppercase tracking-[0.14em] text-psg-red-bright", i > 0 && "mt-6 border-t border-white/10 pt-6")}>{f.section}</h3>
+              )}
+              <Field label={f.label} hint={f.default ? `Texte d'origine : ${f.default.replace(/\n/g, " / ")}` : "Vide : texte d'origine du site."}>
+                {f.type === "textarea" ? <textarea name={f.key} rows={f.default.length > 160 ? 6 : 3} defaultValue={cms?.[f.key] ?? ""} placeholder={f.default} className={area} /> : <input name={f.key} defaultValue={cms?.[f.key] ?? ""} placeholder={f.default} className={inp} />}
+              </Field>
+            </Fragment>
           ))}
-          <div><SubmitButton>Enregistrer les textes</SubmitButton></div>
+          <div className="sticky bottom-0 -mx-1 bg-gradient-to-t from-night-950 via-night-950/95 to-transparent px-1 pb-2 pt-6"><SubmitButton>Enregistrer les textes</SubmitButton></div>
         </form>
       </Panel>
     </>
