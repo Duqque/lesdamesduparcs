@@ -7,10 +7,12 @@ interface Props {
   to: number;
   prefix?: string;
   className?: string;
+  /** Séparateur de milliers (« 1 500 ») ; à désactiver pour une année (« 2026 »). */
+  grouping?: boolean;
 }
 
 /** Compteur qui s'anime une seule fois, à l'entrée dans l'écran. */
-export function CountUp({ to, prefix = "", className }: Props) {
+export function CountUp({ to, prefix = "", className, grouping = true }: Props) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "0px 0px -10% 0px" });
   const reduce = useReducedMotion();
@@ -27,7 +29,7 @@ export function CountUp({ to, prefix = "", className }: Props) {
   return (
     <span ref={ref} className={className}>
       {prefix}
-      {shown.toLocaleString("fr-FR")}
+      {grouping ? shown.toLocaleString("fr-FR") : String(shown)}
     </span>
   );
 }

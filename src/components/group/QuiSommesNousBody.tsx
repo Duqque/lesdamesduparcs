@@ -6,6 +6,7 @@ import { ValueIcon } from "@/components/histoire/ValueIcon";
 import { CountUp } from "@/components/histoire/CountUp";
 import { body, card, h2c, pullc, wrap } from "@/components/histoire/styles";
 import { groupe as g } from "@/data/groupe";
+import { toParagraphs } from "@/lib/paragraphs";
 import { socialLinks } from "@/data/navigation";
 import type { GroupPhoto } from "@/lib/group-photos";
 
@@ -32,7 +33,7 @@ function StatCard({ value, label, dark }: { value: string; label: string; dark?:
   return (
     <div className={`flex h-full min-h-[140px] flex-col justify-between gap-4 rounded-[10px] border p-6 ${dark ? "border-psg-red-bright/40 bg-[linear-gradient(160deg,#1a0a14_0%,#0b1327_100%)]" : "border-line bg-night-900/85"}`}>
       <p className="font-display text-[clamp(34px,3.4vw,48px)] font-semibold leading-none tabular-nums text-white">
-        {Number.isFinite(n) && String(n) === value.replace(/\s/g, "") ? <CountUp to={n} /> : value}
+        {Number.isFinite(n) && String(n) === value.replace(/\s/g, "") ? <CountUp to={n} grouping={/\s/.test(value.trim())} /> : value}
       </p>
       <p className="break-words text-mist t-small">{label}</p>
     </div>
@@ -41,8 +42,9 @@ function StatCard({ value, label, dark }: { value: string; label: string; dark?:
 
 /** Page unique « Qui sommes-nous » (ex-« Le groupe ») : chiffres clés, origine du projet, positionnement, valeurs, ambitions. */
 export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, GroupPhoto>; cms: { t: (key: string, fallback: string) => string } }) {
-  const origineParagraphs = cms.t("groupe.origine.texte", g.origin.paragraphs.join("\n\n")).split(/\n{2,}/).filter(Boolean);
-  const pourquoiParagraphs = cms.t("groupe.pourquoi.texte", g.why.paragraphs.join("\n\n")).split(/\n{2,}/).filter(Boolean);
+  const origineParagraphs = toParagraphs(cms.t("groupe.origine.texte", g.origin.paragraphs.join("\n\n")));
+  const pourquoiParagraphs = toParagraphs(cms.t("groupe.pourquoi.texte", g.why.paragraphs.join("\n\n")));
+  const stats = g.bento.stats.map((s, i) => ({ value: cms.t(`groupe.bento.chiffre${i + 1}.valeur`, s.value), label: cms.t(`groupe.bento.chiffre${i + 1}.legende`, s.label) }));
   return (
     <div className="space-y-28 md:space-y-40">
       {/* Bento : chiffres clés + réseaux, en un coup d'œil */}
@@ -56,8 +58,8 @@ export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, Grou
         {/* Grille en damier à partir de lg ; empilée verticalement en dessous. */}
         <div className="mt-12 hidden gap-4 lg:grid lg:grid-cols-4" style={{ gridTemplateAreas: `"photoA photoA stat1 stat2" "photoA photoA social stat3" "photoB photoB photoB stat4"` }}>
           <div style={{ gridArea: "photoA" }} className="min-h-[340px]"><Reveal className="h-full"><BentoPhoto photo={photos["bento-1"]} className="h-full min-h-[340px]" /></Reveal></div>
-          <div style={{ gridArea: "stat1" }}><Reveal delay={0.05} className="h-full"><StatCard value={g.bento.stats[0].value} label={g.bento.stats[0].label} dark /></Reveal></div>
-          <div style={{ gridArea: "stat2" }}><Reveal delay={0.1} className="h-full"><StatCard value={g.bento.stats[1].value} label={g.bento.stats[1].label} /></Reveal></div>
+          <div style={{ gridArea: "stat1" }}><Reveal delay={0.05} className="h-full"><StatCard value={stats[0].value} label={stats[0].label} dark /></Reveal></div>
+          <div style={{ gridArea: "stat2" }}><Reveal delay={0.1} className="h-full"><StatCard value={stats[1].value} label={stats[1].label} /></Reveal></div>
           <div style={{ gridArea: "social" }}>
             <Reveal delay={0.15} className="h-full">
               <div className="flex h-full min-h-[140px] flex-col justify-between gap-4 rounded-[10px] border border-line bg-night-900/85 p-6">
@@ -75,15 +77,15 @@ export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, Grou
               </div>
             </Reveal>
           </div>
-          <div style={{ gridArea: "stat3" }}><Reveal delay={0.2} className="h-full"><StatCard value={g.bento.stats[2].value} label={g.bento.stats[2].label} /></Reveal></div>
+          <div style={{ gridArea: "stat3" }}><Reveal delay={0.2} className="h-full"><StatCard value={stats[2].value} label={stats[2].label} /></Reveal></div>
           <div style={{ gridArea: "photoB" }} className="min-h-[180px]"><Reveal delay={0.25} className="h-full"><BentoPhoto photo={photos["bento-2"]} className="h-full min-h-[180px]" /></Reveal></div>
-          <div style={{ gridArea: "stat4" }}><Reveal delay={0.3} className="h-full"><StatCard value={g.bento.stats[3].value} label={g.bento.stats[3].label} dark /></Reveal></div>
+          <div style={{ gridArea: "stat4" }}><Reveal delay={0.3} className="h-full"><StatCard value={stats[3].value} label={stats[3].label} dark /></Reveal></div>
         </div>
 
         <div className="mt-12 grid grid-cols-2 gap-4 lg:hidden">
           <Reveal className="col-span-2"><BentoPhoto photo={photos["bento-1"]} className="aspect-[16/10] w-full" /></Reveal>
-          {g.bento.stats.map((s, i) => (
-            <Reveal key={s.label} delay={i * 0.05}><StatCard value={s.value} label={s.label} dark={i % 2 === 0} /></Reveal>
+          {stats.map((s, i) => (
+            <Reveal key={i} delay={i * 0.05}><StatCard value={s.value} label={s.label} dark={i % 2 === 0} /></Reveal>
           ))}
           <div className="col-span-2 flex items-center justify-between gap-4 rounded-[10px] border border-line bg-night-900/85 p-6">
             <p className="t-eyebrow">Nous suivre</p>
@@ -110,8 +112,8 @@ export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, Grou
             <h2 id="origine-titre" className={`${h2c} mt-4`}>{cms.t("groupe.origine.titre", g.origin.title)}</h2>
           </Reveal>
           <div className="mt-10 space-y-6 text-left">
-            {origineParagraphs.map((p) => (
-              <Reveal key={p}><p className={`${body} max-w-none`}>{p}</p></Reveal>
+            {origineParagraphs.map((p, i) => (
+              <Reveal key={i}><p className={`${body} max-w-none whitespace-pre-line`}>{p}</p></Reveal>
             ))}
           </div>
         </div>
@@ -131,8 +133,8 @@ export function QuiSommesNousBody({ photos, cms }: { photos: Record<string, Grou
             <p className={`${pullc} mt-8 max-w-[18ch]`}>{cms.t("groupe.pourquoi.accroche", g.why.pull)}</p>
           </Reveal>
           <div className="min-w-0 space-y-6">
-            {pourquoiParagraphs.map((p) => (
-              <Reveal key={p}><p className={body}>{p}</p></Reveal>
+            {pourquoiParagraphs.map((p, i) => (
+              <Reveal key={i}><p className={`${body} whitespace-pre-line`}>{p}</p></Reveal>
             ))}
           </div>
         </div>

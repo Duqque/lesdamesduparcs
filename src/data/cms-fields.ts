@@ -25,6 +25,10 @@ export const CMS_FIELDS: CmsField[] = [
   { key: "groupe.bouton", page: "/qui-sommes-nous", label: "Bouton principal", type: "text", default: "Découvrir notre histoire" },
   { key: "groupe.bento.titre", page: "/qui-sommes-nous", label: "« En bref » : titre", type: "text", default: groupe.bento.title },
   { key: "groupe.bento.texte", page: "/qui-sommes-nous", label: "« En bref » : texte", type: "textarea", default: groupe.bento.lead },
+  ...groupe.bento.stats.flatMap((s, i): CmsField[] => [
+    { key: `groupe.bento.chiffre${i + 1}.valeur`, page: "/qui-sommes-nous", label: `« En bref » : chiffre ${i + 1} (un nombre seul s'anime en comptant)`, type: "text", default: s.value },
+    { key: `groupe.bento.chiffre${i + 1}.legende`, page: "/qui-sommes-nous", label: `« En bref » : légende du chiffre ${i + 1}`, type: "text", default: s.label },
+  ]),
   { key: "groupe.origine.titre", page: "/qui-sommes-nous", label: "« Notre histoire » : titre", type: "text", default: groupe.origin.title },
   { key: "groupe.origine.texte", page: "/qui-sommes-nous", label: "« Notre histoire » : texte (un paragraphe par ligne vide)", type: "textarea", default: groupe.origin.paragraphs.join("\n\n") },
   { key: "groupe.pourquoi.titre", page: "/qui-sommes-nous", label: "« Notre positionnement » : titre", type: "text", default: groupe.why.title },
