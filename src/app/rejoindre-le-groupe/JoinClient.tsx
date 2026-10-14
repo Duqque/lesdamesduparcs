@@ -3,6 +3,7 @@
 import { useAuth } from "@/components/auth/AuthProvider";
 import { MembershipExperience } from "@/components/membership/MembershipExperience";
 import { useMemberData } from "@/components/member/useMemberData";
+import { SITE_URL } from "@/lib/site-url";
 
 /** Carte d'exemple pour une visiteuse ; carte personnalisée (avec son vrai QR code) pour une membre connectée. */
 export function JoinClient({ season }: { season: string }) {
@@ -15,7 +16,7 @@ export function JoinClient({ season }: { season: string }) {
       since={member ? "" : String(new Date().getFullYear())}
       number={member ? member.memberNumber : "XXXXXX000000-LDDP0000"}
       season={season}
-      qrValue={member && data ? data.verifyUrl : "https://www.lesdamesduparc.com/rejoindre-le-groupe"}
+      qrValue={member && data ? data.verifyUrl : `${SITE_URL}/rejoindre-le-groupe`}
     />
   );
 }

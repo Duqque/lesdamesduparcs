@@ -15,6 +15,8 @@ import { isPast } from "@/data/events";
 import { getEvent, getPublishedEvents } from "@/lib/server/events";
 import { formatLongDate, formatTime } from "@/lib/format";
 import { toParagraphs } from "@/lib/paragraphs";
+import { jsonLd as ld, parisDateTime, shareImage, shareMeta } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site-url";
 
 export async function generateStaticParams() {
   return (await getPublishedEvents()).map((e) => ({ slug: e.id }));
@@ -24,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const event = await getEvent(slug);
   if (!event) return {};
-  return { title: event.title, description: event.summary, openGraph: { title: event.title, description: event.summary, images: [event.image] } };
+  return { title: event.title, description: event.summary, ...shareMeta({ path: `/evenements/${event.id}`, title: event.title, description: event.summary, image: event.image }) };
 }
 
 const label = "t-eyebrow";
@@ -39,21 +41,29 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const linkedView = linked ? await toView(linked) : null;
   const past = isPast(event) || event.registration.mode === "closed";
   const others = (await getPublishedEvents()).filter((e) => e.id !== event.id && !isPast(e)).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4);
-  const jsonLd = {
+  // Données structurées « Événement » : date, lieu, photo et prix permettent à Google d'afficher l'événement en résultat enrichi.
+  const reg = event.registration;
+  const structured = {
     "@context": "https://schema.org",
     "@type": "Event",
     name: event.title,
     description: event.summary,
-    startDate: `${event.date}T${event.time}:00+01:00`,
+    image: [shareImage(event.image)],
+    url: `${SITE_URL}/evenements/${event.id}`,
+    startDate: parisDateTime(event.date, event.time),
+    ...(event.endTime ? { endDate: parisDateTime(event.date, event.endTime) } : {}),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
-    location: { "@type": "Place", name: event.venue, address: event.address },
-    organizer: { "@type": "Organization", name: "Les Dames du Parc" },
+    location: { "@type": "Place", name: event.venue, address: { "@type": "PostalAddress", streetAddress: event.address, ...(event.city ? { addressLocality: event.city } : {}), addressCountry: "FR" } },
+    organizer: { "@type": "Organization", name: "Les Dames du Parc", url: SITE_URL },
+    ...(reg.mode !== "closed"
+      ? { offers: { "@type": "Offer", price: (reg.priceCents / 100).toFixed(2), priceCurrency: "EUR", availability: "https://schema.org/InStock", url: `${SITE_URL}/evenements/${event.id}#inscription` } }
+      : {}),
   };
 
   return (
     <main>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={ld(structured)} />
 
       <section className="relative isolate flex min-h-[78svh] items-end overflow-hidden px-[var(--gutter)] pb-16 pt-[200px] md:pb-24">
         <Image src={event.image} alt={event.imageAlt} fill priority sizes="100vw" className="-z-10 object-cover" />

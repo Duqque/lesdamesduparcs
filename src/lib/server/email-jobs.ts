@@ -7,6 +7,7 @@ import { ensureTemplates, templates } from "./content";
 import { emailConfigured, fill, sendEmail } from "./email";
 import { siteOrigin } from "./http";
 import { logEvent } from "./log";
+import { SITE_URL } from "@/lib/site-url";
 
 /**
  * File d'e-mails (EmailJob) : un paiement validé ne dépend JAMAIS de l'envoi d'un e-mail. Le paiement est enregistré, l'e-mail est mis
@@ -58,7 +59,7 @@ async function origin() {
   try {
     return await siteOrigin();
   } catch {
-    return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com";
+    return SITE_URL;
   }
 }
 

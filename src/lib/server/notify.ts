@@ -12,6 +12,7 @@ import { siteOrigin } from "./http";
 import { productsDb } from "./shop";
 import { listStoredMembers } from "./store";
 import { unsubscribeToken } from "./unsubscribe";
+import { SITE_URL } from "@/lib/site-url";
 
 /**
  * E-mails de nouveautés aux adhérentes actives : un message à chaque nouvel article, nouvel événement ou nouveau produit.
@@ -126,7 +127,7 @@ async function run(): Promise<{ announced: number; recipients: number }> {
   await ensureTemplates();
   const flag = { article: conf.notifyArticle, event: conf.notifyEvent, product: conf.notifyProduct } as const;
   const list = await newsRecipients();
-  let origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com";
+  let origin = SITE_URL;
   try {
     origin = await siteOrigin();
   } catch {

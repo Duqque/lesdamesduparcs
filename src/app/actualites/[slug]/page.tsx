@@ -8,6 +8,8 @@ import { NewsCard, Tone } from "@/components/news/NewsCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { getNewsItem, getPublishedNews } from "@/lib/server/content";
 import { formatShortDate } from "@/lib/format";
+import { jsonLd, shareImage, shareMeta } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site-url";
 
 export const revalidate = 300;
 
@@ -19,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const item = await getNewsItem(slug);
   if (!item) return {};
-  return { title: item.title, description: item.excerpt, openGraph: { title: item.title, description: item.excerpt, images: [item.image] } };
+  return { title: item.title, description: item.excerpt, ...shareMeta({ path: `/actualites/${item.id}`, title: item.title, description: item.excerpt, image: item.image }) };
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -28,8 +30,24 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   if (!item) notFound();
   const more = (await getPublishedNews()).filter((n) => n.id !== item.id).slice(0, 3);
 
+  // Données structurées « Article » : aident Google à afficher titre, photo et date de l'article dans ses résultats.
+  const structured = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: item.title,
+    description: item.excerpt,
+    image: [shareImage(item.image)],
+    datePublished: item.date,
+    url: `${SITE_URL}/actualites/${item.id}`,
+    mainEntityOfPage: `${SITE_URL}/actualites/${item.id}`,
+    author: item.authorName ? { "@type": "Person", name: item.authorName } : { "@type": "Organization", name: "Les Dames du Parc", url: SITE_URL },
+    publisher: { "@type": "Organization", name: "Les Dames du Parc", logo: { "@type": "ImageObject", url: `${SITE_URL}/logos/dames-du-parc-logo.webp` } },
+    ...(item.tags?.length ? { keywords: item.tags.join(", ") } : {}),
+  };
+
   return (
     <main className="overflow-x-clip">
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(structured)} />
       <article className="mx-auto max-w-[860px] px-[var(--gutter)] pb-24 pt-[200px] md:pt-[250px]">
         <Link href="/actualites" className="group inline-flex min-h-11 items-center gap-2 font-body text-[13px] font-medium text-white/75 transition-colors hover:text-white">
           <ArrowLeft aria-hidden className="size-4 transition-transform duration-300 group-hover:-translate-x-1" />

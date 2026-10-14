@@ -1,6 +1,7 @@
 import type { ClubEvent } from "@/types";
+import { SITE_URL } from "@/lib/site-url";
 
-const SITE = "https://www.lesdamesduparc.com";
+const SITE = SITE_URL;
 
 /** Convertit une date/heure locale de Paris en instant UTC (gère l'heure d'été). */
 function parisToUtc(date: string, time: string) {

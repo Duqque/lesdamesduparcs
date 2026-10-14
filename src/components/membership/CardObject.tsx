@@ -126,7 +126,7 @@ export function CardObject({ motion: m, name, season, number }: Props) {
             className="absolute inset-x-0 top-[91%] -translate-y-1/2 text-center font-body text-[2.1cqw] font-light lowercase tracking-[0.3em] text-white/85"
             style={{ transform: "translateZ(8px)" }}
           >
-            www.lesdamesduparc.com
+            lesdamesduparc.com
           </p>
 
           {/* Verso devenu interface : newsletter */}

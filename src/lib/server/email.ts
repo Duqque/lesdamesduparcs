@@ -3,6 +3,7 @@ import { emailLog, ensureTemplates, templates } from "./content";
 import { settings } from "./admin-store";
 import { renderEmail } from "@/lib/email-html";
 import { siteOrigin } from "./http";
+import { SITE_URL } from "@/lib/site-url";
 
 export const emailConfigured = () => Boolean(process.env.RESEND_API_KEY);
 
@@ -15,7 +16,7 @@ export const fill = (text: string, vars: Record<string, string | number | undefi
  */
 async function brandOf() {
   const conf = await settings.get();
-  let origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com";
+  let origin = SITE_URL;
   try {
     origin = await siteOrigin();
   } catch {

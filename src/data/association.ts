@@ -10,7 +10,7 @@ export const association = {
   city: "Paris",
   phone: "01 23 45 67 89",
   email: "contact@lesdamesduparc.com",
-  website: "www.lesdamesduparc.com",
+  website: "lesdamesduparc.com",
   president: "Camille Fictive",
   presidentTitle: "Présidente",
 } as const;

@@ -16,6 +16,7 @@ import { plans, reinstateDue, setTxStatus } from "./business";
 import { notifyNewContent } from "./notify";
 import { processEmailJobs } from "./email-jobs";
 import { syncAllDiscordRoles } from "./discord/sync";
+import { SITE_URL } from "@/lib/site-url";
 
 export const SEGMENTS = [
   { key: "all", label: "Toutes les adhérentes actives" },
@@ -54,7 +55,7 @@ export async function recipientsFor(audience: string[]) {
 export async function sendAdhesionCampaignEmail(campaign: { label: string; limit: number }) {
   const list = await recipientsFor(["expired"]);
   if (!list.length) return { sent: 0, total: 0 };
-  const origin = await siteOrigin().catch(() => process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com");
+  const origin = await siteOrigin().catch(() => SITE_URL);
   const withUnsub = await Promise.all(list.map(async (r) => ({ email: r.email, firstName: r.firstName, unsubscribeUrl: `${origin}/desabonnement?t=${encodeURIComponent(await unsubscribeToken(r.id))}` })));
   const places = ` (${campaign.limit} places au total)`;
   const res = await sendBulk(withUnsub, {
@@ -68,7 +69,7 @@ export async function sendAdhesionCampaignEmail(campaign: { label: string; limit
 
 /** Envoi HTML d'une campagne : un e-mail personnalisé par personne, photo d'en-tête, photos, liens (boutons), désabonnement inclus. */
 async function sendCampaign(list: Array<{ id: string; email: string; firstName: string }>, c: Campaign) {
-  let origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com";
+  let origin = SITE_URL;
   try {
     origin = await siteOrigin();
   } catch {
@@ -160,7 +161,7 @@ export async function runScheduled() {
     const { payments: pays, membershipState } = await import("./business");
     const { getMemberByNumber } = await import("./store");
     const { siteOrigin } = await import("./http");
-    let origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.lesdamesduparc.com";
+    let origin = SITE_URL;
     try {
       origin = await siteOrigin();
     } catch {

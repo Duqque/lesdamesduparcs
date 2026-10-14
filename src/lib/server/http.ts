@@ -1,5 +1,6 @@
 import "server-only";
 import { sqlEnabled, sqlHit, sqlPurgeRate } from "./sql";
+import { SITE_URL } from "@/lib/site-url";
 
 export const json = (data: unknown, status = 200) =>
   Response.json(data, { status, headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
@@ -53,7 +54,7 @@ export const tooMany = () => json({ error: "Trop de tentatives. Réessayez dans 
 export async function siteOrigin() {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
   // En production, on ne fait jamais confiance à l'en-tête Host pour fabriquer les liens des e-mails (empoisonnement de lien de réinitialisation).
-  if (process.env.NODE_ENV === "production") return "https://www.lesdamesduparc.com";
+  if (process.env.NODE_ENV === "production") return SITE_URL;
   const { headers } = await import("next/headers");
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost";
@@ -61,7 +62,7 @@ export async function siteOrigin() {
 }
 
 export const siteUrl = (req: Request) =>
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || (process.env.NODE_ENV === "production" ? "https://www.lesdamesduparc.com" : new URL(req.url).origin);
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || (process.env.NODE_ENV === "production" ? SITE_URL : new URL(req.url).origin);
 
 /** Corps JSON limité en taille (64 Ko par défaut) : refuse plutôt que de charger un corps démesuré en mémoire. */
 export async function readJson<T = unknown>(req: Request, maxBytes = 64 * 1024): Promise<T | null> {
