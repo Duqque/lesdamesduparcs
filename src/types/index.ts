@@ -43,6 +43,10 @@ export interface EventRegistrationConfig {
   maxAge?: number;
   /** Une seule place par inscription (ex. une participante) */
   singlePlace?: boolean;
+  /** La participante peut annuler elle-même son inscription depuis la page de l'événement (sans remboursement automatique). */
+  selfCancel?: boolean;
+  /** Conditions d'annulation et de remboursement : affichées avant l'inscription, à accepter pour s'inscrire. */
+  cancellationPolicy?: string;
   /** Back-office */
   minCapacity?: number;
   waitlist?: boolean;

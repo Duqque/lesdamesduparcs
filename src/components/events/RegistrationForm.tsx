@@ -8,6 +8,7 @@ import { CheckCircle2, Lock } from "lucide-react";
 import { Check, Field, inputCls, textareaCls } from "@/components/ui/form";
 import { formatEuros, validateRegistration, type RegistrationInput, type RegistrationStatus } from "@/lib/registration";
 import type { ClubEvent } from "@/types";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface Props {
   event: ClubEvent;
@@ -61,6 +62,7 @@ export function RegistrationForm({ event, member }: Props) {
     rules: false,
     privacy: false,
     image: false,
+    conditions: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
@@ -69,6 +71,9 @@ export function RegistrationForm({ event, member }: Props) {
   const [promoInput, setPromoInput] = useState("");
   const [promo, setPromo] = useState<{ code: string; discountCents: number; label: string; places: number } | null>(null);
   const [promoError, setPromoError] = useState("");
+  const [askCancel, setAskCancel] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,7 +84,26 @@ export function RegistrationForm({ event, member }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [event.id]);
+  }, [event.id, reload]);
+
+  /** Annulation par la participante : la place est libérée, sans remboursement si les conditions le prévoient. */
+  async function cancelMine() {
+    setAskCancel(false);
+    setBusy(true);
+    setFormError("");
+    try {
+      const res = await fetch(`/api/events/${event.id}/register`, { method: "DELETE" });
+      const out = (await res.json()) as { error?: string; message?: string };
+      if (!res.ok) return setFormError(out.error ?? "Annulation impossible.");
+      setDone(null);
+      setNotice(out.message ?? "Votre réservation est annulée.");
+      setReload((n) => n + 1);
+    } catch {
+      setFormError("Annulation impossible. Vérifiez votre réseau.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const set = <K extends keyof typeof v>(k: K, value: (typeof v)[K]) => setV((s) => ({ ...s, [k]: value }));
   const places = cfg.singlePlace ? 1 : v.places;
@@ -100,7 +124,7 @@ export function RegistrationForm({ event, member }: Props) {
     emergency: { name: v.emergencyName, phone: v.emergencyPhone },
     allergies: v.allergies,
     comment: v.comment,
-    consents: { rules: v.rules, privacy: v.privacy, image: v.image },
+    consents: { rules: v.rules, privacy: v.privacy, image: v.image, conditions: v.conditions },
   });
 
   async function applyPromo() {
@@ -180,6 +204,23 @@ export function RegistrationForm({ event, member }: Props) {
         )}
         {mine && mine.status === "awaiting_payment" && status?.paymentMode === "manual" && status.paymentInstructions && <p className="mt-4 rounded-[10px] border border-white/10 bg-black/20 p-4 text-white/85 t-small">{status.paymentInstructions}</p>}
         {mine && mine.status === "confirmed" && mine.amountCents > 0 && status?.paymentMode === "onsite" && <p className="mt-4 text-white/85 t-small">À régler sur place : {formatEuros(mine.amountCents)}.</p>}
+        {cfg.selfCancel && mine && st !== "cancelled" && st !== "refunded" && (
+          <div className="mt-6 border-t border-white/10 pt-5">
+            {cfg.cancellationPolicy && <p className="whitespace-pre-line text-mist t-small">{cfg.cancellationPolicy}</p>}
+            <button type="button" onClick={() => setAskCancel(true)} disabled={busy} className="mt-3 font-body text-[13.5px] text-white/80 underline underline-offset-4 hover:text-white disabled:opacity-60">
+              Annuler ma réservation
+            </button>
+          </div>
+        )}
+        {askCancel && (
+          <ConfirmDialog
+            message={mine && (mine.status === "paid" || mine.amountCents > 0) && cfg.cancellationPolicy ? "Annuler votre réservation ? Votre place sera libérée. Conformément aux conditions, le billet acheté n'est pas remboursé." : "Annuler votre réservation ? Votre place sera libérée."}
+            confirmLabel="Annuler ma réservation"
+            cancelLabel="Garder ma place"
+            onConfirm={cancelMine}
+            onCancel={() => setAskCancel(false)}
+          />
+        )}
         {formError && <p role="alert" className="mt-4 text-[13px] text-[#ff8b9b]">{formError}</p>}
       </div>
     );
@@ -192,6 +233,7 @@ export function RegistrationForm({ event, member }: Props) {
 
   return (
     <form id="inscription-form" onSubmit={submit} noValidate className="space-y-9 rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-6 md:p-9">
+      {notice && <p role="status" className="rounded-[10px] border border-white/15 bg-black/20 p-4 font-body text-[14px] text-white">{notice}</p>}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="font-body text-[14px] text-mist">
           Carte membre <span className="font-medium tabular-nums text-white">{member.memberNumber}</span> vérifiée
@@ -279,6 +321,17 @@ export function RegistrationForm({ event, member }: Props) {
         <Check id="f-image" checked={v.image} onChange={(c) => set("image", c)}>
           J&rsquo;autorise la prise et la diffusion de photos de l&rsquo;événement (facultatif).
         </Check>
+        {cfg.cancellationPolicy?.trim() && (
+          <>
+            <div className="rounded-[12px] border border-psg-red-bright/40 bg-psg-red/[0.08] p-5">
+              <p className="font-body text-[14.5px] font-medium text-white">Conditions d&rsquo;annulation et de remboursement</p>
+              <p className="mt-2 whitespace-pre-line text-white/85 t-small">{cfg.cancellationPolicy}</p>
+            </div>
+            <Check id="f-conditions" checked={v.conditions} onChange={(c) => set("conditions", c)} error={err("conditions")}>
+              J&rsquo;ai lu et j&rsquo;accepte les conditions d&rsquo;annulation et de remboursement.
+            </Check>
+          </>
+        )}
       </fieldset>
 
       <fieldset className="border-t border-white/10 pt-8">

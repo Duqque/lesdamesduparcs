@@ -9,6 +9,8 @@ import { addRegistration, addWaitlistRegistration, listRegistrations, takenPlace
 import { paymentConfigured } from "@/lib/server/helloasso";
 import { startEventPayment } from "@/lib/server/checkout";
 import { formatLongDate } from "@/lib/format";
+import { isPast } from "@/data/events";
+import { promoteWaitlist } from "@/lib/server/event-ops";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -80,7 +82,7 @@ export async function POST(req: Request, { params }: Ctx) {
     emergency: { name: input.emergency!.name.trim(), phone: input.emergency!.phone.trim() },
     allergies: input.allergies?.trim().slice(0, 500),
     comment: input.comment?.trim().slice(0, 500),
-    consents: { rules: true, privacy: true, image: Boolean(input.consents?.image) },
+    consents: { rules: true, privacy: true, image: Boolean(input.consents?.image), ...(cfg.cancellationPolicy?.trim() ? { conditions: true } : {}) },
   };
   const extra = { unitCents, promoCode: promo?.ok ? promo.promo.code : undefined, discountCents: discountCents || undefined };
 
@@ -126,4 +128,24 @@ export async function POST(req: Request, { params }: Ctx) {
   } catch {
     return json({ registration: ref, paymentEnabled: false, message: "Inscription enregistrée, mais le paiement n'a pas pu être initialisé. Réessayez depuis cette page." }, 201);
   }
+}
+
+/**
+ * Annulation par la participante elle-même (si l'événement le permet) : la place est libérée et proposée à la liste d'attente.
+ * Aucun remboursement automatique : les conditions de l'événement s'appliquent (ex. billet non remboursable).
+ */
+export async function DELETE(req: Request, { params }: Ctx) {
+  const { slug } = await params;
+  const event = await getEvent(slug);
+  if (!event) return json({ error: "Événement introuvable." }, 404);
+  if (!event.registration.selfCancel) return json({ error: "L'annulation en ligne n'est pas possible pour cet événement : contactez l'équipe." }, 400);
+  if (isPast(event)) return json({ error: "L'événement est passé." }, 400);
+  const session = await getSession();
+  if (!session || session.role !== "member") return json({ error: "Connectez-vous pour gérer votre inscription." }, 401);
+  if (await throttled(req, "register-cancel", 10, 600_000, session.memberNumber)) return json({ error: "Trop de tentatives." }, 429);
+  const mine = (await listRegistrations(slug)).find((r) => r.memberNumber === session.memberNumber && active(r.status));
+  if (!mine) return json({ error: "Aucune inscription en cours." }, 404);
+  await updateRegistration(mine.id, { status: "cancelled" });
+  await promoteWaitlist(slug);
+  return json({ ok: true, message: mine.status === "paid" ? "Votre réservation est annulée. Conformément aux conditions, le billet n'est pas remboursé." : "Votre réservation est annulée." });
 }

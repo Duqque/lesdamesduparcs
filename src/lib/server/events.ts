@@ -3,7 +3,7 @@ import { events as seedEvents, pastEvents as seedPast, watchParties as seedWatch
 import type { ClubEvent } from "@/types";
 import { collection, type Row } from "./db";
 import { listAllRegistrations } from "./store";
-import { auditLog, dataMigrations } from "./admin-store";
+import { auditLog, markMigrationDone, migrationDone } from "./admin-store";
 
 export type EventRow = ClubEvent & Row & { origin?: "seed" };
 
@@ -52,12 +52,54 @@ async function applyWatchParties2026_10() {
   });
 }
 
+/**
+ * « billetterie-barca-2026-10 » : billetterie de la watch party PSG - Barça du 20/10/2026 (texte transmis par l'association) :
+ * 10 € la place payée en ligne, 80 billets, un par personne, annulation possible par la participante sans remboursement.
+ * Le match PSG - FC Barcelone du calendrier est relié à l'événement.
+ */
+const BARCA_TICKETING_2026_10 = "billetterie-barca-2026-10";
+const BARCA_ID = "watch-party-fc-barcelone";
+const BARCA_POLICY = "Tu peux annuler ta réservation si tu ne peux finalement plus participer. Toutefois, tout billet acheté est non remboursable : en cas d'annulation de ta part, aucun remboursement ne sera effectué.\n\nMerci de bien vérifier tes disponibilités avant de procéder au paiement.";
+
+async function applyBarcaTicketing2026_10() {
+  const ev = await eventsDb.get(BARCA_ID);
+  if (ev) {
+    const intro = "Viens vivre le match avec Les Dames du Parc et partager une soirée de football, de passion et de convivialité !";
+    await eventsDb.update(BARCA_ID, {
+      title: "Watch party : PSG - Barça",
+      subtitle: intro,
+      summary: "Tarif : 10 € par personne",
+      access: "Billetterie · 10 €",
+      description: ["Le billet comprend :\n• Une boisson\n• Un sandwich", "80 billets disponibles, limités à un billet par personne. Merci de bien vérifier tes disponibilités avant de procéder au paiement."],
+      practical: [
+        { label: "Tarif", value: "10 € par personne" },
+        { label: "Le billet comprend", value: "Une boisson et un sandwich" },
+        { label: "Places", value: "80 billets, 1 par personne" },
+        { label: "Annulation", value: "Possible depuis cette page, billet non remboursable" },
+      ],
+      registration: { ...ev.registration, mode: "form", priceCents: 1000, capacity: 80, singlePlace: true, paymentMode: "online", tiers: undefined, selfCancel: true, cancellationPolicy: BARCA_POLICY },
+      status: "published",
+    });
+  }
+  // Import dynamique : matches.ts n'a pas à dépendre des événements au chargement.
+  const { psgMatches } = await import("./matches");
+  const match = (await psgMatches.all()).find((m) => m.date === "2026-10-20" && /barc/i.test(`${m.homeTeam} ${m.awayTeam}`));
+  if (match && match.relatedEventId !== BARCA_ID) await psgMatches.update(match.id, { relatedEventId: BARCA_ID });
+  await auditLog.insert({ actorId: "systeme", actorName: "Mise à jour du site", action: "modification", entity: "événement", label: `Billetterie de la watch party PSG - Barça ouverte (10 €, 80 billets, 1 par personne)${match ? ", reliée au match du 20/10" : ""}` });
+}
+
+const MIGRATIONS: Array<[string, () => Promise<void>]> = [
+  [WATCH_PARTIES_2026_10, applyWatchParties2026_10],
+  [BARCA_TICKETING_2026_10, applyBarcaTicketing2026_10],
+];
+
 async function ensureDataMigrations() {
   migrating ??= (async () => {
-    const { done } = await dataMigrations.get();
-    if (done.includes(WATCH_PARTIES_2026_10)) return;
-    await applyWatchParties2026_10();
-    await dataMigrations.set({ done: [...done, WATCH_PARTIES_2026_10] });
+    for (const [name, run] of MIGRATIONS) {
+      if (await migrationDone(name)) continue;
+      await run();
+      await markMigrationDone(name);
+    }
   })().catch((err) => {
     migrating = null; // nouvel essai au prochain accès
     console.error("[événements] mise à jour du calendrier impossible", err);

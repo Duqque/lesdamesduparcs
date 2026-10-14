@@ -71,6 +71,8 @@ function parseEvent(f: FormData, id: string): Omit<EventRow, "createdAt" | "upda
       minAge: Number(s(f, "minAge")) || undefined,
       maxAge: Number(s(f, "maxAge")) || undefined,
       singlePlace: f.get("singlePlace") === "on" || undefined,
+      selfCancel: f.get("selfCancel") === "on" || undefined,
+      cancellationPolicy: s(f, "cancellationPolicy") || undefined,
     },
     description: toParagraphs(s(f, "description")),
     program: lines(s(f, "program")).map((l) => {

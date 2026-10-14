@@ -159,8 +159,10 @@ export const settings = {
   },
 };
 
-/** Mises à jour ponctuelles des données, appliquées une seule fois (repérées par leur nom). */
-export const dataMigrations = singleton("data_migrations", { done: [] as string[] });
+/** Mises à jour ponctuelles des données, appliquées une seule fois : un repère par mise à jour (jamais de liste partagée réécrite en parallèle). */
+const legacyMigrations = singleton("data_migrations", { done: [] as string[] });
+export const migrationDone = async (name: string) => (await singleton(`migration_${name}`, { at: "" }).get()).at !== "" || (await legacyMigrations.get()).done.includes(name);
+export const markMigrationDone = (name: string) => singleton(`migration_${name}`, { at: "" }).set({ at: new Date().toISOString() });
 
 const LEGAL_2026_10 = "infos-legales-sirene-2026-10";
 let legalMigration: Promise<void> | null = null;
@@ -173,8 +175,7 @@ let legalMigration: Promise<void> | null = null;
  */
 export function applyLegalInfoOnce() {
   legalMigration ??= (async () => {
-    const { done } = await dataMigrations.get();
-    if (done.includes(LEGAL_2026_10)) return;
+    if (await migrationDone(LEGAL_2026_10)) return;
     const cur = (await settingsStore.get()).association;
     await settingsStore.set({
       association: {
@@ -191,7 +192,7 @@ export function applyLegalInfoOnce() {
         president: cur.president === "Camille Fictive" ? "" : cur.president,
       },
     });
-    await dataMigrations.set({ done: [...done, LEGAL_2026_10] });
+    await markMigrationDone(LEGAL_2026_10);
   })().catch((err) => {
     legalMigration = null;
     console.error("[paramètres] mise à jour des informations légales impossible", err);

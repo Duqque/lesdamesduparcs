@@ -127,6 +127,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </div>
           </Reveal>
 
+          {event.program.length > 0 && (
           <section aria-labelledby="programme">
             <Reveal>
               <p className={label}>Déroulé</p>
@@ -149,6 +150,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               ))}
             </ol>
           </section>
+          )}
 
           {event.speakers.length > 0 && (
             <section aria-labelledby="intervenants">

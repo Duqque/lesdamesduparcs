@@ -304,6 +304,31 @@ await call("POST", "/api/cron/tick", { headers: { Authorization: `Bearer ${CRON}
 await sleep(800);
 ok("Nouvelle tentative réussie : e-mail envoyé une seule fois", read("email_jobs").find((j) => j.id === failedJob.id).status === "sent" && (await rs("/__mails")).filter((m) => /commande Les Dames du Parc est confirmée/.test(m.subject) && m.to.includes(oe.contact.email)).length === 1);
 
+console.log(`\n== Billetterie watch party PSG - Barça (10 €, 80 billets, 1 par personne, annulation sans remboursement) ==`);
+const BARCA = "watch-party-fc-barcelone";
+const regBody = (extra = {}) => ({ firstName: "Camille", lastName: "Payeuse", email: "barca@example.com", phone: "0612345678", places: 1, emergency: { name: "Contact", phone: "0611111111" }, consents: { rules: true, privacy: true, conditions: true }, ...extra });
+const bs = await call("GET", `/api/events/${BARCA}/register`, { c: cA });
+ok("Événement configuré : 10 €, 80 places, paiement en ligne", bs.status === 200 && bs.data.unitCents === 1000 && bs.data.capacity === 80 && bs.data.paymentMode === "online" && bs.data.mine === null, JSON.stringify(bs.data));
+const barcaEv = read("events").find((e) => e.id === BARCA);
+ok("Une seule place par inscription, annulation ouverte, conditions renseignées", barcaEv.registration.singlePlace === true && barcaEv.registration.selfCancel === true && /non remboursable/.test(barcaEv.registration.cancellationPolicy));
+ok("Match PSG - FC Barcelone relié à l'événement", read("psg_matches").some((m) => m.date === "2026-10-20" && m.relatedEventId === BARCA));
+ok("Sans connexion : inscription refusée (401)", (await call("POST", `/api/events/${BARCA}/register`, { json: regBody() })).status === 401);
+r = await call("POST", `/api/events/${BARCA}/register`, { json: regBody({ consents: { rules: true, privacy: true } }), c: cA });
+ok("Conditions d'annulation non acceptées : refus (422)", r.status === 422 && !!r.data.errors?.conditions, JSON.stringify(r.data));
+r = await call("POST", `/api/events/${BARCA}/register`, { json: regBody({ places: 3 }), c: cA });
+ok("Inscription : un seul billet facturé (10 €) même si 3 places sont demandées, redirection vers le paiement", r.status === 201 && !!r.data.checkoutUrl, JSON.stringify(r.data));
+let reg = read("registrations").find((x) => x.eventId === BARCA && x.memberNumber === memA.memberNumber && x.status !== "cancelled");
+ok("Inscription en attente de paiement, 1 place, 10 €", reg?.status === "awaiting_payment" && reg.places === 1 && reg.amountCents === 1000, JSON.stringify(reg));
+ok("Deuxième billet pour la même personne refusé (409)", (await call("POST", `/api/events/${BARCA}/register`, { json: regBody(), c: cA })).status === 409);
+await ha(`/__pay/${reg.checkoutId}`);
+const wb = await webhook("registration", reg.id);
+ok("Paiement HelloAsso : inscription payée", wb.status === 200 && read("registrations").find((x) => x.id === reg.id).status === "paid", JSON.stringify(wb.data));
+r = await call("DELETE", `/api/events/${BARCA}/register`, { c: cA });
+ok("Annulation par la participante : acceptée, message « non remboursé »", r.status === 200 && /pas remboursé/.test(r.data.message), JSON.stringify(r.data));
+ok("Inscription annulée, aucun remboursement déclenché", read("registrations").find((x) => x.id === reg.id).status === "cancelled" && !read("payments").some((p) => p.txId === `registration:${reg.id}` && p.status === "refunded"));
+ok("La place est libérée (80 restantes)", (await call("GET", `/api/events/${BARCA}/register`, { c: cA })).data.remaining === 80);
+ok("Annulation impossible sans inscription en cours (404)", (await call("DELETE", `/api/events/${BARCA}/register`, { c: cA })).status === 404);
+
 console.log(`\n== HelloAsso indisponible ==`);
 ok("Commande d'un panier vide refusée", (await call("POST", "/api/checkout", { json: shopBody(60, []) })).status === 400);
 

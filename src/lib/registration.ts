@@ -13,7 +13,7 @@ export interface RegistrationInput {
   emergency: { name: string; phone: string };
   allergies?: string;
   comment?: string;
-  consents: { rules: boolean; privacy: boolean; image?: boolean };
+  consents: { rules: boolean; privacy: boolean; image?: boolean; conditions?: boolean };
 }
 
 export interface Registration extends RegistrationInput {
@@ -73,5 +73,6 @@ export function validateRegistration(input: Partial<RegistrationInput>, event: C
   }
   if (!input.consents?.rules) e.rules = "Vous devez accepter le règlement.";
   if (!input.consents?.privacy) e.privacy = "Vous devez accepter le traitement de vos données.";
+  if (cfg.cancellationPolicy?.trim() && !input.consents?.conditions) e.conditions = "Vous devez accepter les conditions d'annulation et de remboursement.";
   return e;
 }
