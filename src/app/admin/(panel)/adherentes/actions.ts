@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { generateMemberNumber, validateMember, type MemberInput } from "@/lib/members";
 import { seasonOf } from "@/lib/season";
 import { audit, requireAdmin, requireFresh } from "@/lib/server/admin-auth";
-import { addMemberRaw, anonymizeMember, deleteMemberHard, getMemberById, takenMemberNumbers, toPublic, updateMember, type StoredMember } from "@/lib/server/store";
+import { addMemberRaw, listStoredMembers, anonymizeMember, deleteMemberHard, getMemberById, takenMemberNumbers, toPublic, updateMember, type StoredMember } from "@/lib/server/store";
 import { createMembership, currentMembership, defaultPlan, effectiveStatus, memberships, paymentOfMembership, payments, plans, setTxStatus, addManualPayment, type PayMethod, type TxStatus } from "@/lib/server/business";
 import { hashPassword } from "@/lib/server/password";
 import { sendEmail, sendTemplate } from "@/lib/server/email";
@@ -56,6 +56,7 @@ export async function createMemberAction(formData: FormData) {
     joinedAt: new Date().toISOString(),
     validUntil: season.validUntil,
     passwordHash: await hashPassword(password),
+    firstLogin: {},
   };
   const res = await addMemberRaw(member);
   if (!res.ok) redirect("/admin/adherentes/nouvelle?erreur=Cette+adresse+e-mail+est+d%C3%A9j%C3%A0+utilis%C3%A9e.");
@@ -70,6 +71,7 @@ export async function createMemberAction(formData: FormData) {
     body: `Bonjour ${member.firstName},\n\nL'équipe a créé votre compte membre (numéro ${member.memberNumber}). Pour définir votre mot de passe et accéder à votre espace, ouvrez ce lien (valable 7 jours, à usage unique) :\n${link}`,
     kind: "invitation",
   });
+  if (mail.ok) await updateMember(member.id, { firstLogin: { sentAt: new Date().toISOString() } });
   await cookies().then((jar) => jar.set("ddp_admin_link", link, { httpOnly: true, sameSite: "strict", path: "/admin/adherentes", maxAge: 60, secure: process.env.NODE_ENV === "production" && process.env.SESSION_INSECURE_COOKIE !== "1" }));
   revalidatePath("/admin/adherentes");
   redirect(`/admin/adherentes/${member.id}?ok=${encodeURIComponent(mail.ok ? "Adhérente créée : un e-mail lui a été envoyé pour définir son mot de passe (lien aussi ci-dessous)." : "Adhérente créée. Aucun e-mail n'est parti (service d'e-mail non configuré) : transmettez-lui le lien ci-dessous pour qu'elle définisse son mot de passe.")}`);
@@ -313,7 +315,7 @@ export async function importMembersAction(formData: FormData) {
     taken.add(number);
     const { password: _pw, ...profile } = input;
     void _pw;
-    const member: StoredMember = { ...profile, id: randomUUID(), memberNumber: number, token: randomBytes(18).toString("base64url"), season: season.label, authorizations: [], joinedAt: new Date().toISOString(), validUntil: season.validUntil, passwordHash: await hashPassword(randomBytes(12).toString("base64url")) };
+    const member: StoredMember = { ...profile, id: randomUUID(), memberNumber: number, token: randomBytes(18).toString("base64url"), season: season.label, authorizations: [], joinedAt: new Date().toISOString(), validUntil: season.validUntil, passwordHash: await hashPassword(randomBytes(12).toString("base64url")), firstLogin: {} };
     const res = await addMemberRaw(member);
     if (!res.ok) { skipped.push(`ligne ${n + 2} (e-mail déjà utilisé)`); continue; }
     if (plan) await createMembership(toPublic(member), plan, { paid: true, method: "autre" });
@@ -323,6 +325,48 @@ export async function importMembersAction(formData: FormData) {
   revalidatePath("/admin/adherentes");
   const msg = `${created} adhérente(s) importée(s).` + (skipped.length ? ` Ignorées : ${skipped.slice(0, 5).join(" ; ")}${skipped.length > 5 ? "…" : ""}.` : "");
   redirect("/admin/adherentes/import-export?ok=" + encodeURIComponent(msg));
+}
+
+/** E-mail de première connexion : lien (7 jours, usage unique) pour choisir son mot de passe sur un compte créé par l'équipe. */
+async function mailFirstLogin(m: StoredMember) {
+  const link = `${await siteOrigin()}/connexion/reinitialiser/${await createMemberResetToken(m.id, 7 * 24 * 3600_000)}`;
+  const mail = await sendEmail({
+    to: m.email,
+    subject: "Bienvenue chez Les Dames du Parc : activez votre compte",
+    body: `Bonjour ${m.firstName},\n\nVotre compte membre Les Dames du Parc est prêt (numéro ${m.memberNumber}). Pour votre première connexion, choisissez votre mot de passe en ouvrant ce lien, valable 7 jours et à usage unique :\n\n${link}\n\nVous retrouverez ensuite votre carte de membre, les événements et l'espace privé du groupe.\n\nÀ très vite au Parc !`,
+    kind: "invitation",
+  });
+  if (mail.ok) await updateMember(m.id, { firstLogin: { sentAt: new Date().toISOString() } });
+  return mail.ok;
+}
+
+/** Envoie (ou renvoie) l'e-mail de première connexion à une adhérente. */
+export async function sendFirstLoginEmailAction(id: string) {
+  const ctx = await requireAdmin("members.edit");
+  const m = await getMemberById(id);
+  if (!m || m.status === "anonymized" || m.status === "expelled") redirect("/admin/adherentes");
+  const ok = await mailFirstLogin(m);
+  if (!ok) back(id, { erreur: "L'e-mail n'est pas parti : vérifiez le service d'e-mail (Configuration), ou générez un lien de connexion à transmettre." });
+  await audit(ctx, "sécurité", "adhérente", `E-mail de première connexion envoyé : ${m.firstName} ${m.lastName}`, { entityId: id });
+  back(id, { ok: `E-mail de première connexion envoyé à ${m.email} (lien valable 7 jours).` });
+}
+
+/** Envoie l'e-mail de première connexion à toutes les adhérentes créées par l'équipe qui ne l'ont pas encore reçu. */
+export async function sendPendingFirstLoginEmailsAction() {
+  const ctx = await requireAdmin("members.edit");
+  const pending = (await listStoredMembers()).filter((m) => m.firstLogin && !m.firstLogin.sentAt && m.status !== "anonymized" && m.status !== "expelled");
+  let sent = 0;
+  const failed: string[] = [];
+  for (const m of pending) {
+    if (await mailFirstLogin(m)) sent++;
+    else failed.push(`${m.firstName} ${m.lastName}`);
+  }
+  await audit(ctx, "sécurité", "adhérente", `E-mails de première connexion : ${sent} envoyé(s), ${failed.length} en échec`);
+  revalidatePath("/admin/adherentes");
+  const q = failed.length
+    ? `erreur=${encodeURIComponent(`${sent} e-mail(s) envoyé(s). Échec pour : ${failed.slice(0, 5).join(", ")}${failed.length > 5 ? "…" : ""} (vérifiez le service d'e-mail).`)}`
+    : `ok=${encodeURIComponent(sent ? `${sent} e-mail(s) de première connexion envoyé(s) (liens valables 7 jours).` : "Aucune adhérente en attente d'e-mail de première connexion.")}`;
+  redirect(`/admin/adherentes/import-export?${q}`);
 }
 
 /** Génère un lien (7 jours, usage unique) que l'équipe peut transmettre : première connexion d'un compte créé par l'équipe, ou mot de passe perdu. */

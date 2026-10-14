@@ -19,7 +19,7 @@ import { BirthDateInput } from "@/components/forms/BirthDateInput";
 import { LocalityGroup } from "@/components/forms/LocalityGroup";
 import { PhoneInput } from "@/components/forms/PhoneInput";
 import { PhotoCropField } from "@/components/member/PhotoCropField";
-import { addManualLineAction, deleteProfileAction, deleteTestProfileAction, sendMemberResetEmailAction, setMemberPhotoAction, setMembershipDatesAction, validateMemberCardAction, addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
+import { addManualLineAction, sendFirstLoginEmailAction, deleteProfileAction, deleteTestProfileAction, sendMemberResetEmailAction, setMemberPhotoAction, setMembershipDatesAction, validateMemberCardAction, addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
 
 export const metadata = { title: "Fiche adhérente" };
 
@@ -257,6 +257,9 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
           <div className="flex flex-wrap content-start gap-2">
             {ctx.can("members.edit") && !anonymized && m.status === "suspended" && (
               <form action={setMemberStatusAction.bind(null, id, "active")}><SubmitButton variant="outline">Lever la suspension maintenant</SubmitButton></form>
+            )}
+            {ctx.can("members.edit") && !anonymized && m.status !== "expelled" && stored?.firstLogin && (
+              <form action={sendFirstLoginEmailAction.bind(null, id)}><SubmitButton confirm={`Envoyer à ${m.email} l'e-mail de première connexion (lien pour choisir son mot de passe, valable 7 jours) ?`}>{stored?.firstLogin?.sentAt ? `Renvoyer l'e-mail de première connexion (envoyé le ${fmtDate(stored.firstLogin.sentAt)})` : "Envoyer l'e-mail de première connexion"}</SubmitButton></form>
             )}
             {ctx.can("members.edit") && !anonymized && m.status !== "expelled" && <form action={sendMemberResetEmailAction.bind(null, id)}><SubmitButton variant="outline" confirm="Envoyer à cette personne, par e-mail, un lien de reconnexion et de changement de mot de passe ?">Envoyer un lien de réinitialisation du mot de passe</SubmitButton></form>}
             {ctx.can("members.delete") && !anonymized && row.kind === "profil" && <form action={deleteProfileAction.bind(null, id)}><SubmitButton variant="danger" confirm="Supprimer définitivement ce profil (fiche, adhésions et paiements non réglés) ? Cette action est irréversible.">Supprimer ce profil</SubmitButton></form>}

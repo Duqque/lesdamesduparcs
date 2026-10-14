@@ -15,7 +15,7 @@ export async function consumeMemberResetToken(token: string, newPassword: string
   const hash = createHash("sha256").update(token).digest("hex");
   const member = (await listStoredMembers()).find((m) => m.reset?.hash === hash && (m.reset?.exp ?? 0) > Date.now() && m.status !== "anonymized");
   if (!member) return false;
-  await updateMember(member.id, { passwordHash: await hashPassword(newPassword), reset: undefined });
+  await updateMember(member.id, { passwordHash: await hashPassword(newPassword), reset: undefined, firstLogin: undefined });
   await revokeMemberSessions(member.id);
   return true;
 }

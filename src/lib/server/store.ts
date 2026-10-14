@@ -90,11 +90,14 @@ export type StoredMember = MemberPublic & {
   discord?: DiscordLink;
   /** Jeton d'état OAuth Discord en attente (courte durée, usage unique). */
   discordState?: { hash: string; exp: number };
+  /** Compte créé par l'équipe (saisie ou import) dont la titulaire n'a pas encore choisi son mot de passe ; sentAt : dernier e-mail de première connexion. */
+  firstLogin?: { sentAt?: string };
 };
 
 const readMembers = () => membersStore.read();
 
-export const toPublic = ({ passwordHash: _p, reset: _r, discord: _d, discordState: _ds, ...m }: StoredMember): MemberPublic => {
+export const toPublic = ({ passwordHash: _p, reset: _r, discord: _d, discordState: _ds, firstLogin: _f, ...m }: StoredMember): MemberPublic => {
+  void _f;
   void _p;
   void _r;
   void _d;
