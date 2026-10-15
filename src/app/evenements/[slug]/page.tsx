@@ -37,6 +37,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const event = await getEvent(slug);
   if (!event) notFound();
 
+  // Le lieu n'est communiqué que sur le billet : il n'est pas transmis aux composants du navigateur.
+  const publicEvent = { ...event, venue: "", address: "", gps: undefined, mapUrl: undefined };
   const linked = (await psgMatches.find((m) => m.relatedEventId === event.id && !m.hidden))[0];
   const linkedView = linked ? await toView(linked) : null;
   const past = isPast(event) || event.registration.mode === "closed";
@@ -54,7 +56,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     ...(event.endTime ? { endDate: parisDateTime(event.date, event.endTime) } : {}),
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
-    location: { "@type": "Place", name: event.venue, address: { "@type": "PostalAddress", streetAddress: event.address, ...(event.city ? { addressLocality: event.city } : {}), addressCountry: "FR" } },
+    // Lieu précis communiqué uniquement sur le billet : seule la ville (si renseignée) est indiquée aux moteurs de recherche.
+    ...(event.city ? { location: { "@type": "Place", name: event.city, address: { "@type": "PostalAddress", addressLocality: event.city, addressCountry: "FR" } } } : {}),
     organizer: { "@type": "Organization", name: "Les Dames du Parc", url: SITE_URL },
     ...(reg.mode !== "closed"
       ? { offers: { "@type": "Offer", price: (reg.priceCents / 100).toFixed(2), priceCurrency: "EUR", availability: "https://schema.org/InStock", url: `${SITE_URL}/evenements/${event.id}#inscription` } }
@@ -87,7 +90,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </li>
             <li className="flex items-center gap-2.5">
               <MapPin aria-hidden className="size-4 text-psg-red-bright" strokeWidth={1.8} />
-              {event.venue}
+              Lieu indiqué sur votre billet
             </li>
           </ul>
           <div className="mt-12 flex flex-col gap-4 sm:flex-row">
@@ -199,8 +202,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 </div>
                 <div className="py-4">
                   <dt className="font-body text-[12px] uppercase tracking-[0.2em] text-mist">Lieu</dt>
-                  <dd className="mt-1.5 font-body text-[15px] font-medium text-white">{event.venue}</dd>
-                  <dd className="mt-0.5 font-body text-[13.5px] text-mist">{event.address}</dd>
+                  <dd className="mt-1.5 font-body text-[15px] font-medium text-white">Communiqué sur votre billet</dd>
+                  <dd className="mt-0.5 font-body text-[13.5px] text-mist">Le billet, envoyé par e-mail après l&rsquo;inscription, indique l&rsquo;adresse et l&rsquo;itinéraire.</dd>
                 </div>
                 {event.practical.map((row) => (
                   <div key={row.label} className="py-4 last:pb-0">
@@ -227,9 +230,9 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       </div>
 
       <Suspense fallback={null}>
-        <EventAccess event={event} />
+        <EventAccess event={publicEvent} />
       </Suspense>
-      {!past && <ReserveBar event={event} />}
+      {!past && <ReserveBar event={publicEvent} />}
 
       <section aria-labelledby="autres" className="pb-40 md:pb-56">
         <div className="mx-auto flex max-w-[1300px] items-end justify-between px-[var(--gutter)]">

@@ -57,7 +57,7 @@ async function collectItems(): Promise<Item[]> {
   for (const e of await eventsDb.all()) {
     const live = e.status === "published" || e.status === undefined || (e.status === "scheduled" && e.publishAt !== undefined && new Date(e.publishAt).getTime() <= now);
     if (!live || e.date < today()) continue;
-    items.push({ key: `notify:event:${e.id}`, kind: "event", template: "new_event", mailKind: "nouvel-evenement", title: e.title, summary: e.summary, path: `/evenements/${e.id}`, image: e.image ? { src: e.image, alt: e.imageAlt } : undefined, extra: { date: `${formatLongDate(e.date)}${e.time ? ` à ${e.time}` : ""}`, lieu: e.venue }, fresh: isFresh(e) });
+    items.push({ key: `notify:event:${e.id}`, kind: "event", template: "new_event", mailKind: "nouvel-evenement", title: e.title, summary: e.summary, path: `/evenements/${e.id}`, image: e.image ? { src: e.image, alt: e.imageAlt } : undefined, extra: { date: `${formatLongDate(e.date)}${e.time ? ` à ${e.time}` : ""}`, lieu: "lieu indiqué sur le billet" }, fresh: isFresh(e) });
   }
   for (const p of await productsDb.all()) {
     if (p.status !== "active") continue;

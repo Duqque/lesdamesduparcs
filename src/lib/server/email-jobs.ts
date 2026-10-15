@@ -77,7 +77,7 @@ interface OrderPayload {
 }
 
 /** Objet et texte de l'e-mail, construits à partir des données enregistrées dans la tâche (aucune relecture nécessaire). */
-export async function buildEmail(job: Pick<EmailJob, "type" | "payload">): Promise<{ subject: string; body: string; kind: string; invoiceId?: string; signature?: boolean } | null> {
+export async function buildEmail(job: Pick<EmailJob, "type" | "payload">): Promise<{ subject: string; body: string; kind: string; invoiceId?: string; ticketRegistrationId?: string; signature?: boolean } | null> {
   const p = job.payload;
   const o = await origin();
   const hello = `Bonjour ${s(p.firstName)},`;
@@ -137,16 +137,20 @@ export async function buildEmail(job: Pick<EmailJob, "type" | "payload">): Promi
       return { kind: "welcome", subject: "Bienvenue chez Les Dames du Parc", body: [hello, `Votre compte est créé. Retrouvez votre espace membre ici :\n${o}/profil`].join("\n\n") };
     case "EVENT_CONFIRMATION": {
       const practical = Array.isArray(p.practical) ? (p.practical as Array<{ label: string; value: string }>).map((x) => `${x.label} : ${x.value}`).join("\n") : "";
+      const address = [s(p.address), s(p.city)].filter((x) => x && !/communiqu/i.test(x)).join(", ");
+      const ticket = s(p.ticketCode);
       return {
         kind: "event_confirmation_paid",
-        subject: "Votre inscription est confirmée",
+        subject: `Votre billet : ${s(p.eventTitle)}`,
         body: [
           hello,
-          `Votre inscription à « ${s(p.eventTitle)} » est confirmée.`,
-          `Date : ${formatLongDate(s(p.date).slice(0, 10))}${p.time ? `, ${s(p.time)}` : ""}\nLieu : ${s(p.venue)}${p.address ? `, ${s(p.address)}` : ""}\nPlaces : ${n(p.places) || 1}${n(p.amountCents) ? `\nMontant réglé : ${eur(n(p.amountCents))}` : ""}`,
+          `Votre inscription à « ${s(p.eventTitle)} » est confirmée.${ticket ? " Votre billet est joint à cet e-mail (PDF) : présentez-le à l'entrée, sur votre téléphone ou imprimé." : ""}`,
+          `Date : ${formatLongDate(s(p.date).slice(0, 10))}${p.time ? `, ${s(p.time).replace(":", "h")}` : ""}\nLieu : ${s(p.venue)}${address ? `, ${address}` : ""}\nPlaces : ${n(p.places) || 1}${n(p.amountCents) ? `\nMontant réglé : ${eur(n(p.amountCents))}` : ""}${ticket ? `\nN° de billet : ${ticket}` : ""}`,
+          ...(p.maps ? [`Itinéraire (Google Maps) :\n${s(p.maps)}`] : []),
           ...(practical ? [`Informations pratiques\n${practical}`] : []),
-          `Votre billet et vos inscriptions :\n${o}/profil`,
+          `Votre billet reste disponible sur la page de l'événement, une fois connectée :\n${o}/profil`,
         ].join("\n\n"),
+        ticketRegistrationId: s(p.registrationId) || undefined,
       };
     }
     case "PAYMENT_FAILED":
@@ -184,6 +188,10 @@ export function processEmailJobs(limit = 25) {
         continue;
       }
       let attachments: Array<{ filename: string; content: Buffer }> | undefined;
+      if (mail.ticketRegistrationId) {
+        const ticket = await (await import("./tickets")).ticketPdfFor(mail.ticketRegistrationId).catch(() => null);
+        if (ticket) attachments = [{ filename: ticket.filename, content: Buffer.from(ticket.bytes) }];
+      }
       if (mail.invoiceId) {
         const { invoiceKey, invoices } = await import("./invoice");
         const inv = await invoices.findOne((i) => i.id === mail.invoiceId);

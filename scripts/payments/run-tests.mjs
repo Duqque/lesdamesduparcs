@@ -323,9 +323,18 @@ ok("Deuxième billet pour la même personne refusé (409)", (await call("POST", 
 await ha(`/__pay/${reg.checkoutId}`);
 const wb = await webhook("registration", reg.id);
 ok("Paiement HelloAsso : inscription payée", wb.status === 200 && read("registrations").find((x) => x.id === reg.id).status === "paid", JSON.stringify(wb.data));
+const paidReg = read("registrations").find((x) => x.id === reg.id);
+ok("Billet émis au paiement : code unique à 12 chiffres", /^[1-9]\d{11}$/.test(paidReg.ticketCode ?? ""), paidReg.ticketCode);
+ok("E-mail de confirmation en file avec le billet", read("email_jobs").some((j) => j.type === "EVENT_CONFIRMATION" && j.payload.registrationId === reg.id && j.payload.ticketCode === paidReg.ticketCode));
+await sleep(2500);
+ok("E-mail « Votre billet » envoyé avec le billet PDF en pièce jointe", (await rs("/__mails")).some((m) => /Votre billet/.test(m.subject) && m.attachments.some((f) => f.startsWith("billet-") && f.includes(paidReg.ticketCode))));
+const tk = await call("GET", `/api/events/${BARCA}/ticket`, { c: cA });
+ok("Téléchargement du billet par la participante (PDF)", tk.status === 200 && (tk.res.headers.get("content-type") || "").includes("application/pdf"));
+ok("Billet refusé sans connexion (401)", (await call("GET", `/api/events/${BARCA}/ticket`)).status === 401);
 r = await call("DELETE", `/api/events/${BARCA}/register`, { c: cA });
 ok("Annulation par la participante : acceptée, message « non remboursé »", r.status === 200 && /pas remboursé/.test(r.data.message), JSON.stringify(r.data));
 ok("Inscription annulée, aucun remboursement déclenché", read("registrations").find((x) => x.id === reg.id).status === "cancelled" && !read("payments").some((p) => p.txId === `registration:${reg.id}` && p.status === "refunded"));
+ok("Après annulation, plus de billet téléchargeable (404)", (await call("GET", `/api/events/${BARCA}/ticket`, { c: cA })).status === 404);
 ok("La place est libérée (80 restantes)", (await call("GET", `/api/events/${BARCA}/register`, { c: cA })).data.remaining === 80);
 ok("Annulation impossible sans inscription en cours (404)", (await call("DELETE", `/api/events/${BARCA}/register`, { c: cA })).status === 404);
 

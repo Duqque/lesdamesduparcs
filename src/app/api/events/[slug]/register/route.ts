@@ -11,6 +11,7 @@ import { startEventPayment } from "@/lib/server/checkout";
 import { formatLongDate } from "@/lib/format";
 import { isPast } from "@/data/events";
 import { promoteWaitlist } from "@/lib/server/event-ops";
+import { issueTicket } from "@/lib/server/tickets";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -101,10 +102,9 @@ export async function POST(req: Request, { params }: Ctx) {
   const ref = { id: registration.id, status: registration.status };
   const vars = { prenom: clean.firstName, objet: event.title, date: formatLongDate(event.date), montant: formatEuros(amountCents), consignes: cfg.paymentInstructions ?? "" };
 
-  if (amountCents === 0) {
-    await sendTemplate("event_confirmation", clean.email, vars, "eventConfirmation");
-    return json({ registration: ref }, 201);
-  }
+  // Inscription confirmée d'emblée (gratuite, paiement sur place ou facultatif) : billet émis et envoyé par e-mail.
+  if (status === "confirmed") await issueTicket(registration.id);
+  if (amountCents === 0) return json({ registration: ref, message: "Inscription confirmée : votre billet vous a été envoyé par e-mail. Vous pouvez aussi le télécharger ci-dessous." }, 201);
 
   if (mode === "onsite") {
     await sendTemplate("event_payment_due", clean.email, { ...vars, consignes: "Le règlement se fait sur place, le jour de l'événement." });

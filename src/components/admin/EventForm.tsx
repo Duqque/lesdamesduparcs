@@ -53,11 +53,11 @@ export function EventForm({ event, canPricing = true, matches = [], linkedMatchI
 
       <Panel title="3 · Localisation">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Lieu"><input name="venue" defaultValue={event?.venue} required className={inp} /></Field>
+          <Field label="Lieu" hint="Visible uniquement sur le billet envoyé par e-mail, jamais sur le site."><input name="venue" defaultValue={event?.venue} required className={inp} /></Field>
           <Field label="Ville"><input name="city" defaultValue={event?.city} className={inp} /></Field>
-          <Field label="Adresse" className="sm:col-span-2"><input name="address" defaultValue={event?.address} className={inp} /></Field>
+          <Field label="Adresse" hint="Imprimée sur le billet, avec le lien d'itinéraire Google Maps." className="sm:col-span-2"><input name="address" defaultValue={event?.address} className={inp} /></Field>
           <Field label="Coordonnées GPS"><input name="gps" defaultValue={event?.gps} placeholder="48.8414, 2.2530" className={inp} /></Field>
-          <Field label="Lien Google Maps"><input name="mapUrl" defaultValue={event?.mapUrl} className={inp} /></Field>
+          <Field label="Lien Google Maps" hint="Facultatif : sinon l'itinéraire est calculé depuis l'adresse."><input name="mapUrl" defaultValue={event?.mapUrl} className={inp} /></Field>
         </div>
       </Panel>
 

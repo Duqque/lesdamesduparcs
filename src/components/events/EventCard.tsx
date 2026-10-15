@@ -19,7 +19,7 @@ export function EventCard({ event }: { event: ClubEvent }) {
         </li>
         <li className="flex items-center gap-2">
           <MapPin aria-hidden className="size-[13px] shrink-0" strokeWidth={1.8} />
-          {event.venue}
+          Lieu sur le billet
         </li>
       </ul>
       <div className="mt-7">

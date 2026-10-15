@@ -15,6 +15,7 @@ export async function promoteWaitlist(eventId: string) {
     if (r.places > remaining) break;
     await updateRegistration(r.id, { status: r.amountCents > 0 ? "awaiting_payment" : "confirmed" });
     await sendTemplate("waitlist", r.email, { prenom: r.firstName, objet: ev.title, date: formatLongDate(ev.date) }, "waitlistNotify");
+    if (r.amountCents === 0) await (await import("./tickets")).issueTicket(r.id);
     remaining -= r.places;
     promoted++;
   }

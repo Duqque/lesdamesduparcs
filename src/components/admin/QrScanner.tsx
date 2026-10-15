@@ -30,7 +30,7 @@ export function QrScanner({ inputId, formId }: { inputId: string; formId: string
         return;
       }
       try {
-        const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+        const detector = new window.BarcodeDetector({ formats: ["qr_code", "code_128"] });
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         if (video.current) {
           video.current.srcObject = stream;

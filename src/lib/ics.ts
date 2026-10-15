@@ -40,7 +40,8 @@ function vevent(e: ClubEvent) {
     `DTSTART:${stamp(parisToUtc(e.date, e.time))}`,
     `DTEND:${stamp(endInstant(e))}`,
     `SUMMARY:${escape(e.title)}`,
-    `LOCATION:${escape([e.venue, e.address].filter(Boolean).join(", "))}`,
+    // Événements des Dames : le lieu n'est communiqué que sur le billet ; les matchs gardent leur stade.
+    `LOCATION:${escape(e.id.startsWith("match-") ? [e.venue, e.address].filter(Boolean).join(", ") : "Lieu indiqué sur votre billet")}`,
     `DESCRIPTION:${escape(`${e.summary}\n${SITE}/evenements${e.id.startsWith("match-") ? "" : `/${e.id}`}`)}`,
     `URL:${SITE}/evenements${e.id.startsWith("match-") ? "" : `/${e.id}`}`,
     "END:VEVENT",

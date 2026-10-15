@@ -70,13 +70,8 @@ export async function settleRegistration(registrationId: string, checkout: Check
   await updateRegistration(reg.id, { status: "paid" });
   logEvent("order_paid", { kind: "registration", ref: reg.id, amountCents: amount });
   const event = await getEvent(reg.eventId);
-  await enqueueEmail({
-    type: "EVENT_CONFIRMATION",
-    recipient: reg.email,
-    dedupeKey: `EVENT_CONFIRMATION:${reg.id}`,
-    memberNumber: reg.memberNumber,
-    payload: { firstName: reg.firstName, eventTitle: event?.title ?? reg.eventId, date: event?.date ?? "", time: event?.time, venue: event?.venue ?? "", address: event?.address, places: reg.places, amountCents: reg.amountCents, practical: event?.practical ?? [] },
-  });
+  // Billet (code-barres) et e-mail de confirmation avec le billet PDF en pièce jointe.
+  await (await import("./tickets")).issueTicket(reg.id);
   // Facture (et e-mail de validation du paiement avec la facture en pièce jointe) ; à défaut, l'ancien e-mail de confirmation.
   if (!(await issueInvoice(`registration:${reg.id}`))) await sendTemplate("payment", reg.email, { prenom: reg.firstName, montant: eur(reg.amountCents), objet: event?.title ?? reg.eventId }, "paymentConfirmation");
   processEmailJobsSoon();

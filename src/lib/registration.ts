@@ -30,6 +30,9 @@ export interface Registration extends RegistrationInput {
   discountCents?: number;
   attended?: boolean | null;
   attendedAt?: string;
+  /** Billet : code unique (12 chiffres, imprimé en code-barres Code 128) et date d'émission. */
+  ticketCode?: string;
+  ticketIssuedAt?: string;
   createdAt: string;
 }
 

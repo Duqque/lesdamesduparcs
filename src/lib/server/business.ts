@@ -339,6 +339,7 @@ export async function setTxStatus(txId: string, status: TxStatus, opts?: { metho
     const map: Record<TxStatus, RegistrationStatus> = { paid: "paid", pending: "awaiting_payment", failed: "awaiting_payment", refunded: "refunded", cancelled: "cancelled" };
     await updateRegistration(rowId, { status: map[status] });
     if (status === "paid") await (await import("./invoice")).issueInvoice(txId);
+    if (status === "paid") await (await import("./tickets")).issueTicket(rowId);
     return { ok: true };
   }
   if (source === "order") {

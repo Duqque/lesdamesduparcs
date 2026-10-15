@@ -204,6 +204,11 @@ export function RegistrationForm({ event, member }: Props) {
         )}
         {mine && mine.status === "awaiting_payment" && status?.paymentMode === "manual" && status.paymentInstructions && <p className="mt-4 rounded-[10px] border border-white/10 bg-black/20 p-4 text-white/85 t-small">{status.paymentInstructions}</p>}
         {mine && mine.status === "confirmed" && mine.amountCents > 0 && status?.paymentMode === "onsite" && <p className="mt-4 text-white/85 t-small">À régler sur place : {formatEuros(mine.amountCents)}.</p>}
+        {(st === "paid" || st === "confirmed") && (
+          <a href={`/api/events/${event.id}/ticket`} className="mt-6 inline-flex h-12 items-center rounded-[10px] border border-white/25 px-6 font-body text-[14.5px] font-medium text-white transition-colors hover:bg-white hover:text-night-950">
+            Télécharger mon billet (PDF)
+          </a>
+        )}
         {cfg.selfCancel && mine && st !== "cancelled" && st !== "refunded" && (
           <div className="mt-6 border-t border-white/10 pt-5">
             {cfg.cancellationPolicy && <p className="whitespace-pre-line text-mist t-small">{cfg.cancellationPolicy}</p>}

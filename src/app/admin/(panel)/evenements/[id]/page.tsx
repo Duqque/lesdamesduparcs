@@ -87,8 +87,8 @@ export default async function EventDetailPage({ params, searchParams }: { params
         {vue === "presences" && can && (
           <div className="grid gap-4 border-b border-line p-5 md:grid-cols-[1fr_auto] md:items-end">
             <form id="checkin-form" action={checkinAction.bind(null, id)} className="flex flex-wrap items-end gap-2">
-              <label className="min-w-[240px] flex-1"><span className="font-body text-[12px] text-white/70">Numéro de membre ou code du QR</span><input id="checkin-code" name="code" className={cn(inp, "mt-1.5")} placeholder="DUQQUE120399-LDDP2026" autoComplete="off" /></label>
-              <SubmitButton>Pointer la présence</SubmitButton>
+              <label className="min-w-[240px] flex-1"><span className="font-body text-[12px] text-white/70">Code-barres du billet, numéro de membre ou QR code de la carte</span><input id="checkin-code" name="code" autoFocus className={cn(inp, "mt-1.5")} placeholder="Scannez le billet (ou saisissez ses 12 chiffres)" autoComplete="off" /></label>
+              <SubmitButton>Contrôler / pointer</SubmitButton>
             </form>
             <QrScanner inputId="checkin-code" formId="checkin-form" />
           </div>

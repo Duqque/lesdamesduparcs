@@ -128,7 +128,6 @@ function footer(c: Ctx, asso: Asso) {
   const line2 = `SIRET ${asso.siret} - ${asso.form} - RNA ${asso.rna} - ${asso.phone ? `Tél : ${asso.phone} - ` : ""}${asso.website} - ${asso.email}`;
   text(c, line1, W / 2, 778, 7.5, { align: "center", color: BLUE });
   text(c, line2, W / 2, 790, 7.5, { align: "center", color: BLUE });
-  text(c, "Coordonnées et numéros fictifs, à remplacer par les informations officielles de l'association.", W / 2, 806, 6.5, { align: "center", color: GREY, font: c.oblique });
 }
 
 /** Attestation d'adhésion : une page A4, sur le modèle d'une attestation de licence sportive. */

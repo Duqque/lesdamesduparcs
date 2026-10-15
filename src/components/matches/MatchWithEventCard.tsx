@@ -51,7 +51,7 @@ export function MatchWithEventCard({ match, event }: { match: MatchView; event: 
             <p className="font-body text-[12px] font-bold uppercase tracking-[0.12em] text-[#c8102e]">Avec les Dames du Parc</p>
             <h3 className="mt-2 break-words font-body text-[15px] font-medium leading-[1.4] text-[#0b1a3f]">{event.title}</h3>
             {event.summary && <p className="mt-2 font-body text-[13px] leading-[1.55] text-[#0b1a3f]/75">{event.summary}</p>}
-            <p className="mt-auto pt-3 font-body text-[12.5px] text-[#0b1a3f]/70">{event.time ? `${formatTime(event.time)} · ` : ""}{event.venue}</p>
+            <p className="mt-auto pt-3 font-body text-[12.5px] text-[#0b1a3f]/70">{event.time ? `${formatTime(event.time)} · ` : ""}Lieu sur le billet</p>
           </div>
         </div>
       </div>

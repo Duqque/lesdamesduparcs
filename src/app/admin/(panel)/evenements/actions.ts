@@ -16,6 +16,7 @@ import { formatLongDate } from "@/lib/format";
 import { safeReturn } from "@/lib/admin/params";
 import { setTxStatus } from "@/lib/server/business";
 import { deleteTransaction } from "@/lib/server/tx-delete";
+import { findByTicketCode, issueTicket, ticketValid } from "@/lib/server/tickets";
 import { deleteRegistrationById } from "@/lib/server/store";
 import { mediaUrl, saveMedia } from "@/lib/server/media";
 import { announceAfterSave } from "@/lib/server/notify";
@@ -226,7 +227,8 @@ export async function registrationAction(eventId: string, regId: string, op: Reg
   } else await updateRegistration(regId, { status: map[op] });
   const ev = await getEventAdmin(eventId);
   await audit(ctx, op === "refund" ? "remboursement" : "inscription", "inscription", `${reg.firstName} ${reg.lastName} : ${ev?.title ?? eventId} → ${map[op]}`, { entityId: regId, before: reg.status, after: map[op] });
-  if (op === "promote" || op === "confirm") await sendTemplate("event_confirmation", reg.email, { prenom: reg.firstName, objet: ev?.title ?? "", date: ev ? formatLongDate(ev.date) : "" }, "eventConfirmation");
+  // Inscription confirmée ou payée : billet émis et envoyé avec l'e-mail de confirmation (une seule fois par inscription).
+  if (op === "promote" || op === "confirm" || op === "paid") await issueTicket(regId);
   if (op === "cancel" || op === "refund" || op === "waitlist") await promoteWaitlist(eventId);
   revalidatePath("/admin", "layout");
   redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}ok=${encodeURIComponent("Inscription mise à jour.")}`);
@@ -246,6 +248,17 @@ export async function checkinAction(eventId: string, formData: FormData) {
   const raw = s(formData, "code");
   const back = `/admin/evenements/${eventId}?vue=presences`;
   if (!raw) redirect(`${back}&erreur=${encodeURIComponent("Scannez ou saisissez un code.")}`);
+  // Code-barres du billet (12 chiffres) : billet de cet événement, valide, et jamais scanné auparavant.
+  if (/^[\d\s]{12,16}$/.test(raw) && raw.replace(/\D/g, "").length === 12) {
+    const t = await findByTicketCode(raw);
+    if (!t) redirect(`${back}&erreur=${encodeURIComponent("BILLET INCONNU : aucun billet ne correspond à ce code.")}`);
+    if (t.eventId !== eventId) redirect(`${back}&erreur=${encodeURIComponent(`BILLET REFUSÉ : ce billet est celui d'un autre événement (${t.firstName} ${t.lastName}).`)}`);
+    if (!ticketValid(t)) redirect(`${back}&erreur=${encodeURIComponent(`BILLET NON VALIDE : inscription ${t.status === "awaiting_payment" ? "non payée" : "annulée"} (${t.firstName} ${t.lastName}).`)}`);
+    if (t.attended) redirect(`${back}&erreur=${encodeURIComponent(`DÉJÀ SCANNÉ : ${t.firstName} ${t.lastName} est entrée${t.attendedAt ? ` le ${new Date(t.attendedAt).toLocaleString("fr-FR", { timeZone: "Europe/Paris", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : ""}.`)}`);
+    await updateRegistration(t.id, { attended: true, attendedAt: new Date().toISOString() });
+    await audit(ctx, "présence", "inscription", `Billet ${t.ticketCode} scanné : ${t.firstName} ${t.lastName}`, { entityId: t.id });
+    redirect(`${back}&ok=${encodeURIComponent(`BILLET VALIDE : ${t.firstName} ${t.lastName} (${t.places} place${t.places > 1 ? "s" : ""}). Entrée enregistrée.`)}`);
+  }
   const token = raw.split("/").filter(Boolean).pop() ?? raw;
   const member = (await getMemberByToken(token)) ?? (await getMemberByNumber(raw.toUpperCase())) ?? (await getMemberByNumber(token.toUpperCase()));
   if (!member) redirect(`${back}&erreur=${encodeURIComponent("Aucune adhérente ne correspond à ce code.")}`);
