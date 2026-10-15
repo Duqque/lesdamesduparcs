@@ -16,7 +16,7 @@ import { formatLongDate } from "@/lib/format";
 import { safeReturn } from "@/lib/admin/params";
 import { setTxStatus } from "@/lib/server/business";
 import { deleteTransaction } from "@/lib/server/tx-delete";
-import { findByTicketCode, issueTicket, ticketValid } from "@/lib/server/tickets";
+import { findByTicketCode, issueTicket, reissueTicket, ticketValid } from "@/lib/server/tickets";
 import { deleteRegistrationById } from "@/lib/server/store";
 import { mediaUrl, saveMedia } from "@/lib/server/media";
 import { announceAfterSave } from "@/lib/server/notify";
@@ -177,6 +177,18 @@ export async function deleteEventAction(id: string) {
   redirect("/admin/evenements?ok=" + encodeURIComponent("Événement supprimé."));
 }
 
+/** Billet perdu : nouveau billet (l'ancien est annulé et refusé à l'entrée), envoyé par e-mail à la participante. */
+export async function reissueTicketAction(regId: string, returnToRaw: string) {
+  const returnTo = safeReturn(returnToRaw, "/admin/evenements/inscriptions");
+  const ctx = await requireAdmin("events.attendance");
+  const res = await reissueTicket(regId);
+  const sep = returnTo.includes("?") ? "&" : "?";
+  if (!res) redirect(`${returnTo}${sep}erreur=${encodeURIComponent("Billet impossible à réémettre : l'inscription n'est pas confirmée ou payée.")}`);
+  await audit(ctx, "modification", "inscription", `Nouveau billet émis (perte) : ${res.code}${res.previous ? `, ancien billet ${res.previous} annulé` : ""}`, { entityId: regId, before: res.previous, after: res.code });
+  revalidatePath("/admin", "layout");
+  redirect(`${returnTo}${sep}ok=${encodeURIComponent(`Nouveau billet n° ${res.code} émis et envoyé par e-mail. L'ancien billet est annulé.`)}`);
+}
+
 /** Actions groupées sur les inscriptions sélectionnées : annuler (place libérée) ou supprimer définitivement. Aucun remboursement n'est lancé. */
 export async function bulkRegistrationsAction(formData: FormData) {
   const op = String(formData.get("op") ?? "");
@@ -250,8 +262,10 @@ export async function checkinAction(eventId: string, formData: FormData) {
   if (!raw) redirect(`${back}&erreur=${encodeURIComponent("Scannez ou saisissez un code.")}`);
   // Code-barres du billet (12 chiffres) : billet de cet événement, valide, et jamais scanné auparavant.
   if (/^[\d\s]{12,16}$/.test(raw) && raw.replace(/\D/g, "").length === 12) {
-    const t = await findByTicketCode(raw);
-    if (!t) redirect(`${back}&erreur=${encodeURIComponent("BILLET INCONNU : aucun billet ne correspond à ce code.")}`);
+    const found = await findByTicketCode(raw);
+    if (!found) redirect(`${back}&erreur=${encodeURIComponent("BILLET INCONNU : aucun billet ne correspond à ce code.")}`);
+    const t = found.reg;
+    if (found.revokedAt) redirect(`${back}&erreur=${encodeURIComponent(`BILLET ANNULÉ : remplacé par un nouveau billet le ${new Date(found.revokedAt).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })} (${t.firstName} ${t.lastName}). Demandez le nouveau billet.`)}`);
     if (t.eventId !== eventId) redirect(`${back}&erreur=${encodeURIComponent(`BILLET REFUSÉ : ce billet est celui d'un autre événement (${t.firstName} ${t.lastName}).`)}`);
     if (!ticketValid(t)) redirect(`${back}&erreur=${encodeURIComponent(`BILLET NON VALIDE : inscription ${t.status === "awaiting_payment" ? "non payée" : "annulée"} (${t.firstName} ${t.lastName}).`)}`);
     if (t.attended) redirect(`${back}&erreur=${encodeURIComponent(`DÉJÀ SCANNÉ : ${t.firstName} ${t.lastName} est entrée${t.attendedAt ? ` le ${new Date(t.attendedAt).toLocaleString("fr-FR", { timeZone: "Europe/Paris", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : ""}.`)}`);

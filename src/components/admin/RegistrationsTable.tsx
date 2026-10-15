@@ -4,7 +4,7 @@ import type { Registration } from "@/lib/registration";
 import { eur, fmtDate } from "@/lib/admin/format";
 import { SubmitButton } from "./SubmitButton";
 import { BulkAll, BulkCheck } from "./Bulk";
-import { code128Svg } from "@/lib/code128";
+import { TicketCell } from "./TicketCell";
 import { Badge, Empty, TableWrap, Td, Th, type Tone } from "./ui";
 
 const LABEL: Record<Registration["status"], string> = { confirmed: "Confirmée", paid: "Payée", awaiting_payment: "Paiement en attente", waitlist: "Liste d'attente", cancelled: "Annulée", refunded: "Remboursée" };
@@ -45,25 +45,7 @@ export function RegistrationsTable({ rows, returnTo, eventTitle, canEdit, canFin
             <Td><Badge tone={TONE[r.status]}>{LABEL[r.status]}</Badge></Td>
             {showFinance && <Td className="tabular-nums">{r.amountCents ? eur(r.amountCents) : "Gratuit"}</Td>}
             <Td className="tabular-nums">{fmtDate(r.createdAt)}</Td>
-            <Td>
-              {r.ticketCode ? (
-                <div className="min-w-[150px]">
-                  <span aria-hidden className="block h-8 w-[150px] overflow-hidden rounded-[3px] bg-white p-1 [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: code128Svg(r.ticketCode, 40, 6) }} />
-                  <span className="mt-1 block font-mono text-[11.5px] tabular-nums tracking-[0.08em] text-white/85">{r.ticketCode}</span>
-                  {r.status === "confirmed" || r.status === "paid" ? (
-                    <a href={`/admin/billets/${r.id}`} target="_blank" rel="noopener" className="text-[12px] text-psg-red-bright underline underline-offset-4">Voir le billet (PDF)</a>
-                  ) : (
-                    <span className="text-[12px] text-mist">Billet invalide (inscription {r.status === "cancelled" ? "annulée" : r.status === "refunded" ? "remboursée" : "non confirmée"})</span>
-                  )}
-                </div>
-              ) : (
-                r.status === "confirmed" || r.status === "paid" ? (
-                  <a href={`/admin/billets/${r.id}`} target="_blank" rel="noopener" className="text-[12px] text-psg-red-bright underline underline-offset-4">Émettre le billet (PDF)</a>
-                ) : (
-                  <span className="text-[12px] text-mist">{r.status === "awaiting_payment" ? "Après paiement" : "—"}</span>
-                )
-              )}
-            </Td>
+            <Td><TicketCell r={r} returnTo={returnTo} canEdit={canEdit} /></Td>
             {showAttendance && (
               <Td>
                 <div className="flex items-center gap-1.5">

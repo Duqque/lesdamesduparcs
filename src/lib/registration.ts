@@ -33,6 +33,8 @@ export interface Registration extends RegistrationInput {
   /** Billet : code unique (12 chiffres, imprimé en code-barres Code 128) et date d'émission. */
   ticketCode?: string;
   ticketIssuedAt?: string;
+  /** Anciens billets remplacés (perte) : refusés à l'entrée. */
+  revokedTicketCodes?: Array<{ code: string; at: string }>;
   createdAt: string;
 }
 

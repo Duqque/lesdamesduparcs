@@ -19,6 +19,7 @@ import { BirthDateInput } from "@/components/forms/BirthDateInput";
 import { LocalityGroup } from "@/components/forms/LocalityGroup";
 import { PhoneInput } from "@/components/forms/PhoneInput";
 import { PhotoCropField } from "@/components/member/PhotoCropField";
+import { TicketCell } from "@/components/admin/TicketCell";
 import { addManualLineAction, setFounderAction, sendFirstLoginEmailAction, deleteProfileAction, deleteTestProfileAction, sendMemberResetEmailAction, setMemberPhotoAction, setMembershipDatesAction, validateMemberCardAction, addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
 
 export const metadata = { title: "Fiche adhérente" };
@@ -229,17 +230,18 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
 
       <Panel className="mt-4" title="Événements" flush>
         <TableWrap>
-          <thead><tr><Th>Événement</Th><Th>Inscription</Th><Th>Statut</Th><Th>Présence</Th></tr></thead>
+          <thead><tr><Th>Événement</Th><Th>Inscription</Th><Th>Statut</Th><Th>Billet</Th><Th>Présence</Th></tr></thead>
           <tbody>
             {myRegs.map((r) => (
               <tr key={r.id}>
                 <Td><Link href={`/admin/evenements/${r.eventId}`} className="hover:text-white">{title(r.eventId)}</Link></Td>
                 <Td className="tabular-nums">{fmtDate(r.createdAt)}</Td>
                 <Td>{{ confirmed: "Confirmée", paid: "Payée", awaiting_payment: "Paiement en attente", waitlist: "Liste d'attente", cancelled: "Annulée", refunded: "Remboursée" }[r.status]}</Td>
+                <Td><TicketCell r={r} returnTo={`/admin/adherentes/${id}`} canEdit={ctx.can("events.attendance")} /></Td>
                 <Td>{r.attended === true ? <Badge tone="green">Présente</Badge> : r.attended === false ? <Badge tone="red">Absente</Badge> : "—"}</Td>
               </tr>
             ))}
-            {myRegs.length === 0 && <tr><Td colSpan={4} className="text-center text-mist">Aucune inscription.</Td></tr>}
+            {myRegs.length === 0 && <tr><Td colSpan={5} className="text-center text-mist">Aucune inscription.</Td></tr>}
           </tbody>
         </TableWrap>
       </Panel>

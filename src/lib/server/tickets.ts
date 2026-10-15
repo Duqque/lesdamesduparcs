@@ -17,17 +17,40 @@ import { TICKET_PHOTO_RATIO, buildTicketPdf } from "./ticket-pdf";
 /** Une inscription donne droit à un billet dès qu'elle est confirmée ou payée. */
 export const ticketValid = (r: Pick<Registration, "status">) => r.status === "confirmed" || r.status === "paid";
 
-/** Code unique du billet : 12 chiffres (Code 128, jeu C), sans zéro initial. */
+/** Nouveau code à 12 chiffres (Code 128, jeu C), sans zéro initial, jamais attribué (billets actuels et annulés). */
+async function freshCode() {
+  const taken = new Set((await listAllRegistrations()).flatMap((r) => [r.ticketCode, ...(r.revokedTicketCodes ?? []).map((x) => x.code)]).filter(Boolean));
+  let code = "";
+  do code = `${randomInt(1, 10)}${Array.from({ length: 11 }, () => randomInt(0, 10)).join("")}`;
+  while (taken.has(code));
+  return code;
+}
+
+/** Code unique du billet, attribué une fois. */
 export async function ensureTicketCode(regId: string) {
   const reg = await getRegistration(regId);
   if (!reg) return null;
   if (reg.ticketCode) return reg.ticketCode;
-  const taken = new Set((await listAllRegistrations()).map((r) => r.ticketCode).filter(Boolean));
-  let code = "";
-  do code = `${randomInt(1, 10)}${Array.from({ length: 11 }, () => randomInt(0, 10)).join("")}`;
-  while (taken.has(code));
+  const code = await freshCode();
   await updateRegistration(regId, { ticketCode: code, ticketIssuedAt: new Date().toISOString() });
   return code;
+}
+
+/**
+ * Billet perdu : un nouveau code remplace l'ancien, qui est annulé (refusé à l'entrée), et le nouveau billet est envoyé par e-mail.
+ */
+export async function reissueTicket(regId: string) {
+  const reg = await getRegistration(regId);
+  if (!reg || !ticketValid(reg)) return null;
+  const code = await freshCode();
+  const now = new Date().toISOString();
+  await updateRegistration(regId, {
+    ticketCode: code,
+    ticketIssuedAt: now,
+    revokedTicketCodes: [...(reg.revokedTicketCodes ?? []), ...(reg.ticketCode ? [{ code: reg.ticketCode, at: now }] : [])],
+  });
+  await enqueueTicketEmail(regId, code, true);
+  return { code, previous: reg.ticketCode };
 }
 
 /** Itinéraire Google Maps : lien saisi, coordonnées GPS, ou adresse du lieu. */
@@ -45,11 +68,19 @@ export async function issueTicket(regId: string) {
   const reg = await getRegistration(regId);
   if (!reg || !ticketValid(reg)) return null;
   const code = await ensureTicketCode(regId);
+  if (code) await enqueueTicketEmail(regId, code, false);
+  return code;
+}
+
+async function enqueueTicketEmail(regId: string, code: string, reissued: boolean) {
+  const reg = await getRegistration(regId);
+  if (!reg) return;
   const event = await getEventAdmin(reg.eventId);
   await enqueueEmail({
     type: "EVENT_CONFIRMATION",
     recipient: reg.email,
-    dedupeKey: `EVENT_CONFIRMATION:${reg.id}`,
+    // Une confirmation par inscription ; chaque billet réémis part dans son propre e-mail.
+    dedupeKey: reissued ? `EVENT_CONFIRMATION:${reg.id}:${code}` : `EVENT_CONFIRMATION:${reg.id}`,
     memberNumber: reg.memberNumber,
     payload: {
       registrationId: reg.id,
@@ -65,10 +96,10 @@ export async function issueTicket(regId: string) {
       amountCents: reg.status === "paid" ? reg.amountCents : 0,
       practical: event?.practical ?? [],
       ticketCode: code,
+      reissued,
     },
   });
   processEmailJobsSoon();
-  return code;
 }
 
 /* ---------- Images (photo de l'événement, logos) ---------- */
@@ -158,9 +189,16 @@ export async function ticketPdfFor(regId: string) {
   return { bytes, filename: `billet-${event.id}-${code}.pdf`, code };
 }
 
-/** Contrôle à l'entrée : retrouve l'inscription d'après le code-barres scanné. */
+/** Contrôle à l'entrée : retrouve l'inscription d'après le code-barres scanné (billet en cours ou billet annulé car remplacé). */
 export async function findByTicketCode(code: string) {
   const clean = code.replace(/\D/g, "");
   if (clean.length !== 12) return null;
-  return (await listAllRegistrations()).find((r) => r.ticketCode === clean) ?? null;
+  const all = await listAllRegistrations();
+  const current = all.find((r) => r.ticketCode === clean);
+  if (current) return { reg: current, revokedAt: null as string | null };
+  for (const r of all) {
+    const old = r.revokedTicketCodes?.find((x) => x.code === clean);
+    if (old) return { reg: r, revokedAt: old.at };
+  }
+  return null;
 }
