@@ -1,3 +1,4 @@
+import { featuredShop } from "@/data/products";
 import { JoinCtaCard } from "@/components/home/JoinCtaCard";
 import { Button } from "@/components/ui/Button";
 import { IdCard } from "lucide-react";
@@ -41,6 +42,9 @@ export default async function HomePage() {
   const pinned = await Promise.all([...home.featuredEventIds, "soiree-des-dames"].map((id) => getEvent(id)));
   const featuredEvent = pinned.find((e) => e && e.date >= new Date().toISOString().slice(0, 10)) ?? upcoming[0] ?? null;
   const news = [...home.featuredArticleIds.map((id) => allNews.find((n) => n.id === id)).filter((n): n is NonNullable<typeof n> => Boolean(n)), ...allNews.filter((n) => !home.featuredArticleIds.includes(n.id))];
+  // Photos des cartes modifiées dans Administration > Site internet > Accueil (sinon photos d'origine).
+  const cards = Object.fromEntries(Object.entries(home.cardImages ?? {}).map(([k, v]) => [k, safeUrl(v ?? "")])) as Partial<Record<"match" | "event" | "community" | "shop", string>>;
+  const communityCard = cards.community ? { ...community, image: cards.community } : community;
   const blocks: Record<HomeSectionKey, ReactNode> = {
     manifeste: (
       <>
@@ -52,16 +56,16 @@ export default async function HomePage() {
     rendezvous: (
       <section aria-label="Prochains rendez-vous" className={`${wrap} grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8`}>
         <Reveal className="flex md:col-span-3">
-          <MatchCard match={next} />
+          <MatchCard match={cards.match ? { ...next, image: cards.match } : next} />
         </Reveal>
         <Reveal delay={0.08} className="flex">
-          {featuredEvent ? <EventCard event={featuredEvent} /> : <CommunityCard community={community} />}
+          {featuredEvent ? <EventCard event={cards.event ? { ...featuredEvent, image: cards.event } : featuredEvent} /> : <CommunityCard community={communityCard} />}
         </Reveal>
         <Reveal delay={0.16} className="flex">
-          <CommunityCard community={community} />
+          <CommunityCard community={communityCard} />
         </Reveal>
         <Reveal delay={0.24} className="flex">
-          <ShopCard />
+          <ShopCard shop={cards.shop ? { ...featuredShop, image: cards.shop } : featuredShop} />
         </Reveal>
       </section>
     ),

@@ -299,6 +299,8 @@ export const siteConfig = singleton("site_config", {
     ctaTitle: "",
     ctaText: "",
     ctaButton: "",
+    /** Photos des cartes « Prochains rendez-vous » (match, événement, communauté, boutique) ; absente = photo d'origine */
+    cardImages: {} as Partial<Record<"match" | "event" | "community" | "shop", string>>,
     hiddenSections: [] as string[],
     sectionOrder: [] as string[],
     featuredEventIds: [] as string[],

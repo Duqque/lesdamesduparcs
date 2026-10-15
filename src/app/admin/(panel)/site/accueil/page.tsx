@@ -8,8 +8,18 @@ import { mediaUrl } from "@/lib/server/media";
 import { DEFAULT_CTA, DEFAULT_HERO_IMAGE } from "@/lib/hero";
 import { getPublishedEvents } from "@/lib/server/events";
 import { saveHomeContentAction } from "../actions";
+import { community } from "@/data/community";
+import { featuredShop } from "@/data/products";
 
 export const metadata = { title: "Accueil du site" };
+
+/** Cartes « Prochains rendez-vous » de l'accueil dont la photo est modifiable. */
+const CARDS = [
+  { key: "match", label: "Prochain match (photo de fond)", hint: "Paysage, de préférence 2000 px de large.", fallback: () => "/images/parc-pelouse-tribunes.webp" },
+  { key: "event", label: "Événements", hint: "Vide = photo de l'événement mis en avant.", fallback: (e?: { image: string } | null) => e?.image || "/images/parc-pelouse-tribunes.webp" },
+  { key: "community", label: "Notre communauté", hint: "Portrait ou carré.", fallback: () => community.image },
+  { key: "shop", label: "Boutique", hint: "Portrait ou carré.", fallback: () => featuredShop.image },
+] as const;
 
 export default async function HomeEditorPage({ searchParams }: { searchParams: Promise<SP> }) {
   const ctx = await requireAdmin("site.content");
@@ -22,6 +32,7 @@ export default async function HomeEditorPage({ searchParams }: { searchParams: P
   const ctaImage = home.ctaImage || "";
   const ctaInLibrary = images.some((m) => mediaUrl(m) === ctaImage);
   const today = new Date().toISOString().slice(0, 10);
+  const featured = events.find((e) => e.id === home.featuredEventIds[0] && e.date >= today) ?? events.find((e) => e.date >= today) ?? null;
   return (
     <>
       <PageHeader title="Accueil" subtitle="Textes de l'accueil et éléments mis en avant. L'ordre et la visibilité des rubriques se règlent dans « Sections » (super administratrice)." actions={<Link href="/" className="font-body text-[13px] text-mist underline underline-offset-4 hover:text-white">Voir la page</Link>} />
@@ -75,6 +86,32 @@ export default async function HomeEditorPage({ searchParams }: { searchParams: P
               <Field label="Description de la photo (accessibilité)" className="sm:col-span-2"><input name="ctaImageAlt" defaultValue={home.ctaImageAlt} maxLength={200} className={inp} /></Field>
               {ctaImage && <label className="flex items-center gap-2 font-body text-[13.5px] text-white/85 sm:col-span-2"><input type="checkbox" name="resetCtaImage" className="size-4 accent-[#d90f2c]" /> Revenir à la photo d&rsquo;origine</label>}
             </div>
+          </div>
+        </Panel>
+        <Panel title="Photos des cartes « Prochains rendez-vous »">
+          <p className="mb-4 font-body text-[12.5px] text-mist">Les quatre cartes sous le manifeste. Laissez « Garder la photo actuelle » pour ne rien changer ; cochez « Revenir à la photo d&rsquo;origine » pour annuler une modification.</p>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {CARDS.map((c) => {
+              const current = home.cardImages?.[c.key] ?? "";
+              const prefix = `card${c.key[0].toUpperCase()}${c.key.slice(1)}`;
+              const inLib = images.some((m) => mediaUrl(m) === current);
+              return (
+                <fieldset key={c.key} className="grid gap-3 rounded-[10px] border border-line p-4 sm:grid-cols-[140px_1fr]">
+                  <legend className="px-1 font-body text-[13.5px] font-medium text-white">{c.label}</legend>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={current || c.fallback(featured)} alt="" className="aspect-[3/4] w-full rounded-[8px] border border-line object-cover sm:row-span-4" />
+                  <Field label="Nouvelle photo" hint={c.hint}><input type="file" name={`${prefix}ImageFile`} accept="image/jpeg,image/png,image/webp,image/gif" className={inp} /></Field>
+                  <Field label="Ou dans la médiathèque">
+                    <select name={`${prefix}ImagePick`} defaultValue={inLib ? current : ""} className={inp}>
+                      <option value="">Garder la photo actuelle</option>
+                      {images.map((m) => <option key={m.id} value={mediaUrl(m)}>{m.name}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Ou adresse d'une image"><input name={`${prefix}ImageUrl`} defaultValue={current && !inLib ? current : ""} placeholder="https://…" className={inp} /></Field>
+                  {current ? <label className="flex items-center gap-2 font-body text-[13px] text-white/85"><input type="checkbox" name={`reset${prefix[0].toUpperCase()}${prefix.slice(1)}Image`} className="size-4 accent-[#d90f2c]" /> Revenir à la photo d&rsquo;origine</label> : <span />}
+                </fieldset>
+              );
+            })}
           </div>
         </Panel>
         <Panel title="Événement mis en avant">

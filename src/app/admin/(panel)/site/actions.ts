@@ -32,6 +32,9 @@ export async function saveHomeContentAction(formData: FormData) {
     ctaTitle: s(formData, "ctaTitle").slice(0, 120),
     ctaText: s(formData, "ctaText").slice(0, 400),
     ctaButton: s(formData, "ctaButton").slice(0, 60),
+    cardImages: Object.fromEntries(
+      await Promise.all((["match", "event", "community", "shop"] as const).map(async (k) => [k, await imageFromForm(formData, `card${k[0].toUpperCase()}${k.slice(1)}`, before.cardImages?.[k] ?? "")])),
+    ),
     featuredEventIds: formData.getAll("events").map(String).filter(Boolean),
     featuredArticleIds: formData.getAll("articles").map(String).filter(Boolean),
   };
@@ -211,8 +214,8 @@ export async function saveGroupPhotosAction(formData: FormData) {
 }
 
 /** Photo d'une rubrique de l'accueil : nouvelle photo envoyée > adresse saisie > photo choisie dans la médiathèque ; « par défaut » la retire. */
-async function imageFromForm(formData: FormData, prefix: "hero" | "cta", current: string): Promise<string> {
-  if (formData.get(`reset${prefix === "hero" ? "Hero" : "Cta"}Image`) === "on") return "";
+async function imageFromForm(formData: FormData, prefix: string, current: string): Promise<string> {
+  if (formData.get(`reset${prefix[0].toUpperCase()}${prefix.slice(1)}Image`) === "on") return "";
   const file = formData.get(`${prefix}ImageFile`);
   if (file instanceof File && file.size > 0) {
     const up = await saveMedia(file);
