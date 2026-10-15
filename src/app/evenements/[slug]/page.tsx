@@ -250,10 +250,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             Voir le calendrier
           </Link>
         </div>
-        <ul className="mt-14 flex snap-x gap-6 overflow-x-auto px-[var(--gutter)] pb-4 [contain:paint] [scrollbar-width:none] md:gap-8 [&::-webkit-scrollbar]:hidden">
+        {/* Mobile : défilement horizontal. Dès la tablette : grille centrée, cartes de même largeur et de même hauteur. */}
+        <ul className="mx-auto mt-14 flex max-w-[1300px] snap-x gap-6 overflow-x-auto px-[var(--gutter)] pb-4 [contain:paint] [scrollbar-width:none] md:grid md:grid-cols-[repeat(auto-fit,minmax(0,272px))] md:justify-center md:gap-6 md:overflow-visible md:[contain:none] [&::-webkit-scrollbar]:hidden">
           {others.map((e) => (
-            <li key={e.id} className="shrink-0 snap-start">
-              <EventGridCard event={e} />
+            <li key={e.id} className="shrink-0 snap-start md:flex">
+              <EventGridCard event={e} className="md:w-full" />
             </li>
           ))}
         </ul>
