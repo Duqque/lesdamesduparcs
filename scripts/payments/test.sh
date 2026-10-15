@@ -13,7 +13,7 @@ cd $V && rm -rf .data && npm run build > /tmp/ddp-pay-build.log 2>&1 || { tail -
 node "$V/scripts/payments/mock-services.mjs" > /tmp/ddp-pay-mocks.log 2>&1 &
 env SESSION_INSECURE_COOKIE=1 CRON_SECRET=cron-secret-1234567890 \
   HELLOASSO_ENV=sandbox HELLOASSO_CLIENT_ID=id HELLOASSO_CLIENT_SECRET=secret HELLOASSO_ORGANIZATION_SLUG=lesdames HELLOASSO_API_BASE=http://127.0.0.1:4599 \
-  HELLOASSO_WEBHOOK_SECRET=webhook-secret-1234567890 HELLOASSO_SIGNATURE_KEY=sigkey-abc \
+  HELLOASSO_WEBHOOK_SECRET=webhook-secret-1234567890 HELLOASSO_SIGNATURE_KEY=sigkey-abc SCANNER_API_KEY=scanner-key-0123456789abcdef0123456789abcdef \
   RESEND_API_KEY=re_test RESEND_API_URL=http://127.0.0.1:4598 \
   NEXT_PUBLIC_SITE_URL=http://localhost:3199 npx next start -p 3199 > /tmp/ddp-pay-site.log 2>&1 &
 sleep 5

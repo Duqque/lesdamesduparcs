@@ -13,7 +13,7 @@ const localHttp = process.env.SESSION_INSECURE_COOKIE === "1";
 
 const SAFE = new Set(["GET", "HEAD", "OPTIONS"]);
 /** Appelés par des serveurs (pas des navigateurs) : authentifiés par signature ou par jeton, pas par cookie. */
-const MACHINE = ["/api/webhooks/", "/api/cron/"];
+const MACHINE = ["/api/webhooks/", "/api/cron/", "/api/scanner/"];
 
 function allowedHosts(req: NextRequest) {
   const hosts = new Set<string>();

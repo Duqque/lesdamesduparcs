@@ -33,7 +33,10 @@ export default async function EventDetailPage({ params, searchParams }: { params
   const [sl, st] = STATUS[ev.status ?? "published"];
   const finance = ctx.can("finance.view");
   const can = ctx.can("events.attendance");
-  const tabs = [["inscrites", `Inscrites (${active.length})`], ["attente", `Liste d'attente (${wait.length})`], ["presences", "Présences"]] as const;
+  // Présentes : billet scanné à l'entrée (application de contrôle ou pointage ici) ; absentes : billet valide jamais scanné.
+  const withTicket = active.filter((r) => r.status === "paid" || (r.status === "confirmed" && r.amountCents === 0));
+  const presentCount = withTicket.filter((r) => r.attended === true).length;
+  const tabs = [["inscrites", `Inscrites (${active.length})`], ["attente", `Liste d'attente (${wait.length})`], ["presences", `Présences (${presentCount}/${withTicket.length})`]] as const;
   const shown = vue === "attente" ? wait : vue === "presences" ? active : regs;
   const returnTo = `/admin/evenements/${id}?vue=${vue}`;
   const present = active.filter((r) => r.attended === true).length;
@@ -84,6 +87,9 @@ export default async function EventDetailPage({ params, searchParams }: { params
           <a href={`/admin/export/inscriptions?evenement=${id}&format=pdf`} className={btn.small}><Download aria-hidden className="size-3.5" /> PDF</a>
         </div>
       )}>
+        {vue === "presences" && (
+          <p className="border-b border-line px-5 py-3 font-body text-[13.5px] text-white"><strong>{presentCount}</strong> présente{presentCount > 1 ? "s" : ""} · <strong>{withTicket.length - presentCount}</strong> absente{withTicket.length - presentCount > 1 ? "s" : ""} (billet jamais scanné) · mis à jour en direct par l&rsquo;application de contrôle des billets</p>
+        )}
         {vue === "presences" && can && (
           <div className="grid gap-4 border-b border-line p-5 md:grid-cols-[1fr_auto] md:items-end">
             <form id="checkin-form" action={checkinAction.bind(null, id)} className="flex flex-wrap items-end gap-2">
