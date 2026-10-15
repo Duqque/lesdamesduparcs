@@ -8,14 +8,66 @@ import { settings } from "./admin-store";
 import { emailJobs, enqueueEmail, processEmailJobs, processEmailJobsSoon } from "./email-jobs";
 import { getEventAdmin } from "./events";
 import { siteOrigin } from "./http";
+import { parisDateTime } from "@/lib/seo";
+import { promoteWaitlist } from "./event-ops";
 import { SITE_URL } from "@/lib/site-url";
 import { psgMatches, toView } from "./matches";
 import { readMedia } from "./media";
 import { getMemberByNumber, getRegistration, listAllRegistrations, updateRegistration } from "./store";
 import { TICKET_PHOTO_RATIO, buildTicketPdf } from "./ticket-pdf";
 
-/** Une inscription donne droit à un billet dès qu'elle est confirmée ou payée. */
-export const ticketValid = (r: Pick<Registration, "status">) => r.status === "confirmed" || r.status === "paid";
+/** Un billet n'existe qu'une fois l'inscription payée (ou confirmée pour un événement gratuit) : jamais sans paiement. */
+export const ticketValid = (r: Pick<Registration, "status" | "amountCents">) => r.status === "paid" || (r.status === "confirmed" && r.amountCents === 0);
+
+/** Début de l'événement (instant réel, heure de Paris). */
+export const eventStartMs = (e: Pick<ClubEvent, "date" | "time">) => new Date(parisDateTime(e.date, /^\d{2}:\d{2}$/.test(e.time ?? "") ? e.time : "00:00")).getTime();
+/** Délai jusqu'auquel un billet annulé (déjà payé) peut être redemandé : 2 h avant le début. */
+export const REACTIVATE_BEFORE_MS = 2 * 3600_000;
+
+/**
+ * Annulation du billet par la participante : billet invalidé (refusé à l'entrée, marqué annulé dans la liste des inscrits),
+ * place remise en vente (et proposée à la liste d'attente). Un billet payé n'est pas remboursé ; il peut être redemandé
+ * jusqu'à 2 h avant l'événement s'il reste de la place.
+ */
+export async function cancelTicketByMember(regId: string) {
+  const reg = await getRegistration(regId);
+  if (!reg || reg.status === "cancelled" || reg.status === "refunded") return null;
+  const now = new Date().toISOString();
+  await updateRegistration(regId, {
+    status: "cancelled",
+    cancelledAt: now,
+    paidBeforeCancel: reg.status === "paid" ? true : undefined,
+    ticketCode: undefined,
+    revokedTicketCodes: [...(reg.revokedTicketCodes ?? []), ...(reg.ticketCode ? [{ code: reg.ticketCode, at: now, reason: "annulation" as const }] : [])],
+  });
+  await promoteWaitlist(reg.eventId);
+  return { paid: reg.status === "paid" };
+}
+
+/** Billet annulé (déjà payé) : peut-il être redemandé maintenant ? */
+export async function reactivationState(reg: Registration, event: Pick<ClubEvent, "date" | "time" | "registration">) {
+  if (reg.status !== "cancelled" || !reg.paidBeforeCancel) return { possible: false as const, reason: "none" as const };
+  const until = eventStartMs(event) - REACTIVATE_BEFORE_MS;
+  if (Date.now() > until) return { possible: false as const, reason: "late" as const, until };
+  const list = await listAllRegistrations();
+  const taken = list.filter((r) => r.eventId === reg.eventId && (r.status === "paid" || r.status === "confirmed" || r.status === "awaiting_payment")).reduce((n, r) => n + r.places, 0);
+  if (event.registration.capacity - taken < reg.places) return { possible: false as const, reason: "full" as const, until };
+  return { possible: true as const, until };
+}
+
+/** Redemande d'un billet annulé mais déjà payé : nouveau billet (nouveau code) envoyé par e-mail, place reprise. */
+export async function reactivateTicket(regId: string) {
+  const reg = await getRegistration(regId);
+  const event = reg ? await getEventAdmin(reg.eventId) : null;
+  if (!reg || !event) return { ok: false as const, error: "Inscription introuvable." };
+  const st = await reactivationState(reg, event);
+  if (!st.possible) return { ok: false as const, error: st.reason === "late" ? "Il est trop tard : un billet annulé peut être redemandé jusqu'à 2 h avant l'événement." : st.reason === "full" ? "L'événement est complet : plus aucune place n'est disponible." : "Ce billet ne peut pas être redemandé." };
+  await updateRegistration(regId, { status: "paid", paidBeforeCancel: undefined, cancelledAt: undefined });
+  const code = await freshCode();
+  await updateRegistration(regId, { ticketCode: code, ticketIssuedAt: new Date().toISOString() });
+  const mail = await enqueueTicketEmail(regId, code, "reissued");
+  return { ok: true as const, code, sent: mail?.status === "sent" };
+}
 
 /** Nouveau code à 12 chiffres (Code 128, jeu C), sans zéro initial, jamais attribué (billets actuels et annulés). */
 async function freshCode() {
@@ -47,7 +99,7 @@ export async function reissueTicket(regId: string) {
   await updateRegistration(regId, {
     ticketCode: code,
     ticketIssuedAt: now,
-    revokedTicketCodes: [...(reg.revokedTicketCodes ?? []), ...(reg.ticketCode ? [{ code: reg.ticketCode, at: now }] : [])],
+    revokedTicketCodes: [...(reg.revokedTicketCodes ?? []), ...(reg.ticketCode ? [{ code: reg.ticketCode, at: now, reason: "perte" as const }] : [])],
   });
   const mail = await enqueueTicketEmail(regId, code, "reissued");
   return { code, previous: reg.ticketCode, sent: mail?.status === "sent", email: reg.email };
@@ -217,10 +269,10 @@ export async function findByTicketCode(code: string) {
   if (clean.length !== 12) return null;
   const all = await listAllRegistrations();
   const current = all.find((r) => r.ticketCode === clean);
-  if (current) return { reg: current, revokedAt: null as string | null };
+  if (current) return { reg: current, revokedAt: null as string | null, reason: undefined as string | undefined };
   for (const r of all) {
     const old = r.revokedTicketCodes?.find((x) => x.code === clean);
-    if (old) return { reg: r, revokedAt: old.at };
+    if (old) return { reg: r, revokedAt: old.at, reason: old.reason };
   }
   return null;
 }

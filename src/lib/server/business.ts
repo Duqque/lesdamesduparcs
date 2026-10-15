@@ -291,7 +291,8 @@ export async function getTransactions(): Promise<Tx[]> {
       type: p.kind === "adhesion" ? "Adhésion" : "Autre", label: p.label, amountCents: p.amountCents, method: methodLabel(p.method), status: p.status, reference: p.reference,
     });
   for (const r of regs) {
-    const st = regStatusToTx(r.status, r.amountCents);
+    // Billet payé puis annulé par la participante : non remboursé, le paiement reste encaissé.
+    const st = r.status === "cancelled" && r.paidBeforeCancel ? "paid" : regStatusToTx(r.status, r.amountCents);
     if (!st || r.amountCents <= 0) continue;
     out.push({
       id: `registration:${r.id}`, source: "registration", rowId: r.id, at: r.createdAt, name: `${r.firstName} ${r.lastName}`, email: r.email, memberNumber: r.memberNumber,

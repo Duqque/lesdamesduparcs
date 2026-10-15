@@ -152,7 +152,7 @@ export async function buildEmail(job: Pick<EmailJob, "type" | "payload">): Promi
           `Date : ${formatLongDate(s(p.date).slice(0, 10))}${p.time ? `, ${s(p.time).replace(":", "h")}` : ""}\nLieu : ${s(p.venue)}${address ? `, ${address}` : ""}\nPlaces : ${n(p.places) || 1}${n(p.amountCents) ? `\nMontant réglé : ${eur(n(p.amountCents))}` : ""}${ticket ? `\nN° de billet : ${ticket}` : ""}`,
           ...(p.maps ? [`Itinéraire (Google Maps) :\n${s(p.maps)}`] : []),
           ...(practical ? [`Informations pratiques\n${practical}`] : []),
-          `Votre billet reste disponible sur la page de l'événement, une fois connectée :\n${o}/profil`,
+          `Votre billet, votre reçu et l'itinéraire restent disponibles dans votre espace membre :\n${o}/profil#billets`,
         ].join("\n\n"),
         ticketRegistrationId: s(p.registrationId) || undefined,
       };

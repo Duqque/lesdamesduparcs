@@ -10,8 +10,7 @@ import { paymentConfigured } from "@/lib/server/helloasso";
 import { startEventPayment } from "@/lib/server/checkout";
 import { formatLongDate } from "@/lib/format";
 import { isPast } from "@/data/events";
-import { promoteWaitlist } from "@/lib/server/event-ops";
-import { issueTicket } from "@/lib/server/tickets";
+import { cancelTicketByMember, eventStartMs, issueTicket, reactivationState } from "@/lib/server/tickets";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -27,6 +26,8 @@ export async function GET(_req: Request, { params }: Ctx) {
   const memberNumber = session?.role === "member" ? session.memberNumber : undefined;
   const mine = memberNumber ? list.find((r) => r.memberNumber === memberNumber && active(r.status)) : undefined;
   const price = await eventUnitPrice(event, memberNumber);
+  const paidCancelled = memberNumber && !mine ? list.find((r) => r.memberNumber === memberNumber && r.status === "cancelled" && r.paidBeforeCancel) : undefined;
+  const react = paidCancelled ? await reactivationState(paidCancelled, event) : null;
   return json({
     capacity: event.registration.capacity,
     remaining: Math.max(event.registration.capacity - takenPlaces(list), 0),
@@ -37,6 +38,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     unitCents: price.unitCents,
     tier: price.tier ?? null,
     mine: mine ? { id: mine.id, status: mine.status, places: mine.places, amountCents: mine.amountCents } : null,
+    paidCancelled: paidCancelled ? { id: paidCancelled.id, canReactivate: Boolean(react?.possible), reason: react && !react.possible ? react.reason : undefined } : null,
   });
 }
 
@@ -56,6 +58,7 @@ export async function POST(req: Request, { params }: Ctx) {
 
   const list = await listRegistrations(slug);
   if (list.some((r) => r.memberNumber === session.memberNumber && active(r.status))) return json({ error: "Vous êtes déjà inscrite à cet événement." }, 409);
+  if (list.some((r) => r.memberNumber === session.memberNumber && r.status === "cancelled" && r.paidBeforeCancel)) return json({ error: "Vous avez déjà payé un billet pour cet événement puis l'avez annulé : redemandez-le depuis votre espace membre (jusqu'à 2 h avant l'événement)." }, 409);
 
   const remaining = Math.max(event.registration.capacity - takenPlaces(list), 0);
   const wantsWait = Boolean(event.registration.waitlist) && remaining <= 0;
@@ -138,14 +141,17 @@ export async function DELETE(req: Request, { params }: Ctx) {
   const { slug } = await params;
   const event = await getEvent(slug);
   if (!event) return json({ error: "Événement introuvable." }, 404);
-  if (!event.registration.selfCancel) return json({ error: "L'annulation en ligne n'est pas possible pour cet événement : contactez l'équipe." }, 400);
-  if (isPast(event)) return json({ error: "L'événement est passé." }, 400);
+  if (Date.now() >= eventStartMs(event)) return json({ error: "L'événement a commencé : le billet ne peut plus être annulé." }, 400);
   const session = await getSession();
   if (!session || session.role !== "member") return json({ error: "Connectez-vous pour gérer votre inscription." }, 401);
   if (await throttled(req, "register-cancel", 10, 600_000, session.memberNumber)) return json({ error: "Trop de tentatives." }, 429);
   const mine = (await listRegistrations(slug)).find((r) => r.memberNumber === session.memberNumber && active(r.status));
   if (!mine) return json({ error: "Aucune inscription en cours." }, 404);
-  await updateRegistration(mine.id, { status: "cancelled" });
-  await promoteWaitlist(slug);
-  return json({ ok: true, message: mine.status === "paid" ? "Votre réservation est annulée. Conformément aux conditions, le billet n'est pas remboursé." : "Votre réservation est annulée." });
+  const res = await cancelTicketByMember(mine.id);
+  return json({
+    ok: true,
+    message: res?.paid
+      ? "Votre billet est annulé et votre place remise en vente. Il n'est pas remboursé ; vous pouvez le redemander depuis votre espace membre jusqu'à 2 h avant l'événement, s'il reste de la place."
+      : "Votre inscription est annulée et votre place remise en vente.",
+  });
 }

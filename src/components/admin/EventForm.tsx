@@ -68,7 +68,7 @@ export function EventForm({ event, canPricing = true, matches = [], linkedMatchI
           <Field label="Nombre minimum"><input name="minCapacity" type="number" min={0} defaultValue={r?.minCapacity} className={inp} /></Field>
           <Field label="Lien de billetterie (mode externe)" className="sm:col-span-3"><input name="ticketUrl" defaultValue={r?.mode === "external" ? event?.href : ""} placeholder="https://" className={inp} /></Field>
           <div className="flex flex-wrap gap-5 sm:col-span-3">
-            {([["waitlist", "Liste d'attente quand c'est complet", r?.waitlist ?? true], ["membersOnly", "Réservé aux membres", r?.membersOnly ?? true], ["guardianRequired", "Mineures : responsable légal requis", r?.guardianRequired ?? false], ["singlePlace", "Une seule place par inscription", r?.singlePlace ?? false], ["selfCancel", "Annulation possible par la participante", r?.selfCancel ?? false]] as const).map(([n, l, v]) => (
+            {([["waitlist", "Liste d'attente quand c'est complet", r?.waitlist ?? true], ["membersOnly", "Réservé aux membres", r?.membersOnly ?? true], ["guardianRequired", "Mineures : responsable légal requis", r?.guardianRequired ?? false], ["singlePlace", "Une seule place par inscription", r?.singlePlace ?? false]] as const).map(([n, l, v]) => (
               <label key={n} className="flex items-center gap-2 font-body text-[13.5px] text-white/85"><input type="checkbox" name={n} defaultChecked={Boolean(v)} className="size-4 accent-[#d90f2c]" />{l}</label>
             ))}
           </div>

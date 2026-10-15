@@ -279,7 +279,10 @@ export async function checkinAction(eventId: string, formData: FormData) {
     const found = await findByTicketCode(raw);
     if (!found) redirect(`${back}&erreur=${encodeURIComponent("BILLET INCONNU : aucun billet ne correspond à ce code.")}`);
     const t = found.reg;
-    if (found.revokedAt) redirect(`${back}&erreur=${encodeURIComponent(`BILLET ANNULÉ : remplacé par un nouveau billet le ${new Date(found.revokedAt).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })} (${t.firstName} ${t.lastName}). Demandez le nouveau billet.`)}`);
+    if (found.revokedAt) {
+      const when = new Date(found.revokedAt).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" });
+      redirect(`${back}&erreur=${encodeURIComponent(found.reason === "annulation" ? `BILLET ANNULÉ par la titulaire le ${when} (${t.firstName} ${t.lastName}).` : `BILLET ANNULÉ : remplacé par un nouveau billet le ${when} (${t.firstName} ${t.lastName}). Demandez le nouveau billet.`)}`);
+    }
     if (t.eventId !== eventId) redirect(`${back}&erreur=${encodeURIComponent(`BILLET REFUSÉ : ce billet est celui d'un autre événement (${t.firstName} ${t.lastName}).`)}`);
     if (!ticketValid(t)) redirect(`${back}&erreur=${encodeURIComponent(`BILLET NON VALIDE : inscription ${t.status === "awaiting_payment" ? "non payée" : "annulée"} (${t.firstName} ${t.lastName}).`)}`);
     if (t.attended) redirect(`${back}&erreur=${encodeURIComponent(`DÉJÀ SCANNÉ : ${t.firstName} ${t.lastName} est entrée${t.attendedAt ? ` le ${new Date(t.attendedAt).toLocaleString("fr-FR", { timeZone: "Europe/Paris", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : ""}.`)}`);

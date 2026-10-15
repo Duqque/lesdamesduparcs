@@ -319,6 +319,7 @@ r = await call("POST", `/api/events/${BARCA}/register`, { json: regBody({ places
 ok("Inscription : un seul billet facturé (10 €) même si 3 places sont demandées, redirection vers le paiement", r.status === 201 && !!r.data.checkoutUrl, JSON.stringify(r.data));
 let reg = read("registrations").find((x) => x.eventId === BARCA && x.memberNumber === memA.memberNumber && x.status !== "cancelled");
 ok("Inscription en attente de paiement, 1 place, 10 €", reg?.status === "awaiting_payment" && reg.places === 1 && reg.amountCents === 1000, JSON.stringify(reg));
+ok("Pas de billet avant le paiement (404, aucun code)", (await call("GET", `/api/events/${BARCA}/ticket`, { c: cA })).status === 404 && !read("registrations").find((x) => x.id === reg.id).ticketCode);
 ok("Deuxième billet pour la même personne refusé (409)", (await call("POST", `/api/events/${BARCA}/register`, { json: regBody(), c: cA })).status === 409);
 await ha(`/__pay/${reg.checkoutId}`);
 const wb = await webhook("registration", reg.id);
@@ -337,6 +338,21 @@ ok("Inscription annulée, aucun remboursement déclenché", read("registrations"
 ok("Après annulation, plus de billet téléchargeable (404)", (await call("GET", `/api/events/${BARCA}/ticket`, { c: cA })).status === 404);
 ok("La place est libérée (80 restantes)", (await call("GET", `/api/events/${BARCA}/register`, { c: cA })).data.remaining === 80);
 ok("Annulation impossible sans inscription en cours (404)", (await call("DELETE", `/api/events/${BARCA}/register`, { c: cA })).status === 404);
+const cancelled = read("registrations").find((x) => x.id === reg.id);
+ok("Billet annulé : code retiré et conservé comme annulé, paiement gardé", !cancelled.ticketCode && cancelled.paidBeforeCancel === true && cancelled.revokedTicketCodes?.some((x) => x.code === paidReg.ticketCode && x.reason === "annulation"));
+const txAfter = (await call("GET", "/api/members/me", { c: cA })).data;
+const myTicket = txAfter.tickets.find((t) => t.id === reg.id);
+ok("Espace membre : billet annulé, redemande possible, adresse masquée", myTicket?.cancelledPaid === true && myTicket.canReactivate === true && !myTicket.address && !myTicket.ticketCode, JSON.stringify(myTicket));
+ok("Espace membre : le paiement reste encaissé (non remboursé)", txAfter.transactions.some((t) => t.id === `registration:${reg.id}` && t.status === "paid"));
+ok("Nouvelle inscription payante refusée : il faut redemander le billet (409)", (await call("POST", `/api/events/${BARCA}/register`, { json: regBody(), c: cA })).status === 409);
+r = await call("POST", `/api/events/${BARCA}/ticket`, { c: cA });
+const again = read("registrations").find((x) => x.id === reg.id);
+ok("Redemande du billet : nouveau code, billet de nouveau valide, place reprise", r.status === 200 && again.status === "paid" && /^[1-9]\d{11}$/.test(again.ticketCode) && again.ticketCode !== paidReg.ticketCode && (await call("GET", `/api/events/${BARCA}/register`, { c: cA })).data.remaining === 79, JSON.stringify(r.data));
+ok("Billet redemandé téléchargeable", (await call("GET", `/api/events/${BARCA}/ticket`, { c: cA })).status === 200);
+const mine2 = (await call("GET", "/api/members/me", { c: cA })).data.tickets.find((t) => t.id === reg.id);
+ok("Espace membre : billet valide avec code, lieu et itinéraire Google Maps", mine2?.valid === true && mine2.ticketCode === again.ticketCode && /google\.com\/maps/.test(mine2.maps ?? "") && !!mine2.venue, JSON.stringify(mine2));
+ok("Espace membre : reçu de paiement disponible", !!mine2?.invoiceId);
+await call("DELETE", `/api/events/${BARCA}/register`, { c: cA });
 
 console.log(`\n== HelloAsso indisponible ==`);
 ok("Commande d'un panier vide refusée", (await call("POST", "/api/checkout", { json: shopBody(60, []) })).status === 400);

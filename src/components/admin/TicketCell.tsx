@@ -5,7 +5,9 @@ import { SubmitButton } from "./SubmitButton";
 
 /** Billet d'une inscription dans l'administration : code-barres, code, PDF et nouveau billet en cas de perte (l'ancien est annulé). */
 export function TicketCell({ r, returnTo, canEdit }: { r: Registration; returnTo: string; canEdit: boolean }) {
-  const valid = r.status === "confirmed" || r.status === "paid";
+  const valid = r.status === "paid" || (r.status === "confirmed" && r.amountCents === 0);
+  if (r.status === "cancelled" && r.paidBeforeCancel)
+    return <span className="block min-w-[160px] text-[12px] text-amber-200">Billet annulé par la participante{r.cancelledAt ? ` le ${new Date(r.cancelledAt).toLocaleDateString("fr-FR")}` : ""} : invalide, place remise en vente (payé, non remboursé).</span>;
   if (!r.ticketCode)
     return valid ? (
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -17,7 +19,7 @@ export function TicketCell({ r, returnTo, canEdit }: { r: Registration; returnTo
         )}
       </div>
     ) : (
-      <span className="text-[12px] text-mist">{r.status === "awaiting_payment" ? "Après paiement" : "—"}</span>
+      <span className="text-[12px] text-mist">{r.status === "awaiting_payment" || (r.status === "confirmed" && r.amountCents > 0) ? "Émis après paiement" : r.status === "cancelled" ? "Annulé" : "—"}</span>
     );
   return (
     <div className="min-w-[160px]">

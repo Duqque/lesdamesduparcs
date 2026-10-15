@@ -25,6 +25,7 @@ interface StatusData {
   unitCents?: number;
   tier?: string | null;
   mine: { id: string; status: RegistrationStatus; places: number; amountCents: number } | null;
+  paidCancelled?: { id: string; canReactivate: boolean; reason?: "late" | "full" | "none" } | null;
 }
 
 const statusLabel: Record<RegistrationStatus, string> = { confirmed: "Inscription confirmée", awaiting_payment: "En attente de paiement", paid: "Inscription confirmée et payée", waitlist: "Sur liste d’attente", cancelled: "Inscription annulée", refunded: "Inscription remboursée" };
@@ -85,6 +86,23 @@ export function RegistrationForm({ event, member }: Props) {
       cancelled = true;
     };
   }, [event.id, reload]);
+
+  /** Billet annulé mais déjà payé : redemande d'un nouveau billet (jusqu'à 2 h avant l'événement). */
+  async function reactivate() {
+    setBusy(true);
+    setFormError("");
+    try {
+      const res = await fetch(`/api/events/${event.id}/ticket`, { method: "POST" });
+      const out = (await res.json()) as { error?: string; message?: string };
+      if (!res.ok) return setFormError(out.error ?? "Impossible de redemander le billet.");
+      setNotice(out.message ?? "Votre nouveau billet est prêt.");
+      setReload((n) => n + 1);
+    } catch {
+      setFormError("Impossible de redemander le billet. Vérifiez votre réseau.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   /** Annulation par la participante : la place est libérée, sans remboursement si les conditions le prévoient. */
   async function cancelMine() {
@@ -190,6 +208,7 @@ export function RegistrationForm({ event, member }: Props) {
     const st = done?.status ?? mine!.status;
     return (
       <div className="rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-7 md:p-9">
+        {notice && <p role="status" className="mb-5 rounded-[10px] border border-white/15 bg-black/20 p-4 font-body text-[14px] text-white">{notice}</p>}
         <p className="flex items-center gap-3 font-body text-[17px] font-medium text-white">
           <CheckCircle2 aria-hidden className="size-6 text-psg-red-bright" strokeWidth={1.7} />
           {statusLabel[st]}
@@ -209,22 +228,41 @@ export function RegistrationForm({ event, member }: Props) {
             Télécharger mon billet (PDF)
           </a>
         )}
-        {cfg.selfCancel && mine && st !== "cancelled" && st !== "refunded" && (
+        {mine && st !== "cancelled" && st !== "refunded" && st !== "waitlist" && (
           <div className="mt-6 border-t border-white/10 pt-5">
             {cfg.cancellationPolicy && <p className="whitespace-pre-line text-mist t-small">{cfg.cancellationPolicy}</p>}
             <button type="button" onClick={() => setAskCancel(true)} disabled={busy} className="mt-3 font-body text-[13.5px] text-white/80 underline underline-offset-4 hover:text-white disabled:opacity-60">
-              Annuler ma réservation
+              Annuler mon billet
             </button>
           </div>
         )}
         {askCancel && (
           <ConfirmDialog
-            message={mine && (mine.status === "paid" || mine.amountCents > 0) && cfg.cancellationPolicy ? "Annuler votre réservation ? Votre place sera libérée. Conformément aux conditions, le billet acheté n'est pas remboursé." : "Annuler votre réservation ? Votre place sera libérée."}
-            confirmLabel="Annuler ma réservation"
+            message={mine && mine.status === "paid" ? "Annuler votre billet ? Il deviendra invalide et votre place sera remise en vente. Le billet n'est pas remboursé ; vous pourrez le redemander jusqu'à 2 h avant l'événement, s'il reste de la place." : "Annuler votre inscription ? Votre place sera remise en vente."}
+            confirmLabel="Annuler mon billet"
             cancelLabel="Garder ma place"
             onConfirm={cancelMine}
             onCancel={() => setAskCancel(false)}
           />
+        )}
+        {formError && <p role="alert" className="mt-4 text-[13px] text-[#ff8b9b]">{formError}</p>}
+      </div>
+    );
+  }
+
+  if (status?.paidCancelled) {
+    const pc = status.paidCancelled;
+    return (
+      <div className="rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-7 md:p-9">
+        {notice && <p role="status" className="mb-5 rounded-[10px] border border-white/15 bg-black/20 p-4 font-body text-[14px] text-white">{notice}</p>}
+        <p className="font-body text-[17px] font-medium text-white">Billet annulé</p>
+        <p className="mt-3 text-mist t-small">Vous avez annulé votre billet, déjà payé (non remboursé). Votre place a été remise en vente.</p>
+        {pc.canReactivate ? (
+          <button type="button" onClick={reactivate} disabled={busy} className="mt-6 inline-flex h-12 items-center rounded-[10px] border border-[#ff6b80]/45 bg-[linear-gradient(180deg,#e51b36,#b30d27)] px-6 font-body text-[14.5px] font-medium text-white disabled:opacity-60">
+            Redemander mon billet
+          </button>
+        ) : (
+          <p className="mt-4 text-white/85 t-small">{pc.reason === "full" ? "L'événement est complet : il n'est plus possible de redemander un billet." : "Un billet annulé peut être redemandé jusqu'à 2 h avant l'événement : ce délai est dépassé."}</p>
         )}
         {formError && <p role="alert" className="mt-4 text-[13px] text-[#ff8b9b]">{formError}</p>}
       </div>

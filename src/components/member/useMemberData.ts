@@ -13,6 +13,14 @@ export interface MemberSpace {
   transactions: Array<{ id: string; at: string; type: string; label: string; amountCents: number; status: "paid" | "pending" | "failed" | "refunded" | "cancelled"; method: string; invoiceId?: string }>;
   orders: Array<{ id: string; number: string; at: string; status: string; totalCents: number; discountCents: number; promoCode?: string; shippingCents: number; lines: Array<{ name: string; size?: string; qty: number; unitCents: number }>; membership?: { planName: string; amountCents: number }; invoiceId?: string; tracking?: string; fulfilment?: string; resumeToken?: string }>;
   benefits: Array<{ id: string; title: string; text: string }>;
+  /** Billets de la membre (un par inscription) : adresse et itinéraire uniquement pour les billets valides. */
+  tickets: Array<{
+    id: string; eventId: string; title: string; date: string; time?: string; endTime?: string; image: string;
+    status: "confirmed" | "paid" | "awaiting_payment" | "waitlist" | "cancelled" | "refunded";
+    valid: boolean; past: boolean; places: number; amountCents: number; paid: boolean;
+    ticketCode?: string; venue?: string; address?: string; maps?: string; invoiceId?: string;
+    canCancel: boolean; cancelledPaid: boolean; canReactivate: boolean; reactivateUntil?: string; reactivateBlocked?: "late" | "full" | "none";
+  }>;
   offers: Array<{ id: string; title: string; text: string; partner?: string; code?: string }>;
 }
 

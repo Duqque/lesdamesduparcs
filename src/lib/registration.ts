@@ -34,7 +34,10 @@ export interface Registration extends RegistrationInput {
   ticketCode?: string;
   ticketIssuedAt?: string;
   /** Anciens billets remplacés (perte) : refusés à l'entrée. */
-  revokedTicketCodes?: Array<{ code: string; at: string }>;
+  revokedTicketCodes?: Array<{ code: string; at: string; reason?: "perte" | "annulation" }>;
+  /** Billet payé puis annulé par la participante : paiement conservé (non remboursé), billet réactivable jusqu'à 2 h avant. */
+  paidBeforeCancel?: boolean;
+  cancelledAt?: string;
   createdAt: string;
 }
 

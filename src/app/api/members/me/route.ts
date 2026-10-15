@@ -1,6 +1,8 @@
 import { json, siteUrl } from "@/lib/server/http";
 import { getSession } from "@/lib/server/session";
-import { getMemberByNumber, listOrdersByMember, toPublic } from "@/lib/server/store";
+import { getMemberByNumber, listOrdersByMember, listRegistrationsByMember, toPublic } from "@/lib/server/store";
+import { getAllEventsAdmin } from "@/lib/server/events";
+import { eventStartMs, mapsUrl, reactivationState, ticketValid } from "@/lib/server/tickets";
 import { getTransactions, membershipState, membershipsOf, syncMemberships } from "@/lib/server/business";
 import { invoices } from "@/lib/server/invoice";
 import { benefitsDb, offersDb, partnersDb } from "@/lib/server/content";
@@ -26,9 +28,48 @@ export async function GET(req: Request) {
     appUrl: discordActive && stored.discord?.status === "ACTIVE" && c.guildId ? `https://discord.com/channels/${c.guildId}` : undefined,
   };
   const live = (v?: string, e?: string) => (!v || v <= today) && (!e || e >= today);
+  // Mes billets : un par inscription ; l'adresse et l'itinéraire ne sont donnés qu'aux billets valides.
+  const [regs, evs] = await Promise.all([listRegistrationsByMember(member.memberNumber), getAllEventsAdmin()]);
+  const tickets = await Promise.all(
+    regs
+      .filter((r) => r.status !== "refunded")
+      .map(async (r) => {
+        const e = evs.find((x) => x.id === r.eventId);
+        if (!e) return null;
+        const valid = ticketValid(r);
+        const start = eventStartMs(e);
+        const react = r.status === "cancelled" && r.paidBeforeCancel ? await reactivationState(r, e) : null;
+        return {
+          id: r.id,
+          eventId: e.id,
+          title: e.title,
+          date: e.date,
+          time: e.time,
+          endTime: e.endTime,
+          image: e.image,
+          status: r.status,
+          valid,
+          past: Date.now() > start + 6 * 3600_000,
+          places: r.places,
+          amountCents: r.amountCents,
+          paid: r.status === "paid" || Boolean(r.paidBeforeCancel),
+          ticketCode: valid ? r.ticketCode : undefined,
+          venue: valid ? e.venue : undefined,
+          address: valid ? [e.address, e.city].filter((x) => x && !/communiqu/i.test(x)).join(", ") : undefined,
+          maps: valid ? mapsUrl(e) : undefined,
+          invoiceId: invs.find((i) => i.txId === `registration:${r.id}`)?.id,
+          canCancel: (valid || r.status === "awaiting_payment" || r.status === "confirmed" || r.status === "waitlist") && Date.now() < start,
+          cancelledPaid: r.status === "cancelled" && Boolean(r.paidBeforeCancel),
+          canReactivate: Boolean(react?.possible),
+          reactivateUntil: react && "until" in react && react.until ? new Date(react.until).toISOString() : undefined,
+          reactivateBlocked: react && !react.possible ? react.reason : undefined,
+        };
+      }),
+  );
   return json({
     member: { ...member, authorizations: member.authorizations.map((f) => ({ id: f.id, name: f.name })) },
     discord,
+    tickets: tickets.filter((t): t is NonNullable<typeof t> => t !== null).sort((a, b) => (a.past === b.past ? (a.past ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date)) : a.past ? 1 : -1)),
     verifyUrl: `${siteUrl(req)}/verification/${member.token}`,
     orders: (await listOrdersByMember(member.memberNumber)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((o) => ({ id: o.id, number: o.orderNumber ?? o.id.slice(0, 8).toUpperCase(), at: o.createdAt, status: o.status, totalCents: o.totalCents, discountCents: o.discountCents ?? 0, promoCode: o.promoCode, shippingCents: o.shippingCents, lines: o.lines.map((l) => ({ name: l.name, size: l.size, qty: l.qty, unitCents: l.unitCents })), membership: o.membership ? { planName: o.membership.planName, amountCents: o.membership.amountCents } : undefined, invoiceId: invs.find((i) => i.txId === `order:${o.id}`)?.id, tracking: o.tracking, fulfilment: o.fulfilment, resumeToken: o.status === "awaiting_payment" || o.status === "failed" ? o.token : undefined })),
     membership: ms[0] ? { planName: ms[0].planName, season: ms[0].season, startsAt: ms[0].startsAt, endsAt: ms[0].endsAt, status: ms[0].status } : null,

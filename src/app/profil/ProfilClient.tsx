@@ -12,6 +12,7 @@ import { guardianRelations, isMinor } from "@/lib/members";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PhotoCropField } from "@/components/member/PhotoCropField";
+import { code128Svg } from "@/lib/code128";
 
 const dateFr = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
@@ -112,6 +113,107 @@ function EmailPreference({ initial }: { initial: boolean }) {
 }
 
 /** Photo de profil facultative (portrait 300×400, recadrée dans le navigateur) : ajoutée, changée ou retirée depuis « Mes informations ». */
+const TICKET_STATUS: Record<string, string> = { paid: "Billet valide", confirmed: "Billet valide", awaiting_payment: "Paiement en attente", waitlist: "Liste d'attente", cancelled: "Annulé", refunded: "Remboursé" };
+const dateTimeFr = (iso: string) => new Date(iso).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
+
+/** Mes billets : billet PDF, code, adresse et itinéraire, reçu de paiement, annulation et redemande d'un billet annulé déjà payé. */
+function TicketsSection({ tickets, refresh }: { tickets: MemberSpaceData["tickets"]; refresh: () => void }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [ask, setAsk] = useState<MemberSpaceData["tickets"][number] | null>(null);
+  const [msg, setMsg] = useState<{ id: string; ok: boolean; text: string } | null>(null);
+
+  async function act(t: MemberSpaceData["tickets"][number], kind: "cancel" | "reactivate") {
+    setAsk(null);
+    setBusy(t.id);
+    setMsg(null);
+    try {
+      const res = await fetch(kind === "cancel" ? `/api/events/${t.eventId}/register` : `/api/events/${t.eventId}/ticket`, { method: kind === "cancel" ? "DELETE" : "POST" });
+      const out = (await res.json().catch(() => null)) as { error?: string; message?: string } | null;
+      setMsg({ id: t.id, ok: res.ok, text: (res.ok ? out?.message : out?.error) ?? (res.ok ? "C'est fait." : "Action impossible.") });
+      refresh();
+    } catch {
+      setMsg({ id: t.id, ok: false, text: "Action impossible. Vérifiez votre réseau." });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const link = "inline-flex min-h-11 items-center gap-2 text-[13.5px] text-white underline decoration-white/30 underline-offset-4 hover:decoration-white";
+  return (
+    <Section id="billets" title="Mes billets">
+      {tickets.length === 0 ? (
+        <p className="text-mist t-lead">Aucun billet pour le moment. Vos billets des <Link href="/evenements" className="text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">événements</Link> apparaîtront ici dès le paiement.</p>
+      ) : (
+        <ul className="grid gap-4">
+          {tickets.map((t) => (
+            <li key={t.id} className={`overflow-hidden rounded-[14px] border bg-[#0b1327]/90 font-body ${t.valid && !t.past ? "border-psg-red-bright/40" : "border-white/10"}`}>
+              <div className="flex flex-wrap items-start justify-between gap-3 p-5">
+                <div className="min-w-0">
+                  <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-psg-red-bright">{t.past ? "Événement passé" : TICKET_STATUS[t.status] ?? t.status}</p>
+                  <Link href={`/evenements/${t.eventId}`} className="mt-1 block text-[16px] font-medium text-white hover:underline">{t.title}</Link>
+                  <p className="mt-1 text-[13px] text-mist">{dateFr(t.date)}{t.time ? ` · ${t.time.replace(":", "h")}` : ""} · {t.places} place{t.places > 1 ? "s" : ""} · {t.amountCents ? formatEuros(t.amountCents) : "Gratuit"}</p>
+                </div>
+                {t.valid && t.ticketCode && (
+                  <div className="text-right">
+                    <span aria-hidden className="block h-9 w-[170px] overflow-hidden rounded-[3px] bg-white p-1 [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: code128Svg(t.ticketCode, 40, 6) }} />
+                    <span className="mt-1 block font-mono text-[12px] tracking-[0.08em] text-white/80">{t.ticketCode}</span>
+                  </div>
+                )}
+              </div>
+
+              {t.valid && (t.venue || t.address) && (
+                <div className="border-t border-white/10 px-5 py-4">
+                  <p className="text-[12px] uppercase tracking-[0.16em] text-mist">Lieu</p>
+                  <p className="mt-1 text-[15px] text-white">{t.venue}</p>
+                  {t.address && <p className="text-[13.5px] text-white/75">{t.address}</p>}
+                  {t.maps && <a href={t.maps} target="_blank" rel="noopener noreferrer" className={link}>Itinéraire Google Maps</a>}
+                </div>
+              )}
+
+              {t.cancelledPaid && (
+                <div className="border-t border-white/10 px-5 py-4 text-[13.5px] text-white/85">
+                  <p>Billet annulé : il n&rsquo;est plus valable et votre place a été remise en vente. Le paiement n&rsquo;est pas remboursé.</p>
+                  {t.canReactivate ? (
+                    <p className="mt-1 text-mist">Vous pouvez redemander un billet jusqu&rsquo;au {t.reactivateUntil ? dateTimeFr(t.reactivateUntil) : "2 h avant l'événement"}, s&rsquo;il reste de la place.</p>
+                  ) : (
+                    <p className="mt-1 text-mist">{t.reactivateBlocked === "full" ? "L'événement est complet : il n'est plus possible de redemander un billet." : "Le délai pour redemander un billet (2 h avant l'événement) est dépassé."}</p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-white/10 px-5 py-3">
+                {t.valid && <a href={`/api/events/${t.eventId}/ticket`} className={link}><Download aria-hidden className="size-4" strokeWidth={1.7} /> Télécharger mon billet (PDF)</a>}
+                {t.invoiceId && <a href={`/api/factures/${t.invoiceId}`} target="_blank" rel="noreferrer" className={link}><FileText aria-hidden className="size-4" strokeWidth={1.7} /> Reçu de paiement (PDF)</a>}
+                {t.status === "awaiting_payment" && !t.past && <Link href={`/evenements/${t.eventId}#inscription`} className={link}>Finaliser le paiement</Link>}
+                {t.canReactivate && (
+                  <button type="button" disabled={busy === t.id} onClick={() => act(t, "reactivate")} className="inline-flex min-h-11 items-center text-[13.5px] font-medium text-white underline decoration-psg-red-bright underline-offset-4 disabled:opacity-60">
+                    Redemander mon billet
+                  </button>
+                )}
+                {t.canCancel && !t.past && (
+                  <button type="button" disabled={busy === t.id} onClick={() => setAsk(t)} className="inline-flex min-h-11 items-center text-[13.5px] text-white/70 underline decoration-white/30 underline-offset-4 hover:text-white disabled:opacity-60">
+                    Annuler mon billet
+                  </button>
+                )}
+              </div>
+              {msg?.id === t.id && <p role={msg.ok ? "status" : "alert"} className={`px-5 pb-4 text-[13px] ${msg.ok ? "text-emerald-300" : "text-[#ff8b9b]"}`}>{msg.text}</p>}
+            </li>
+          ))}
+        </ul>
+      )}
+      {ask && (
+        <ConfirmDialog
+          message={ask.paid ? "Annuler votre billet ? Il deviendra invalide et votre place sera remise en vente. Le billet n'est pas remboursé ; vous pourrez le redemander jusqu'à 2 h avant l'événement, s'il reste de la place." : "Annuler votre inscription ? Votre place sera remise en vente."}
+          confirmLabel="Annuler mon billet"
+          cancelLabel="Garder mon billet"
+          onConfirm={() => act(ask, "cancel")}
+          onCancel={() => setAsk(null)}
+        />
+      )}
+    </Section>
+  );
+}
+
 function PhotoSection({ member, refresh }: { member: MemberSpaceData["member"]; refresh: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -258,6 +360,8 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
       </section>
 
       <AdhesionSection season={member.season} endsAt={membership?.endsAt ?? member.validUntil} flash={adhesion} />
+
+      <TicketsSection tickets={data.tickets ?? []} refresh={refresh} />
 
       <DiscordSection discord={discord} membershipActive={validated} flash={discordFlash} />
 
