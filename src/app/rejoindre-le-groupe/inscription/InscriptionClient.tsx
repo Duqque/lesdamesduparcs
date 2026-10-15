@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, FileText, Paperclip, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Check, Field, inputCls } from "@/components/ui/form";
@@ -44,12 +44,18 @@ const kb = (n: number) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024)
 export function InscriptionClient({ capReached }: { capReached: boolean }) {
   const router = useRouter();
   const { session, refresh } = useAuth();
+  // Compte client déjà connecté : il devient un compte d'adhérente (même connexion, billets et commandes conservés).
+  const upgrading = session.status === "member" && Boolean(session.client);
   const [step, setStep] = useState(0);
   const [v, setV] = useState<Record<string, string | boolean>>({
-    firstName: "", lastName: "", birthDate: "", email: "", phone: "", line1: "", line2: "", postalCode: "", city: "", country: "France", password: "",
+    firstName: upgrading ? session.firstName : "", lastName: upgrading ? session.lastName : "", birthDate: "", email: upgrading ? session.email : "", phone: "", line1: "", line2: "", postalCode: "", city: "", country: "France", password: upgrading ? "Compte-existant-0" : "",
     gFirstName: "", gLastName: "", gRelation: "", gEmail: "", gPhone: "",
     guardianConsent: false, rules: false, privacy: false, image: false,
   });
+  // Session connue après le premier rendu : pré-remplissage du compte client à ce moment-là.
+  useEffect(() => {
+    if (upgrading && session.status === "member") setV((p) => ({ ...p, firstName: p.firstName || session.firstName, lastName: p.lastName || session.lastName, email: session.email, password: "Compte-existant-0" }));
+  }, [upgrading, session]);
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
@@ -125,7 +131,7 @@ export function InscriptionClient({ capReached }: { capReached: boolean }) {
     body.set("data", JSON.stringify({ ...input, password }));
     if (minor) files.forEach((f) => body.append("authorization", f));
     try {
-      const res = await fetch("/api/members", { method: "POST", body });
+      const res = await fetch(upgrading ? "/api/members/upgrade" : "/api/members", { method: "POST", body });
       const out = (await res.json()) as { error?: string; errors?: Record<string, string>; checkoutUrl?: string };
       if (!res.ok) {
         setErrors(out.errors ?? {});
@@ -143,7 +149,7 @@ export function InscriptionClient({ capReached }: { capReached: boolean }) {
     }
   }
 
-  const alreadyMember = session.status === "member";
+  const alreadyMember = session.status === "member" && !upgrading;
   const full = !alreadyMember && capReached;
 
   return (
@@ -153,7 +159,9 @@ export function InscriptionClient({ capReached }: { capReached: boolean }) {
       <p className="mt-5 max-w-xl text-mist t-lead">
         {full
           ? `Les adhésions pour la saison ${membership.season} sont actuellement complètes.`
-          : `Créez votre compte en quelques minutes : votre carte membre ${membership.season}, son QR code de vérification et votre attestation PDF sont générés automatiquement.`}
+          : upgrading
+            ? `Vous avez déjà un compte : complétez ces informations pour devenir adhérente. Vous gardez la même connexion, vos billets et vos commandes ; votre carte membre ${membership.season} et votre attestation PDF sont générées automatiquement.`
+            : `Créez votre compte en quelques minutes : votre carte membre ${membership.season}, son QR code de vérification et votre attestation PDF sont générés automatiquement.`}
       </p>
 
       {alreadyMember ? (
@@ -200,7 +208,7 @@ export function InscriptionClient({ capReached }: { capReached: boolean }) {
                   <PhoneInput id="f-phone" value={String(v.phone)} onChange={(full) => set("phone", full)} invalid={Boolean(err("phone"))} describedBy={err("phone") ? "f-phone-err" : undefined} />
                 </Field>
                 <Field id="f-email" label="Adresse e-mail" error={err("email")} className="sm:col-span-2" hint="Elle servira d'identifiant de connexion.">
-                  <input id="f-email" type="email" autoComplete="email" className={inputCls} {...text("email")} {...inv("email")} />
+                  <input id="f-email" type="email" autoComplete="email" readOnly={upgrading} className={cn(inputCls, upgrading && "opacity-70")} {...text("email")} {...inv("email")} />
                 </Field>
                 <Field id="f-line1" label="Adresse" error={err("line1")} className="sm:col-span-2">
                   <input id="f-line1" autoComplete="address-line1" className={inputCls} {...text("line1")} {...inv("line1")} />
@@ -214,9 +222,11 @@ export function InscriptionClient({ capReached }: { capReached: boolean }) {
                   onChange={(patch) => setV((p) => ({ ...p, ...patch }))}
                   errors={{ postalCode: err("postalCode"), city: err("city"), country: err("country") }}
                 />
-                <Field id="f-password" label="Mot de passe" error={err("password")} hint="10 caractères minimum, avec des lettres et des chiffres." className="sm:col-span-2">
-                  <PasswordInput id="f-password" autoComplete="new-password" className={inputCls} {...text("password")} {...inv("password")} />
-                </Field>
+                {!upgrading && (
+                  <Field id="f-password" label="Mot de passe" error={err("password")} hint="10 caractères minimum, avec des lettres et des chiffres." className="sm:col-span-2">
+                    <PasswordInput id="f-password" autoComplete="new-password" className={inputCls} {...text("password")} {...inv("password")} />
+                  </Field>
+                )}
               </fieldset>
             )}
 

@@ -353,7 +353,7 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
           <p className="mt-4 max-w-2xl text-mist t-lead">Votre compte vous permet de réserver vos places aux événements des Dames du Parc et de retrouver vos billets, vos reçus et vos commandes. Il ne comprend pas d&rsquo;adhésion.</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/evenements" className={linkBtn}>Voir les événements</Link>
-            <Link href="/rejoindre-le-groupe" className={linkBtn}>Devenir adhérente</Link>
+            <Link href="/rejoindre-le-groupe/inscription" className={linkBtn}>Devenir adhérente</Link>
           </div>
         </section>
       )}

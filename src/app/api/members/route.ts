@@ -4,7 +4,8 @@ import { authConfigured, setSession } from "@/lib/server/session";
 import { getAdmin } from "@/lib/server/admin-auth";
 import { hashPassword } from "@/lib/server/password";
 import { addMember, listMembers, type StoredMember } from "@/lib/server/store";
-import { MAX_AUTH_FILE_BYTES, generateMemberNumber, MAX_AUTH_FILES, isMinor, validateMember, type Guardian, type MemberInput } from "@/lib/members";
+import { MAX_AUTH_FILE_BYTES, generateMemberNumber, MAX_AUTH_FILES, isMinor } from "@/lib/members";
+import { parseSignup } from "@/lib/server/member-signup";
 import { seasonOf } from "@/lib/season";
 import { ADHESION_CAP_MESSAGE, adhesionCapStatus, createMembership, defaultPlan } from "@/lib/server/business";
 import { sendTemplate } from "@/lib/server/email";
@@ -38,43 +39,10 @@ export async function POST(req: Request) {
   if ((await adhesionCapStatus()).blocked) return json({ error: ADHESION_CAP_MESSAGE }, 403);
 
   const form = await req.formData().catch(() => null);
-  let raw: Record<string, unknown> | null = null;
-  try {
-    raw = form ? (JSON.parse(String(form.get("data"))) as Record<string, unknown>) : null;
-  } catch {
-    raw = null;
-  }
-  if (!form || !raw || typeof raw !== "object") return json({ error: "Requête invalide." }, 400);
-
-  const a = (raw.address ?? {}) as Record<string, unknown>;
-  const g = raw.guardian as Record<string, unknown> | undefined;
-  const c = (raw.consents ?? {}) as Record<string, unknown>;
-  const input: MemberInput = {
-    firstName: str(raw.firstName, 80),
-    lastName: str(raw.lastName, 80),
-    birthDate: str(raw.birthDate, 10),
-    email: str(raw.email, 160).toLowerCase(),
-    phone: str(raw.phone, 20),
-    address: { line1: str(a.line1), line2: str(a.line2) || undefined, postalCode: str(a.postalCode, 10), city: str(a.city, 80), country: str(a.country, 60) },
-    password: typeof raw.password === "string" ? raw.password.slice(0, 200) : "",
-    guardian: g ? { firstName: str(g.firstName, 80), lastName: str(g.lastName, 80), relation: str(g.relation, 10) as Guardian["relation"], email: str(g.email, 160).toLowerCase(), phone: str(g.phone, 20) } : undefined,
-    consents: { rules: c.rules === true, privacy: c.privacy === true, image: c.image === true, guardianConsent: c.guardianConsent === true },
-  };
-
-  const minor = isMinor(input.birthDate);
-  const uploads = minor ? form.getAll("authorization").filter((f): f is File => typeof f !== "string" && f.size > 0) : [];
-  const errors = validateMember(input, uploads.length);
-
-  const files: Array<{ id: string; bytes: Buffer; name: string }> = [];
-  if (!errors.authorization) {
-    for (const f of uploads) {
-      const bytes = Buffer.from(await f.arrayBuffer());
-      if (f.size > MAX_AUTH_FILE_BYTES) errors.authorization = `« ${f.name} » dépasse 5 Mo.`;
-      else if (bytes.subarray(0, 5).toString("latin1") !== "%PDF-") errors.authorization = `« ${f.name} » n'est pas un fichier PDF valide.`;
-      else files.push({ id: randomUUID(), bytes, name: f.name.replace(/[^\w.\- ()À-ÿ]/g, "_").slice(0, 120) });
-    }
-  }
-  if (Object.keys(errors).length) return json({ error: "Certains champs sont à corriger.", errors }, 422);
+  if (!form) return json({ error: "Requête invalide." }, 400);
+  const parsed = await parseSignup(form);
+  if (!parsed.ok) return json({ error: parsed.error, ...("errors" in parsed ? { errors: parsed.errors } : {}) }, parsed.status);
+  const { input, minor, files } = parsed;
 
   const id = randomUUID();
   const now = new Date();

@@ -398,6 +398,18 @@ ok("Billetterie en attente : réservation refusée (403)", (await call("POST", `
 ok("Événements ouverts à toutes : plus de réservation réservée aux adhérentes", read("events").every((e) => !e.registration.membersOnly));
 ok("Modèle « Nouvel événement » sans priorité des adhérentes", !read("email_templates").some((t) => t.key === "new_event" && /priorit/i.test(t.body)));
 
+console.log(`\n== Compte client → adhérente ==`);
+ok("Un compte d'adhérente ne passe pas par la conversion (409)", (await call("POST", "/api/members/upgrade", { form: signupForm(member(90)), c: cA })).status === 409);
+const oldNumber = sessK.memberNumber;
+r = await call("POST", "/api/members/upgrade", { form: signupForm(member(91, { firstName: "Léa", lastName: "Cliente", email: "autre@example.com", password: "" })), c: cK });
+ok("Compte client : adhésion demandée (201), page de paiement ensuite", r.status === 201 && r.data.next === "/rejoindre-le-groupe/paiement" && r.data.memberNumber && r.data.memberNumber !== oldNumber, JSON.stringify(r.data));
+const sessK2 = (await call("GET", "/api/auth/session", { c: cK })).data;
+ok("Même session : compte d'adhérente, adhésion à régler", sessK2.role === "member" && sessK2.client === false && sessK2.membership === "pending" && sessK2.memberNumber === r.data.memberNumber && sessK2.email === clientEmail, JSON.stringify(sessK2));
+ok("Adhésion créée pour le nouveau numéro de carte", read("memberships").some((m) => m.memberNumber === r.data.memberNumber));
+ok("Billet et inscription reportés sur le numéro de carte", read("registrations").find((x) => x.id === regK.id).memberNumber === r.data.memberNumber && !read("registrations").some((x) => x.memberNumber === oldNumber));
+ok("Billet toujours téléchargeable après l'adhésion", (await call("GET", `/api/events/${BARCA}/ticket`, { c: cK })).status === 200);
+ok("Conversion impossible deux fois (409)", (await call("POST", "/api/members/upgrade", { form: signupForm(member(92)), c: cK })).status === 409);
+
 console.log(`\n== HelloAsso indisponible ==`);
 ok("Commande d'un panier vide refusée", (await call("POST", "/api/checkout", { json: shopBody(60, []) })).status === 400);
 
