@@ -5,7 +5,7 @@ import path from "node:path";
 import type { Registration } from "@/lib/registration";
 import type { ClubEvent } from "@/types";
 import { settings } from "./admin-store";
-import { enqueueEmail, processEmailJobsSoon } from "./email-jobs";
+import { emailJobs, enqueueEmail, processEmailJobs, processEmailJobsSoon } from "./email-jobs";
 import { getEventAdmin } from "./events";
 import { siteOrigin } from "./http";
 import { SITE_URL } from "@/lib/site-url";
@@ -49,8 +49,8 @@ export async function reissueTicket(regId: string) {
     ticketIssuedAt: now,
     revokedTicketCodes: [...(reg.revokedTicketCodes ?? []), ...(reg.ticketCode ? [{ code: reg.ticketCode, at: now }] : [])],
   });
-  await enqueueTicketEmail(regId, code, true);
-  return { code, previous: reg.ticketCode };
+  const mail = await enqueueTicketEmail(regId, code, "reissued");
+  return { code, previous: reg.ticketCode, sent: mail?.status === "sent", email: reg.email };
 }
 
 /** Itinéraire Google Maps : lien saisi, coordonnées GPS, ou adresse du lieu. */
@@ -68,19 +68,34 @@ export async function issueTicket(regId: string) {
   const reg = await getRegistration(regId);
   if (!reg || !ticketValid(reg)) return null;
   const code = await ensureTicketCode(regId);
-  if (code) await enqueueTicketEmail(regId, code, false);
+  if (code) await enqueueTicketEmail(regId, code, "first");
   return code;
 }
 
-async function enqueueTicketEmail(regId: string, code: string, reissued: boolean) {
+/** Renvoie le billet en cours par e-mail (même code), à la demande de l'équipe. */
+export async function resendTicket(regId: string) {
   const reg = await getRegistration(regId);
-  if (!reg) return;
+  if (!reg || !ticketValid(reg)) return null;
+  const code = await ensureTicketCode(regId);
+  if (!code) return null;
+  const mail = await enqueueTicketEmail(regId, code, "resent");
+  return { code, sent: mail?.status === "sent", email: reg.email };
+}
+
+/**
+ * Met en file l'e-mail du billet. « first » : confirmation d'inscription (une seule par inscription) ; « reissued » : nouveau billet
+ * après une perte ; « resent » : renvoi du billet en cours par l'équipe. Les deux derniers partent tout de suite (état renvoyé).
+ */
+async function enqueueTicketEmail(regId: string, code: string, mode: "first" | "reissued" | "resent") {
+  const reg = await getRegistration(regId);
+  if (!reg) return null;
+  const reissued = mode === "reissued";
   const event = await getEventAdmin(reg.eventId);
-  await enqueueEmail({
+  const job = await enqueueEmail({
     type: "EVENT_CONFIRMATION",
     recipient: reg.email,
     // Une confirmation par inscription ; chaque billet réémis part dans son propre e-mail.
-    dedupeKey: reissued ? `EVENT_CONFIRMATION:${reg.id}:${code}` : `EVENT_CONFIRMATION:${reg.id}`,
+    dedupeKey: mode === "first" ? `EVENT_CONFIRMATION:${reg.id}` : mode === "reissued" ? `EVENT_CONFIRMATION:${reg.id}:${code}` : `EVENT_CONFIRMATION:${reg.id}:${code}:envoi-${Date.now()}`,
     memberNumber: reg.memberNumber,
     payload: {
       registrationId: reg.id,
@@ -97,9 +112,16 @@ async function enqueueTicketEmail(regId: string, code: string, reissued: boolean
       practical: event?.practical ?? [],
       ticketCode: code,
       reissued,
+      resent: mode === "resent",
     },
   });
-  processEmailJobsSoon();
+  if (mode === "first") {
+    processEmailJobsSoon();
+    return job;
+  }
+  // Envoi demandé par l'équipe : tenté immédiatement, pour pouvoir lui dire s'il est parti.
+  await processEmailJobs(5);
+  return job ? await emailJobs.findOne((j) => j.id === job.id) : null;
 }
 
 /* ---------- Images (photo de l'événement, logos) ---------- */

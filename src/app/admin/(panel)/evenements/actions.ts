@@ -16,7 +16,7 @@ import { formatLongDate } from "@/lib/format";
 import { safeReturn } from "@/lib/admin/params";
 import { setTxStatus } from "@/lib/server/business";
 import { deleteTransaction } from "@/lib/server/tx-delete";
-import { findByTicketCode, issueTicket, reissueTicket, ticketValid } from "@/lib/server/tickets";
+import { findByTicketCode, issueTicket, reissueTicket, resendTicket, ticketValid } from "@/lib/server/tickets";
 import { deleteRegistrationById } from "@/lib/server/store";
 import { mediaUrl, saveMedia } from "@/lib/server/media";
 import { announceAfterSave } from "@/lib/server/notify";
@@ -186,7 +186,21 @@ export async function reissueTicketAction(regId: string, returnToRaw: string) {
   if (!res) redirect(`${returnTo}${sep}erreur=${encodeURIComponent("Billet impossible à réémettre : l'inscription n'est pas confirmée ou payée.")}`);
   await audit(ctx, "modification", "inscription", `Nouveau billet émis (perte) : ${res.code}${res.previous ? `, ancien billet ${res.previous} annulé` : ""}`, { entityId: regId, before: res.previous, after: res.code });
   revalidatePath("/admin", "layout");
-  redirect(`${returnTo}${sep}ok=${encodeURIComponent(`Nouveau billet n° ${res.code} émis et envoyé par e-mail. L'ancien billet est annulé.`)}`);
+  if (!res.sent) redirect(`${returnTo}${sep}erreur=${encodeURIComponent(`Nouveau billet n° ${res.code} émis (l'ancien est annulé), mais l'e-mail n'est pas parti : vérifiez le service d'e-mail, puis utilisez « Envoyer le billet par e-mail ».`)}`);
+  redirect(`${returnTo}${sep}ok=${encodeURIComponent(`Nouveau billet n° ${res.code} émis et envoyé à ${res.email}. L'ancien billet est annulé.`)}`);
+}
+
+/** Envoie le billet en cours par e-mail à la participante (sans changer de code). */
+export async function resendTicketAction(regId: string, returnToRaw: string) {
+  const returnTo = safeReturn(returnToRaw, "/admin/evenements/inscriptions");
+  const ctx = await requireAdmin("events.attendance");
+  const res = await resendTicket(regId);
+  const sep = returnTo.includes("?") ? "&" : "?";
+  if (!res) redirect(`${returnTo}${sep}erreur=${encodeURIComponent("Billet indisponible : l'inscription n'est pas confirmée ou payée.")}`);
+  await audit(ctx, "communication", "inscription", `Billet ${res.code} envoyé par e-mail à ${res.email}${res.sent ? "" : " (échec de l'envoi)"}`, { entityId: regId });
+  revalidatePath("/admin", "layout");
+  if (!res.sent) redirect(`${returnTo}${sep}erreur=${encodeURIComponent(`L'e-mail n'est pas parti (service d'e-mail non configuré ou en panne : voir Communication > Journal des e-mails). Vous pouvez télécharger le billet et le transmettre vous-même.`)}`);
+  redirect(`${returnTo}${sep}ok=${encodeURIComponent(`Billet n° ${res.code} envoyé à ${res.email}.`)}`);
 }
 
 /** Actions groupées sur les inscriptions sélectionnées : annuler (place libérée) ou supprimer définitivement. Aucun remboursement n'est lancé. */

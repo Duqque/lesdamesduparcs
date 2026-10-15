@@ -1,4 +1,4 @@
-import { reissueTicketAction } from "@/app/admin/(panel)/evenements/actions";
+import { reissueTicketAction, resendTicketAction } from "@/app/admin/(panel)/evenements/actions";
 import { code128Svg } from "@/lib/code128";
 import type { Registration } from "@/lib/registration";
 import { SubmitButton } from "./SubmitButton";
@@ -8,7 +8,14 @@ export function TicketCell({ r, returnTo, canEdit }: { r: Registration; returnTo
   const valid = r.status === "confirmed" || r.status === "paid";
   if (!r.ticketCode)
     return valid ? (
-      <a href={`/admin/billets/${r.id}`} target="_blank" rel="noopener" className="text-[12px] text-psg-red-bright underline underline-offset-4">Émettre le billet (PDF)</a>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <a href={`/admin/billets/${r.id}`} target="_blank" rel="noopener" className="text-[12px] text-psg-red-bright underline underline-offset-4">Émettre le billet (PDF)</a>
+        {canEdit && (
+          <form action={resendTicketAction.bind(null, r.id, returnTo)}>
+            <SubmitButton variant="small" confirm={`Émettre le billet et l'envoyer par e-mail à ${r.email} ?`}>Envoyer le billet par e-mail</SubmitButton>
+          </form>
+        )}
+      </div>
     ) : (
       <span className="text-[12px] text-mist">{r.status === "awaiting_payment" ? "Après paiement" : "—"}</span>
     );
@@ -20,9 +27,14 @@ export function TicketCell({ r, returnTo, canEdit }: { r: Registration; returnTo
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
           <a href={`/admin/billets/${r.id}`} target="_blank" rel="noopener" className="text-[12px] text-psg-red-bright underline underline-offset-4">Voir le billet</a>
           {canEdit && (
-            <form action={reissueTicketAction.bind(null, r.id, returnTo)}>
-              <SubmitButton variant="small" confirm={`Émettre un nouveau billet pour ${r.firstName} ${r.lastName} ? L'ancien billet (n° ${r.ticketCode}) sera annulé et refusé à l'entrée ; le nouveau est envoyé par e-mail.`}>Nouveau billet</SubmitButton>
-            </form>
+            <>
+              <form action={resendTicketAction.bind(null, r.id, returnTo)}>
+                <SubmitButton variant="small" confirm={`Envoyer le billet n° ${r.ticketCode} par e-mail à ${r.email} ?`}>Envoyer le billet par e-mail</SubmitButton>
+              </form>
+              <form action={reissueTicketAction.bind(null, r.id, returnTo)}>
+                <SubmitButton variant="small" confirm={`Billet perdu : émettre un nouveau billet pour ${r.firstName} ${r.lastName} et l'envoyer par e-mail à ${r.email} ? L'ancien billet (n° ${r.ticketCode}) sera annulé et refusé à l'entrée.`}>Nouveau billet et envoi par e-mail</SubmitButton>
+              </form>
+            </>
           )}
         </div>
       ) : (

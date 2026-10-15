@@ -144,7 +144,9 @@ export async function buildEmail(job: Pick<EmailJob, "type" | "payload">): Promi
         subject: p.reissued ? `Votre nouveau billet : ${s(p.eventTitle)}` : `Votre billet : ${s(p.eventTitle)}`,
         body: [
           hello,
-          p.reissued
+          p.resent
+            ? `Comme demandé, voici votre billet pour « ${s(p.eventTitle)} », joint à cet e-mail (PDF) : présentez-le à l'entrée, sur votre téléphone ou imprimé.`
+            : p.reissued
             ? `Voici votre nouveau billet pour « ${s(p.eventTitle)} », joint à cet e-mail (PDF). L'ancien billet est annulé : il sera refusé à l'entrée.`
             : `Votre inscription à « ${s(p.eventTitle)} » est confirmée.${ticket ? " Votre billet est joint à cet e-mail (PDF) : présentez-le à l'entrée, sur votre téléphone ou imprimé." : ""}`,
           `Date : ${formatLongDate(s(p.date).slice(0, 10))}${p.time ? `, ${s(p.time).replace(":", "h")}` : ""}\nLieu : ${s(p.venue)}${address ? `, ${address}` : ""}\nPlaces : ${n(p.places) || 1}${n(p.amountCents) ? `\nMontant réglé : ${eur(n(p.amountCents))}` : ""}${ticket ? `\nN° de billet : ${ticket}` : ""}`,
