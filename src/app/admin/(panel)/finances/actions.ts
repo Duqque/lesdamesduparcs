@@ -7,6 +7,7 @@ import { TX_STATUS_LABEL, getTransactions, setTxStatus, type PayMethod, type TxS
 import { sendTemplate } from "@/lib/server/email";
 import { eur } from "@/lib/admin/format";
 import { safeReturn } from "@/lib/admin/params";
+import { deleteTransaction } from "@/lib/server/tx-delete";
 
 const BACK = "/admin/finances/transactions";
 
@@ -22,6 +23,37 @@ export async function txStatusAction(txId: string, status: TxStatus, returnToRaw
   if (status === "paid" && tx?.email) await sendTemplate("payment", tx.email, { prenom: tx.name.split(" ")[0], montant: eur(tx.amountCents), objet: tx.label }, "paymentConfirmation");
   revalidatePath("/admin", "layout");
   redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}ok=${encodeURIComponent("Transaction mise à jour.")}`);
+}
+
+/** Actions groupées sur les transactions sélectionnées : annuler (en attente uniquement) ou supprimer définitivement. */
+export async function bulkTxAction(formData: FormData) {
+  const op = String(formData.get("op") ?? "");
+  const returnTo = safeReturn(String(formData.get("returnTo") ?? ""), BACK);
+  const ids = [...new Set(formData.getAll("ids").map(String))].slice(0, 500);
+  const go = (k: "ok" | "erreur", msg: string) => {
+    revalidatePath("/admin", "layout");
+    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}${k}=${encodeURIComponent(msg)}`);
+  };
+  if (!ids.length) go("erreur", "Sélectionnez au moins une transaction.");
+  const ctx = await requireAdmin("finance.edit");
+  if (op === "delete") await requireFresh(ctx, returnTo);
+  const txs = await getTransactions();
+  let n = 0;
+  for (const id of ids) {
+    const tx = txs.find((t) => t.id === id);
+    if (!tx) continue;
+    if (op === "delete") {
+      if (!(await deleteTransaction(id))) continue;
+      await audit(ctx, "suppression", "transaction", `Transaction supprimée : ${tx.name}, ${tx.label}, ${eur(tx.amountCents)} (${TX_STATUS_LABEL[tx.status]})`, { entityId: id });
+    } else if (op === "cancel") {
+      if (tx.status !== "pending" && tx.status !== "failed") continue;
+      const res = await setTxStatus(id, "cancelled");
+      if (!res.ok) continue;
+      await audit(ctx, "paiement", "transaction", `${tx.name} : ${eur(tx.amountCents)} passé à « Annulé »`, { entityId: id, before: tx.status, after: "cancelled" });
+    } else go("erreur", "Action inconnue.");
+    n++;
+  }
+  go("ok", op === "delete" ? `${n} transaction(s) supprimée(s).` : `${n} transaction(s) annulée(s) (seules les transactions en attente ou échouées peuvent l'être).`);
 }
 
 export async function remindAction(txId: string, returnToRaw: string) {

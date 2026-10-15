@@ -3,6 +3,7 @@ import { attendanceAction, registrationAction } from "@/app/admin/(panel)/evenem
 import type { Registration } from "@/lib/registration";
 import { eur, fmtDate } from "@/lib/admin/format";
 import { SubmitButton } from "./SubmitButton";
+import { BulkAll, BulkCheck } from "./Bulk";
 import { Badge, Empty, TableWrap, Td, Th, type Tone } from "./ui";
 
 const LABEL: Record<Registration["status"], string> = { confirmed: "Confirmée", paid: "Payée", awaiting_payment: "Paiement en attente", waitlist: "Liste d'attente", cancelled: "Annulée", refunded: "Remboursée" };
@@ -16,15 +17,18 @@ interface Props {
   canFinance: boolean;
   showAttendance?: boolean;
   showFinance?: boolean;
+  /** Identifiant du formulaire d'actions groupées : ajoute une colonne de cases à cocher. */
+  bulkForm?: string;
 }
 
 /** Liste des inscrites avec les actions de gestion (confirmer, annuler, rembourser, liste d'attente, présence). */
-export function RegistrationsTable({ rows, returnTo, eventTitle, canEdit, canFinance, showAttendance, showFinance }: Props) {
+export function RegistrationsTable({ rows, returnTo, eventTitle, canEdit, canFinance, showAttendance, showFinance, bulkForm }: Props) {
   if (rows.length === 0) return <Empty>Aucune inscription.</Empty>;
   return (
     <TableWrap>
       <thead>
         <tr>
+          {bulkForm && <Th className="w-10"><BulkAll form={bulkForm} /></Th>}
           {eventTitle && <Th>Événement</Th>}
           <Th>Nom</Th><Th>Téléphone</Th><Th>Places</Th><Th>Statut</Th>{showFinance && <Th>Montant</Th>}<Th>Date</Th>{showAttendance && <Th>Présence</Th>}{canEdit && <Th>Actions</Th>}
         </tr>
@@ -32,6 +36,7 @@ export function RegistrationsTable({ rows, returnTo, eventTitle, canEdit, canFin
       <tbody>
         {rows.map((r) => (
           <tr key={r.id} className="hover:bg-white/[0.02]">
+            {bulkForm && <Td className="w-10"><BulkCheck form={bulkForm} value={r.id} label={`${r.firstName} ${r.lastName}`} /></Td>}
             {eventTitle && <Td><Link href={`/admin/evenements/${r.eventId}`} className="hover:text-white">{eventTitle(r.eventId)}</Link></Td>}
             <Td><span className="block text-white">{r.firstName} {r.lastName}</span><span className="text-[12px] text-mist">{r.email}</span></Td>
             <Td>{r.phone}</Td>

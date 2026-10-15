@@ -71,6 +71,8 @@ export interface MemberPublic {
   notes?: string;
   /** Recevoir un e-mail à chaque nouvel article, événement ou produit (absent = oui ; modifiable dans l'espace membre ou par lien de désabonnement) */
   emailUpdates?: boolean;
+  /** Membre fondatrice : adhésion offerte (0 €), mention affichée sur son profil et sa fiche. */
+  founder?: boolean;
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

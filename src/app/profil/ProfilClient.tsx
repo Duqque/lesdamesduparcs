@@ -244,6 +244,11 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
 
       <section id="carte" className="scroll-mt-40">
         <h2 className="t-h2">Ma carte membre</h2>
+        {member.founder && (
+          <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#e8c66a]/50 bg-[#e8c66a]/10 px-4 py-1.5 font-body text-[13px] font-medium text-[#f3dc9a]">
+            Membre fondatrice des Dames du Parc · adhésion offerte
+          </p>
+        )}
         <div className="mt-10">
           <MemberCard name={`${member.firstName} ${member.lastName}`} season={member.season} number={member.memberNumber} qrValue={verifyUrl} state={session.status === "member" ? session.membership : "active"} />
         </div>
@@ -368,6 +373,7 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
           {[
             ["Nom", `${member.firstName} ${member.lastName}`],
             ["Numéro de membre", member.memberNumber],
+            ...(member.founder ? [["Statut", "Membre fondatrice (adhésion offerte)"]] : []),
             ["Né(e) le", dateFr(member.birthDate)],
             ["E-mail", member.email],
             ["Téléphone", member.phone],

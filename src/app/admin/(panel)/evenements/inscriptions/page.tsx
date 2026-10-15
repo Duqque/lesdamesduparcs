@@ -6,6 +6,9 @@ import { cn } from "@/lib/cn";
 import { requireAdmin } from "@/lib/server/admin-auth";
 import { getAllEventsAdmin } from "@/lib/server/events";
 import { listAllRegistrations } from "@/lib/server/store";
+import { BulkBar } from "@/components/admin/Bulk";
+import { SubmitButton } from "@/components/admin/SubmitButton";
+import { bulkRegistrationsAction } from "../actions";
 
 export const metadata = { title: "Inscriptions" };
 
@@ -39,8 +42,13 @@ export default async function RegistrationsPage({ searchParams, vue = "toutes" }
           <div className="flex items-end gap-2"><button className={btn.primary}>Filtrer</button><Link href={base} className={btn.outline}>Réinitialiser</Link></div>
         </form>
       </Panel>
+      <BulkBar id="bulk-regs" action={bulkRegistrationsAction}>
+        <input type="hidden" name="returnTo" value={base} />
+        <SubmitButton variant="outline" name="op" value="cancel" confirm="Annuler les inscriptions sélectionnées ? Les places sont libérées et proposées à la liste d'attente. Aucun remboursement n'est lancé.">Annuler</SubmitButton>
+        <SubmitButton variant="danger" name="op" value="delete" confirm="Supprimer définitivement les inscriptions sélectionnées (et la transaction et la facture des inscriptions payantes) ? Aucun remboursement n'est lancé. Cette action est irréversible.">Supprimer</SubmitButton>
+      </BulkBar>
       <Panel flush>
-        <RegistrationsTable rows={rows} returnTo={base} eventTitle={title} canEdit canFinance={ctx.can("finance.edit")} showAttendance={vue !== "attente"} showFinance={ctx.can("finance.view")} />
+        <RegistrationsTable rows={rows} returnTo={base} eventTitle={title} canEdit canFinance={ctx.can("finance.edit")} showAttendance={vue !== "attente"} showFinance={ctx.can("finance.view")} bulkForm="bulk-regs" />
       </Panel>
     </>
   );

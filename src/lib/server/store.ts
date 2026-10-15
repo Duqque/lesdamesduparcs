@@ -195,6 +195,11 @@ export const anonymizeMember = (id: string) =>
     return next;
   });
 
+export const deleteOrderById = (id: string) =>
+  locked(async () => {
+    return ordersStore.remove(id);
+  });
+
 export const deleteRegistrationById = (id: string) =>
   locked(async () => {
     return regs.remove(id);

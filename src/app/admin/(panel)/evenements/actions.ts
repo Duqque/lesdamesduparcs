@@ -15,6 +15,8 @@ import { getMemberByNumber, getMemberByToken, listAllRegistrations, updateRegist
 import { formatLongDate } from "@/lib/format";
 import { safeReturn } from "@/lib/admin/params";
 import { setTxStatus } from "@/lib/server/business";
+import { deleteTransaction } from "@/lib/server/tx-delete";
+import { deleteRegistrationById } from "@/lib/server/store";
 import { mediaUrl, saveMedia } from "@/lib/server/media";
 import { announceAfterSave } from "@/lib/server/notify";
 
@@ -172,6 +174,41 @@ export async function deleteEventAction(id: string) {
   await audit(ctx, "suppression", "événement", `Événement supprimé : ${ev.title}`, { entityId: id });
   refresh(id);
   redirect("/admin/evenements?ok=" + encodeURIComponent("Événement supprimé."));
+}
+
+/** Actions groupées sur les inscriptions sélectionnées : annuler (place libérée) ou supprimer définitivement. Aucun remboursement n'est lancé. */
+export async function bulkRegistrationsAction(formData: FormData) {
+  const op = String(formData.get("op") ?? "");
+  const returnTo = safeReturn(String(formData.get("returnTo") ?? ""), "/admin/evenements/inscriptions");
+  const ids = [...new Set(formData.getAll("ids").map(String))].slice(0, 500);
+  const go = (k: "ok" | "erreur", msg: string) => {
+    revalidatePath("/admin", "layout");
+    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}${k}=${encodeURIComponent(msg)}`);
+  };
+  if (!ids.length) go("erreur", "Sélectionnez au moins une inscription.");
+  const ctx = await requireAdmin("events.attendance");
+  if (op === "delete") await requireFresh(ctx, returnTo);
+  const all = await listAllRegistrations();
+  const touched = new Set<string>();
+  let n = 0;
+  for (const id of ids) {
+    const reg = all.find((r) => r.id === id);
+    if (!reg) continue;
+    if (op === "cancel") {
+      if (reg.status === "cancelled" || reg.status === "refunded") continue;
+      await updateRegistration(id, { status: "cancelled" });
+      await audit(ctx, "inscription", "inscription", `${reg.firstName} ${reg.lastName} : ${reg.eventId} → cancelled`, { entityId: id, before: reg.status, after: "cancelled" });
+    } else if (op === "delete") {
+      // Inscription payante : supprimée avec sa transaction et sa facture ; gratuite : la ligne seule.
+      if (reg.amountCents > 0) await deleteTransaction(`registration:${id}`);
+      else await deleteRegistrationById(id);
+      await audit(ctx, "suppression", "inscription", `Inscription supprimée : ${reg.firstName} ${reg.lastName} (${reg.eventId})`, { entityId: id });
+    } else go("erreur", "Action inconnue.");
+    touched.add(reg.eventId);
+    n++;
+  }
+  for (const ev of touched) await promoteWaitlist(ev);
+  go("ok", op === "delete" ? `${n} inscription(s) supprimée(s).` : `${n} inscription(s) annulée(s).`);
 }
 
 type RegOp = "confirm" | "cancel" | "refund" | "paid" | "waitlist" | "promote" | "unpaid";

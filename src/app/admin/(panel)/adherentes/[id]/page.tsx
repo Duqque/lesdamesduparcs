@@ -19,7 +19,7 @@ import { BirthDateInput } from "@/components/forms/BirthDateInput";
 import { LocalityGroup } from "@/components/forms/LocalityGroup";
 import { PhoneInput } from "@/components/forms/PhoneInput";
 import { PhotoCropField } from "@/components/member/PhotoCropField";
-import { addManualLineAction, sendFirstLoginEmailAction, deleteProfileAction, deleteTestProfileAction, sendMemberResetEmailAction, setMemberPhotoAction, setMembershipDatesAction, validateMemberCardAction, addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
+import { addManualLineAction, setFounderAction, sendFirstLoginEmailAction, deleteProfileAction, deleteTestProfileAction, sendMemberResetEmailAction, setMemberPhotoAction, setMembershipDatesAction, validateMemberCardAction, addPaymentAction, anonymizeMemberAction, memberInviteLinkAction, memberPaymentAction, renewMemberAction, sendMemberEmailAction, setMemberStatusAction, suspendMemberAction, expelMemberAction, updateMemberAction } from "../actions";
 
 export const metadata = { title: "Fiche adhérente" };
 
@@ -52,7 +52,7 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
       <PageHeader
         back={{ href: "/admin/adherentes", label: "Toutes les adhérentes" }}
         title={`${m.firstName} ${m.lastName}`}
-        subtitle={<span className="flex flex-wrap items-center gap-3"><span className="tabular-nums">Membre {m.memberNumber}</span><Badge tone={STATUS_TONE[row.status]}>{STATUS_LABEL[row.status]}</Badge></span>}
+        subtitle={<span className="flex flex-wrap items-center gap-3"><span className="tabular-nums">Membre {m.memberNumber}</span><Badge tone={STATUS_TONE[row.status]}>{STATUS_LABEL[row.status]}</Badge>{m.founder && <Badge tone="orange">Membre fondatrice · adhésion offerte</Badge>}</span>}
         actions={
           <>
             <Link href={`/verification/${m.token}`} className={btn.outline}>Page de vérification</Link>
@@ -257,6 +257,9 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
           <div className="flex flex-wrap content-start gap-2">
             {ctx.can("members.edit") && !anonymized && m.status === "suspended" && (
               <form action={setMemberStatusAction.bind(null, id, "active")}><SubmitButton variant="outline">Lever la suspension maintenant</SubmitButton></form>
+            )}
+            {ctx.can("members.edit") && !anonymized && (
+              <form action={setFounderAction.bind(null, id, !m.founder)}><SubmitButton variant="outline" confirm={m.founder ? "Retirer la mention « membre fondatrice » ? Le montant de l'adhésion n'est pas rétabli." : "Marquer comme membre fondatrice ? L'adhésion devient offerte : son montant passe à 0 € et sort des recettes."}>{m.founder ? "Retirer « membre fondatrice »" : "Membre fondatrice (adhésion offerte)"}</SubmitButton></form>
             )}
             {ctx.can("members.edit") && !anonymized && m.status !== "expelled" && stored?.firstLogin && (
               <form action={sendFirstLoginEmailAction.bind(null, id)}><SubmitButton confirm={`Envoyer à ${m.email} l'e-mail de première connexion (lien pour choisir son mot de passe, valable 7 jours) ?`}>{stored?.firstLogin?.sentAt ? `Renvoyer l'e-mail de première connexion (envoyé le ${fmtDate(stored.firstLogin.sentAt)})` : "Envoyer l'e-mail de première connexion"}</SubmitButton></form>

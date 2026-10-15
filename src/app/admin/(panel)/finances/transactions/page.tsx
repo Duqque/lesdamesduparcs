@@ -8,7 +8,8 @@ import { first, href, pick, type SP } from "@/lib/admin/params";
 import { cn } from "@/lib/cn";
 import { requireAdmin } from "@/lib/server/admin-auth";
 import { TX_STATUS_LABEL, getTransactions } from "@/lib/server/business";
-import { remindAction, txStatusAction } from "../actions";
+import { bulkTxAction, remindAction, txStatusAction } from "../actions";
+import { BulkAll, BulkBar, BulkCheck } from "@/components/admin/Bulk";
 
 export const metadata = { title: "Transactions" };
 
@@ -54,14 +55,22 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
           <label><span className={lbl}>Au</span><input type="date" name="au" defaultValue={f.au} className={cn(inp, "mt-1.5")} /></label>
         </form>
       </Panel>
+      {edit && (
+        <BulkBar id="bulk-tx" action={bulkTxAction}>
+          <input type="hidden" name="returnTo" value={here} />
+          <SubmitButton variant="outline" name="op" value="cancel" confirm="Annuler les transactions sélectionnées ? Seules celles en attente ou échouées sont annulées.">Annuler</SubmitButton>
+          <SubmitButton variant="danger" name="op" value="delete" confirm="Supprimer définitivement les transactions sélectionnées, avec leur facture ? Une inscription supprimée libère sa place, une commande rend son stock. Aucun remboursement n'est lancé. Cette action est irréversible.">Supprimer</SubmitButton>
+        </BulkBar>
+      )}
       <Panel flush>
         {shown.length === 0 ? <Empty>Aucune transaction.</Empty> : (
           <>
             <TableWrap>
-              <thead><tr><Th>Date</Th><Th>Nom</Th><Th>Type</Th><Th>Objet</Th><Th>Montant</Th><Th>Méthode</Th><Th>Statut</Th><Th>Référence</Th>{edit && <Th>Actions</Th>}</tr></thead>
+              <thead><tr>{edit && <Th className="w-10"><BulkAll form="bulk-tx" /></Th>}<Th>Date</Th><Th>Nom</Th><Th>Type</Th><Th>Objet</Th><Th>Montant</Th><Th>Méthode</Th><Th>Statut</Th><Th>Référence</Th>{edit && <Th>Actions</Th>}</tr></thead>
               <tbody>
                 {shown.map((t) => (
                   <tr key={t.id} className="hover:bg-white/[0.02]">
+                    {edit && <Td className="w-10"><BulkCheck form="bulk-tx" value={t.id} label={`${t.name}, ${t.label}`} /></Td>}
                     <Td className="tabular-nums">{fmtDate(t.at)}</Td>
                     <Td><span className="block text-white">{t.name}</span><span className="text-[12px] text-mist">{t.email}</span></Td>
                     <Td>{t.type}</Td>

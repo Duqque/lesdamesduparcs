@@ -9,7 +9,8 @@ import { plans, TX_STATUS_LABEL } from "@/lib/server/business";
 import { cn } from "@/lib/cn";
 import { PAY_TONE, STATUS_LABEL, STATUS_TONE } from "@/components/admin/status";
 import { SubmitButton } from "@/components/admin/SubmitButton";
-import { deleteProfileAction } from "./actions";
+import { bulkMembersAction, deleteProfileAction } from "./actions";
+import { BulkAll, BulkBar, BulkCheck } from "@/components/admin/Bulk";
 import { ExportSubmit } from "./ExportSubmit";
 
 export const metadata = { title: "Adhérentes" };
@@ -98,6 +99,19 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
         </form>
       </Panel>
 
+      {(ctx.can("members.edit") || ctx.can("members.delete")) && (
+        <BulkBar id="bulk-members" action={bulkMembersAction}>
+          <label><span className={lbl}>Motif (suspension, radiation)</span><input name="reason" className={cn(inp, "mt-1.5 w-[260px]")} placeholder="Communiqué par e-mail" /></label>
+          <label><span className={lbl}>Suspendre jusqu&rsquo;au</span><input type="date" name="until" className={cn(inp, "mt-1.5")} /></label>
+          {ctx.can("members.edit") && <SubmitButton variant="outline" name="op" value="founder" confirm="Marquer les adhérentes sélectionnées comme membres fondatrices ? Leur adhésion devient offerte : le montant passe à 0 € et sort des recettes.">Membre fondatrice</SubmitButton>}
+          {ctx.can("members.edit") && <SubmitButton variant="outline" name="op" value="suspend" confirm="Suspendre les adhérentes sélectionnées jusqu'à la date choisie ? Chacune est prévenue par e-mail.">Suspendre</SubmitButton>}
+          {ctx.can("members.edit") && <SubmitButton variant="outline" name="op" value="reinstate" confirm="Lever la suspension des adhérentes sélectionnées ? Chacune est prévenue par e-mail.">Lever la suspension</SubmitButton>}
+          {ctx.can("members.delete") && <SubmitButton variant="danger" name="op" value="expel" confirm="Radier définitivement les adhérentes sélectionnées ? Leur adhésion est annulée, leur accès fermé, et chacune reçoit le motif par e-mail.">Radier</SubmitButton>}
+          {ctx.can("members.delete") && <SubmitButton variant="danger" name="op" value="delete" confirm={ctx.admin.role === "super" ? "Supprimer définitivement les comptes sélectionnés, avec leurs adhésions et paiements ? Cette action est irréversible." : "Supprimer définitivement les profils sélectionnés (sans carte payée) ? Les comptes avec une carte payée sont ignorés. Cette action est irréversible."}>Supprimer</SubmitButton>}
+          {ctx.can("members.edit") && <SubmitButton variant="small" name="op" value="unfounder" confirm="Retirer la mention « membre fondatrice » des adhérentes sélectionnées ? Les montants ne sont pas rétablis.">Retirer « fondatrice »</SubmitButton>}
+        </BulkBar>
+      )}
+
       <Panel flush>
         {shown.length === 0 ? (
           <Empty>Aucune adhérente ne correspond à ces critères.</Empty>
@@ -106,6 +120,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
             <TableWrap>
               <thead>
                 <tr>
+                  <Th className="w-10"><BulkAll form="bulk-members" /></Th>
                   <Th><Link href={sort("nom")} className="hover:text-white">Nom</Link></Th>
                   <Th>Formule</Th>
                   <Th>Profil</Th>
@@ -119,9 +134,10 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
               <tbody>
                 {shown.map((r) => (
                   <tr key={r.member.id} className="hover:bg-white/[0.02]">
+                    <Td className="w-10"><BulkCheck form="bulk-members" value={r.member.id} label={`${r.member.firstName} ${r.member.lastName}`} /></Td>
                     <Td>
                       <Link href={`/admin/adherentes/${r.member.id}`} className="block">
-                        <span className="block font-medium text-white">{r.member.firstName} {r.member.lastName}{r.age < 18 && <span className="ml-2 text-[11px] text-mist">mineure</span>}</span>
+                        <span className="block font-medium text-white">{r.member.firstName} {r.member.lastName}{r.age < 18 && <span className="ml-2 text-[11px] text-mist">mineure</span>}{r.member.founder && <span className="ml-2 text-[11px] text-[#e8c66a]">fondatrice</span>}</span>
                         <span className="block text-[12.5px] text-mist">{r.member.email}</span>
                       </Link>
                     </Td>
