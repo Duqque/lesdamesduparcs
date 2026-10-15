@@ -1,4 +1,5 @@
 import { psgMatches, toView } from "@/lib/server/matches";
+import { salesNotice, salesOpen } from "@/lib/sales";
 import { MatchLogo } from "@/components/matches/MatchLogo";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -42,6 +43,8 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const linked = (await psgMatches.find((m) => m.relatedEventId === event.id && !m.hidden))[0];
   const linkedView = linked ? await toView(linked) : null;
   const past = isPast(event) || event.registration.mode === "closed";
+  // Réservation possible seulement quand la billetterie est ouverte (réglage de l'événement, ou date d'ouverture atteinte).
+  const bookable = !past && (event.registration.mode === "external" || salesOpen(event.registration));
   const others = (await getPublishedEvents()).filter((e) => e.id !== event.id && !isPast(e)).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4);
   // Données structurées « Événement » : date, lieu, photo et prix permettent à Google d'afficher l'événement en résultat enrichi.
   const reg = event.registration;
@@ -59,7 +62,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     // Lieu précis communiqué uniquement sur le billet : seule la ville (si renseignée) est indiquée aux moteurs de recherche.
     ...(event.city ? { location: { "@type": "Place", name: event.city, address: { "@type": "PostalAddress", addressLocality: event.city, addressCountry: "FR" } } } : {}),
     organizer: { "@type": "Organization", name: "Les Dames du Parc", url: SITE_URL },
-    ...(reg.mode !== "closed"
+    ...(reg.mode !== "closed" && salesOpen(reg)
       ? { offers: { "@type": "Offer", price: (reg.priceCents / 100).toFixed(2), priceCurrency: "EUR", availability: "https://schema.org/InStock", url: `${SITE_URL}/evenements/${event.id}#inscription` } }
       : {}),
   };
@@ -94,11 +97,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </li>
           </ul>
           <div className="mt-12 flex flex-col gap-4 sm:flex-row">
-            {!past && (
+            {bookable && (
               <Button size="lg" href="#inscription">
                 Réserver ma place
               </Button>
             )}
+            {!past && !bookable && <p className="inline-flex min-h-14 items-center rounded-[10px] border border-white/20 px-6 font-body text-[15px] text-white/85">{salesNotice(event.registration).short}</p>}
             <Button size="lg" variant="outline" href={`/evenements/${event.id}/event.ics`} download arrow={false}>
               Ajouter à mon agenda
             </Button>
@@ -213,7 +217,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
                 ))}
               </dl>
               <div className="mt-6 flex flex-col gap-2.5">
-                {!past && (
+                {bookable && (
                   <Button size="lg" href="#inscription" className="w-full">
                     <Ticket aria-hidden className="mr-1 inline size-4" />
                     Réserver ma place

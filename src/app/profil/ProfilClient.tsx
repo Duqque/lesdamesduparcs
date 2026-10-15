@@ -151,7 +151,7 @@ function TicketsSection({ tickets, refresh }: { tickets: MemberSpaceData["ticket
                 <div className="min-w-0">
                   <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-psg-red-bright">{t.past ? "Événement passé" : TICKET_STATUS[t.status] ?? t.status}</p>
                   <Link href={`/evenements/${t.eventId}`} className="mt-1 block text-[16px] font-medium text-white hover:underline">{t.title}</Link>
-                  <p className="mt-1 text-[13px] text-mist">{dateFr(t.date)}{t.time ? ` · ${t.time.replace(":", "h")}` : ""} · {t.places} place{t.places > 1 ? "s" : ""} · {t.amountCents ? formatEuros(t.amountCents) : "Gratuit"}</p>
+                  <p className="mt-1 text-[13px] text-mist">{dateFr(t.date)}{t.time ? ` · ${t.time.replace(":", "h")}` : ""} · {t.places} place{t.places > 1 ? "s" : ""}{t.amountCents ? ` · ${formatEuros(t.amountCents)}` : ""}</p>
                 </div>
                 {t.valid && t.ticketCode && (
                   <div className="text-right">
@@ -335,6 +335,8 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
   if (!data) return <p className="mt-8 font-body text-mist">Chargement de votre espace…</p>;
   const { member, verifyUrl, discord, transactions: tx, benefits, offers, membership, orders } = data;
   const minor = isMinor(member.birthDate, member.joinedAt.slice(0, 10));
+  // Compte client (sans adhésion) : billets, commandes et informations, sans carte, attestation ni espace privé.
+  const client = member.accountType === "client";
   return (
     <div className="mt-12 space-y-16">
       {welcome && (
@@ -344,6 +346,19 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
         </p>
       )}
 
+      {client && (
+        <section id="compte" className="scroll-mt-40 rounded-[16px] border border-white/10 bg-[#0b1327]/90 p-7 md:p-9">
+          <p className="t-eyebrow">Compte client</p>
+          <h2 className="mt-3 t-h2">Bonjour {member.firstName}</h2>
+          <p className="mt-4 max-w-2xl text-mist t-lead">Votre compte vous permet de réserver vos places aux événements des Dames du Parc et de retrouver vos billets, vos reçus et vos commandes. Il ne comprend pas d&rsquo;adhésion.</p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/evenements" className={linkBtn}>Voir les événements</Link>
+            <Link href="/rejoindre-le-groupe" className={linkBtn}>Devenir adhérente</Link>
+          </div>
+        </section>
+      )}
+
+      {!client && (<>
       <section id="carte" className="scroll-mt-40">
         <h2 className="t-h2">Ma carte membre</h2>
         {member.founder && (
@@ -360,11 +375,13 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
       </section>
 
       <AdhesionSection season={member.season} endsAt={membership?.endsAt ?? member.validUntil} flash={adhesion} />
+      </>)}
 
       <TicketsSection tickets={data.tickets ?? []} refresh={refresh} />
 
-      <DiscordSection discord={discord} membershipActive={validated} flash={discordFlash} />
+      {!client && <DiscordSection discord={discord} membershipActive={validated} flash={discordFlash} />}
 
+      {!client && (
       <Section id="attestation" title="Mon attestation">
         <p className="max-w-xl text-mist t-lead">
           Votre attestation d&rsquo;adhésion {member.season} est générée automatiquement au format PDF, avec votre numéro et son QR code de vérification.
@@ -393,6 +410,7 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
           </div>
         )}
       </Section>
+      )}
 
       <Section id="commandes" title="Mes commandes">
         {orders.length === 0 ? (
@@ -439,7 +457,7 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
                 </div>
                 <div className="flex items-center gap-4">
                   {t.invoiceId && <a href={`/api/factures/${t.invoiceId}`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 text-[13.5px] text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"><FileText aria-hidden className="size-4" strokeWidth={1.7} /> Facture</a>}
-                  <p className="text-[15px] tabular-nums text-white">{t.amountCents ? formatEuros(t.amountCents) : "Gratuit"}</p>
+                  {t.amountCents > 0 && <p className="text-[15px] tabular-nums text-white">{formatEuros(t.amountCents)}</p>}
                 </div>
               </li>
             ))}
@@ -447,6 +465,7 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
         )}
       </Section>
 
+{!client && (
       <Section id="avantages" title="Mes avantages">
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {benefits.map((b) => (
@@ -466,6 +485,7 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
         </ul>
         <p className="mt-5 font-body text-[13px] text-mist">Avantages valables jusqu&rsquo;au {dateFr(membership?.endsAt ?? member.validUntil)}, présentez votre carte pour en bénéficier.</p>
       </Section>
+      )}
 
       <Section id="emails" title="Mes e-mails">
         <EmailPreference initial={member.emailUpdates !== false} />
@@ -476,13 +496,17 @@ function MemberSpace({ welcome, adhesion, discordFlash }: { welcome: boolean; ad
         <dl className="divide-y divide-white/10 border-y border-white/10 font-body">
           {[
             ["Nom", `${member.firstName} ${member.lastName}`],
-            ["Numéro de membre", member.memberNumber],
+            [client ? "Numéro de compte" : "Numéro de membre", member.memberNumber],
             ...(member.founder ? [["Statut", "Membre fondatrice (adhésion offerte)"]] : []),
-            ["Né(e) le", dateFr(member.birthDate)],
+            ...(client ? [] : [["Né(e) le", dateFr(member.birthDate)]]),
             ["E-mail", member.email],
             ["Téléphone", member.phone],
-            ["Adresse", `${member.address.line1}${member.address.line2 ? `, ${member.address.line2}` : ""}, ${member.address.postalCode} ${member.address.city}`],
-            ["Adhérent(e) depuis", dateFr(member.joinedAt)],
+            ...(client
+              ? [["Compte créé le", dateFr(member.joinedAt)]]
+              : [
+                  ["Adresse", `${member.address.line1}${member.address.line2 ? `, ${member.address.line2}` : ""}, ${member.address.postalCode} ${member.address.city}`],
+                  ["Adhérent(e) depuis", dateFr(member.joinedAt)],
+                ]),
           ].map(([k, val]) => (
             <div key={k} className="flex justify-between gap-6 py-4">
               <dt className="text-[13px] uppercase tracking-[0.18em] text-mist">{k}</dt>

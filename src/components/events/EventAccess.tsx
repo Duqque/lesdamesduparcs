@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { LoginPanel } from "@/components/auth/LoginPanel";
+import { ClientSignupPanel } from "@/components/auth/ClientSignupPanel";
+import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { formatEuros } from "@/lib/registration";
 import type { ClubEvent } from "@/types";
@@ -37,7 +39,9 @@ export function EventAccess({ event }: { event: ClubEvent }) {
               ? "Cet événement est terminé : les inscriptions sont closes."
               : cfg.mode === "external"
               ? "Les places de cet événement se réservent via la billetterie. Les membres retrouvent ici leur espace personnel."
-              : `L'inscription est réservée aux membres des Dames du Parc, sur présentation de leur carte${cfg.priceCents > 0 ? ` (${formatEuros(cfg.priceCents)} par place)` : " (gratuit)"}.`}
+              : cfg.membersOnly
+                ? `La réservation est réservée aux adhérentes des Dames du Parc${cfg.priceCents > 0 ? ` (${formatEuros(cfg.priceCents)} par place)` : ""}.`
+                : `Événement ouvert à toutes : connectez-vous ou créez votre compte pour réserver${cfg.priceCents > 0 ? ` (${formatEuros(cfg.priceCents)} par place)` : ""}. Pas besoin d'être adhérente.`}
         </p>
 
         {banner && (
@@ -49,31 +53,13 @@ export function EventAccess({ event }: { event: ClubEvent }) {
         <div className="mt-12">
           {session.status === "loading" && <p className="font-body text-[14px] text-mist">Chargement de votre espace…</p>}
 
-          {session.status === "anon" && (
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,460px)_1fr] lg:gap-20">
-              <LoginPanel />
-              <div className="lg:pt-4">
-                <h3 className="font-body text-[18px] font-medium text-white">Pourquoi se connecter ?</h3>
-                <ul className="mt-5 space-y-4 font-body text-[15px] leading-[1.7] text-mist">
-                  <li>Le formulaire d&rsquo;inscription et le paiement sont accessibles uniquement avec une carte de membre valide.</li>
-                  <li>Vos informations sont préremplies à partir de votre carte.</li>
-                  <li>L&rsquo;équipe organisatrice se connecte via l&rsquo;onglet Administrateur pour suivre les inscriptions.</li>
-                </ul>
-                <p className="mt-8 font-body text-[14px] text-mist">
-                  Pas encore membre ?{" "}
-                  <Link href="/rejoindre-le-groupe" className="font-medium text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">
-                    Rejoindre le groupe
-                  </Link>
-                </p>
-              </div>
-            </div>
-          )}
+          {session.status === "anon" && <AnonAccess />}
 
           {(session.status === "member" || session.status === "admin") && (
             <>
               <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
                 <p className="font-body text-[14px] text-mist">
-                  Connectée en tant que <span className="font-medium text-white">{session.firstName} {session.lastName}</span> ({session.status === "admin" ? "administrateur" : "membre"})
+                  Connectée en tant que <span className="font-medium text-white">{session.firstName} {session.lastName}</span> ({session.status === "admin" ? "administrateur" : session.client ? "compte client" : "adhérente"})
                 </p>
                 <button type="button" onClick={logout} className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-white/[0.12] bg-[#121417]/90 px-4 font-body text-[13.5px] font-medium text-white hover:border-white/30">
                   <LogOut aria-hidden className="size-4" strokeWidth={1.7} /> Se déconnecter
@@ -106,5 +92,38 @@ export function EventAccess({ event }: { event: ClubEvent }) {
         </div>
       </div>
     </section>
+  );
+}
+
+/** Visiteuse non connectée : connexion, ou création d'un compte client (sans adhésion). */
+function AnonAccess() {
+  const [tab, setTab] = useState<"login" | "signup">("login");
+  return (
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,500px)_1fr] lg:gap-20">
+      <div>
+        <div role="tablist" aria-label="Accès" className="mb-5 grid grid-cols-2 gap-1 rounded-[12px] border border-white/10 bg-[#0b1327]/90 p-1">
+          {([["login", "J'ai un compte"], ["signup", "Créer mon compte"]] as const).map(([k, l]) => (
+            <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`h-11 rounded-[9px] font-body text-[14px] font-medium transition-colors ${tab === k ? "bg-white text-night-950" : "text-white/75 hover:text-white"}`}>
+              {l}
+            </button>
+          ))}
+        </div>
+        {tab === "login" ? <LoginPanel /> : <ClientSignupPanel />}
+      </div>
+      <div className="lg:pt-16">
+        <h3 className="font-body text-[18px] font-medium text-white">Comment réserver ?</h3>
+        <ul className="mt-5 space-y-4 font-body text-[15px] leading-[1.7] text-mist">
+          <li>Les watch parties sont ouvertes à toutes, adhérentes ou non : un compte suffit pour réserver et payer.</li>
+          <li>Votre billet (avec son code-barres) vous est envoyé par e-mail et reste disponible dans votre espace.</li>
+          <li>Déjà adhérente ? Connectez-vous avec l&rsquo;adresse e-mail de votre adhésion.</li>
+        </ul>
+        <p className="mt-8 font-body text-[14px] text-mist">
+          Envie de rejoindre le groupe ?{" "}
+          <Link href="/rejoindre-le-groupe" className="font-medium text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">
+            Découvrir l&rsquo;adhésion
+          </Link>
+        </p>
+      </div>
+    </div>
   );
 }

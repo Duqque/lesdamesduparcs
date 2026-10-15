@@ -27,7 +27,7 @@ export interface MemberRow {
   isRenewal: boolean;
   age: number;
   /** « adherente » : carte payée (ou offerte) ; « profil » : compte créé dont la carte n'est pas payée (en cours de création) */
-  kind: "adherente" | "profil";
+  kind: "adherente" | "profil" | "client";
 }
 
 export async function loadMemberRows(): Promise<MemberRow[]> {
@@ -57,7 +57,7 @@ export async function loadMemberRows(): Promise<MemberRow[]> {
       joinedAt: member.joinedAt,
       isRenewal: list.length > 1,
       age: ageAt(member.birthDate, today),
-      kind: current && (payByMs.get(current.id)?.status === "paid" || current.amountCents === 0) ? "adherente" : "profil",
+      kind: current && (payByMs.get(current.id)?.status === "paid" || current.amountCents === 0) ? "adherente" : member.accountType === "client" && !current ? "client" : "profil",
     };
   });
 }

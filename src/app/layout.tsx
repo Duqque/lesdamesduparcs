@@ -66,7 +66,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const s = await getSession().catch(() => null);
   const stored = s?.role === "member" ? await getMemberByNumber(s.memberNumber) : null;
   const initialSession: Session | undefined =
-    s?.role === "member" ? { status: "member", firstName: s.firstName, lastName: s.lastName, email: s.email, memberNumber: s.memberNumber, membership: stored ? await membershipState(stored.id) : "none" } : undefined;
+    s?.role === "member" ? { status: "member", firstName: s.firstName, lastName: s.lastName, email: s.email, memberNumber: s.memberNumber, membership: stored ? await membershipState(stored.id) : "none", client: stored?.accountType === "client" } : undefined;
   const capStatus = await adhesionCapStatus();
   const initialCapReached = capStatus.blocked;
   // Bannière : places restantes de la campagne d'adhésions en cours (en direct), prime sur le message libre de l'administration.

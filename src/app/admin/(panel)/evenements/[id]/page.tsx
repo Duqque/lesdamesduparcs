@@ -4,14 +4,16 @@ import { Download, ExternalLink, Pencil } from "lucide-react";
 import { QrScanner } from "@/components/admin/QrScanner";
 import { RegistrationsTable } from "@/components/admin/RegistrationsTable";
 import { SubmitButton } from "@/components/admin/SubmitButton";
-import { Badge, Flash, Kpi, PageHeader, Panel, btn, inp } from "@/components/admin/ui";
+import { Badge, Field, Flash, Kpi, PageHeader, Panel, area, btn, inp } from "@/components/admin/ui";
 import { eur, fmtDateLong } from "@/lib/admin/format";
 import { first, type SP } from "@/lib/admin/params";
 import { cn } from "@/lib/cn";
 import { requireAdmin } from "@/lib/server/admin-auth";
 import { getEventAdmin } from "@/lib/server/events";
 import { listAllRegistrations, takenPlaces } from "@/lib/server/store";
-import { checkinAction, deleteEventAction, setEventStatusAction } from "../actions";
+import { checkinAction, deleteEventAction, sendEventMailAction, setEventStatusAction, setSalesStateAction } from "../actions";
+import { salesNotice, salesOpen } from "@/lib/sales";
+import { mapsUrl } from "@/lib/server/tickets";
 
 export const metadata = { title: "Événement" };
 
@@ -67,13 +69,31 @@ export default async function EventDetailPage({ params, searchParams }: { params
 
       <Panel className="mt-4" title="Tarifs et paiement" action={ctx.can("events.pricing") && ctx.can("events.edit") && <Link href={`/admin/evenements/${id}/modifier`} className="font-body text-[12.5px] text-mist underline underline-offset-4 hover:text-white">Modifier les tarifs</Link>}>
         <dl className="grid gap-x-8 gap-y-3 font-body text-[13.5px] sm:grid-cols-2 lg:grid-cols-4">
-          <div><dt className="text-mist">Prix par place</dt><dd className="mt-1 text-white">{ev.registration.paymentMode === "none" || ev.registration.priceCents === 0 ? "Gratuit" : eur(ev.registration.priceCents)}</dd></div>
+          <div><dt className="text-mist">Prix par place</dt><dd className="mt-1 text-white">{ev.registration.paymentMode === "none" || ev.registration.priceCents === 0 ? "Non défini" : eur(ev.registration.priceCents)}</dd></div>
           <div><dt className="text-mist">Tarifs par formule</dt><dd className="mt-1 text-white">{ev.registration.tiers?.length ? ev.registration.tiers.map((t) => `${t.label} : ${eur(t.priceCents)}`).join(" · ") : "Aucun"}</dd></div>
           <div><dt className="text-mist">Mode de paiement</dt><dd className="mt-1 text-white">{{ online: "En ligne, obligatoire", optional: "En ligne, facultatif", onsite: "Sur place", manual: "Manuel (virement, chèque)", none: "Aucun" }[ev.registration.paymentMode ?? "online"]}</dd></div>
           {finance && <div><dt className="text-mist">À encaisser</dt><dd className="mt-1 text-white">{eur(regs.filter((r) => r.status === "awaiting_payment" || (r.status === "confirmed" && r.amountCents > 0)).reduce((n, r) => n + r.amountCents, 0))}</dd></div>}
         </dl>
         {ev.registration.paymentInstructions && <p className="mt-4 font-body text-[12.5px] text-mist">Consignes : {ev.registration.paymentInstructions}</p>}
       </Panel>
+
+      {ev.registration.mode === "form" && (
+        <Panel className="mt-4" title="Billetterie">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <p className="font-body text-[14px] text-white">
+              {salesOpen(ev.registration) ? <Badge tone="green">Ouverte</Badge> : ev.registration.salesState === "scheduled" ? <Badge tone="blue">Programmée</Badge> : <Badge tone="orange">En attente</Badge>}
+              <span className="ml-3 text-mist">{salesOpen(ev.registration) ? `Réservations possibles · ${cap || "sans limite de"} places` : salesNotice(ev.registration).long}</span>
+            </p>
+            {ctx.can("events.edit") && (
+              <div className="flex flex-wrap gap-2">
+                {!salesOpen(ev.registration) && <form action={setSalesStateAction.bind(null, id, "open")}><SubmitButton confirm={`Ouvrir la billetterie maintenant (${cap || "sans limite de"} places) ? Les réservations deviennent possibles tout de suite.`}>Ouvrir maintenant</SubmitButton></form>}
+                {ev.registration.salesState !== "paused" && <form action={setSalesStateAction.bind(null, id, "paused")}><SubmitButton variant="outline" confirm="Mettre la billetterie en attente ? L'événement reste affiché mais plus personne ne peut réserver (les billets déjà émis restent valables).">Mettre en attente</SubmitButton></form>}
+                <Link href={`/admin/evenements/${id}/modifier`} className={btn.outline}>Programmer une date ou changer le nombre de places</Link>
+              </div>
+            )}
+          </div>
+        </Panel>
+      )}
 
       {wait.length > 0 && cap > 0 && taken >= cap && <p className="mt-4 rounded-[10px] border border-sky-400/30 bg-sky-400/10 px-4 py-3 font-body text-[13.5px] text-sky-100">Événement complet : {wait.length} personne(s) en liste d&rsquo;attente. Si une place se libère, la première personne est prévenue automatiquement.</p>}
 
@@ -102,6 +122,18 @@ export default async function EventDetailPage({ params, searchParams }: { params
         <RegistrationsTable rows={shown} returnTo={returnTo} canEdit={can} canFinance={ctx.can("finance.edit")} showAttendance={vue !== "attente"} showFinance={finance} />
       </Panel>
 
+      {can && (
+        <Panel className="mt-4" title={`E-mail aux participantes (${withTicket.length})`}>
+          <p className="mb-4 font-body text-[12.5px] text-mist">Envoyé à chaque participante dont le billet est valide (payé). Le message est pré-rempli avec la date, l&rsquo;heure et le lieu : modifiez-le librement. {"{{prenom}}"} est remplacé par le prénom de chacune.</p>
+          <form action={sendEventMailAction.bind(null, id)} className="grid gap-4">
+            <Field label="Objet"><input name="subject" required maxLength={160} defaultValue={`Rappel : ${ev.title} le ${fmtDateLong(ev.date)}`} className={inp} /></Field>
+            <Field label="Message"><textarea name="body" required rows={9} maxLength={5000} defaultValue={eventMailBody(ev)} className={area} /></Field>
+            <label className="flex items-center gap-2 font-body text-[13.5px] text-white/85"><input type="checkbox" name="attachTicket" defaultChecked className="size-4 accent-[#d90f2c]" /> Joindre le billet PDF de chacune</label>
+            <div><SubmitButton confirm={`Envoyer cet e-mail à ${withTicket.length} participante(s) ?`}>Envoyer l&rsquo;e-mail à {withTicket.length} participante{withTicket.length > 1 ? "s" : ""}</SubmitButton></div>
+          </form>
+        </Panel>
+      )}
+
       {ctx.can("events.edit") && (
         <Panel className="mt-4" title="Publication et suppression">
           <div className="flex flex-wrap gap-2">
@@ -114,4 +146,16 @@ export default async function EventDetailPage({ params, searchParams }: { params
       )}
     </>
   );
+}
+
+/** Message pré-rempli de l'e-mail aux participantes : date, heure, lieu et itinéraire. */
+function eventMailBody(ev: { title: string; date: string; time: string; venue: string; address: string; city?: string; gps?: string; mapUrl?: string }) {
+  const address = [ev.address, ev.city].filter((x) => x && !/communiqu/i.test(x)).join(", ");
+  return [
+    "Bonjour {{prenom}},",
+    `Petit rappel : « ${ev.title} » a lieu le ${fmtDateLong(ev.date)}${ev.time ? ` à ${ev.time.replace(":", "h")}` : ""}.`,
+    `Lieu : ${ev.venue}${address ? `, ${address}` : ""}\nItinéraire : ${mapsUrl(ev)}`,
+    "Pensez à présenter votre billet à l'entrée, sur votre téléphone ou imprimé : son code-barres sera scanné.",
+    "À très vite !",
+  ].join("\n\n");
 }

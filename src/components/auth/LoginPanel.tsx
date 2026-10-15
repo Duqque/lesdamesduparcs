@@ -46,7 +46,7 @@ export function LoginPanel({ onSuccess, defaultRole = "member", className }: { o
       <form id={`${uid}-panel`} onSubmit={submit} className="space-y-5">
         {role === "member" ? (
           <>
-            <p className="text-mist t-small">Connectez-vous avec l&rsquo;adresse e-mail (ou le numéro de carte) de votre adhésion.</p>
+            <p className="text-mist t-small">Connectez-vous avec votre adresse e-mail (ou votre numéro de carte d&rsquo;adhérente).</p>
             <div>
               <label htmlFor={`${uid}-mail`} className={labelCls}>E-mail ou numéro de carte</label>
               <input id={`${uid}-mail`} name="memberNumber" required autoComplete="username" placeholder="prenom@exemple.fr" className={field} />

@@ -12,7 +12,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface Props {
   event: ClubEvent;
-  member: { firstName: string; lastName: string; email: string; memberNumber: string };
+  member: { firstName: string; lastName: string; email: string; memberNumber: string; client?: boolean };
 }
 
 interface StatusData {
@@ -26,6 +26,8 @@ interface StatusData {
   tier?: string | null;
   mine: { id: string; status: RegistrationStatus; places: number; amountCents: number } | null;
   paidCancelled?: { id: string; canReactivate: boolean; reason?: "late" | "full" | "none" } | null;
+  salesOpen?: boolean;
+  salesNotice?: string | null;
 }
 
 const statusLabel: Record<RegistrationStatus, string> = { confirmed: "Inscription confirmée", awaiting_payment: "En attente de paiement", paid: "Inscription confirmée et payée", waitlist: "Sur liste d’attente", cancelled: "Inscription annulée", refunded: "Inscription remboursée" };
@@ -269,6 +271,15 @@ export function RegistrationForm({ event, member }: Props) {
     );
   }
 
+  if (status && status.salesOpen === false) {
+    return (
+      <div className="rounded-[16px] border border-white/[0.1] bg-[#0b1327]/90 p-7 md:p-9">
+        <p className="font-body text-[17px] font-medium text-white">Billetterie pas encore ouverte</p>
+        <p className="mt-3 text-mist t-lead">{status.salesNotice}</p>
+      </div>
+    );
+  }
+
   const full = status ? status.remaining <= 0 && !status.waitlist : false;
   const waiting = status ? status.remaining <= 0 && Boolean(status.waitlist) : false;
   const err = (k: string) => errors[k];
@@ -279,7 +290,7 @@ export function RegistrationForm({ event, member }: Props) {
       {notice && <p role="status" className="rounded-[10px] border border-white/15 bg-black/20 p-4 font-body text-[14px] text-white">{notice}</p>}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="font-body text-[14px] text-mist">
-          Carte membre <span className="font-medium tabular-nums text-white">{member.memberNumber}</span> vérifiée
+          {member.client ? <>Compte <span className="font-medium text-white">{member.email}</span></> : <>Carte membre <span className="font-medium tabular-nums text-white">{member.memberNumber}</span> vérifiée</>}
         </p>
         {status && (
           <p className="rounded-full border border-white/15 px-3.5 py-1.5 font-body text-[12px] text-white/80">
@@ -377,11 +388,10 @@ export function RegistrationForm({ event, member }: Props) {
         )}
       </fieldset>
 
+      {base > 0 && (
       <fieldset className="border-t border-white/10 pt-8">
         <legend className="pr-4 font-body text-[16px] font-medium text-white">Paiement</legend>
-        {base === 0 ? (
-          <p className="mt-5 font-body text-[14.5px] text-mist">Cet événement est gratuit pour les membres : aucun paiement n&rsquo;est demandé.</p>
-        ) : (
+        {(
           <div className="mt-5 rounded-[12px] border border-white/10 bg-black/20 p-5">
             <dl className="space-y-2 font-body text-[14.5px]">
               <div className="flex justify-between text-mist">
@@ -420,6 +430,7 @@ export function RegistrationForm({ event, member }: Props) {
           </div>
         )}
       </fieldset>
+      )}
 
       {formError && (
         <p role="alert" className="rounded-[10px] border border-psg-red/40 bg-psg-red/10 px-4 py-3 font-body text-[13.5px] text-[#ff9aa8]">

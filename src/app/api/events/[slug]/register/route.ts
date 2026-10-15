@@ -10,6 +10,9 @@ import { paymentConfigured } from "@/lib/server/helloasso";
 import { startEventPayment } from "@/lib/server/checkout";
 import { formatLongDate } from "@/lib/format";
 import { isPast } from "@/data/events";
+import { salesNotice, salesOpen } from "@/lib/sales";
+import { getMemberByNumber } from "@/lib/server/store";
+import { membershipState } from "@/lib/server/business";
 import { cancelTicketByMember, eventStartMs, issueTicket, reactivationState } from "@/lib/server/tickets";
 
 type Ctx = { params: Promise<{ slug: string }> };
@@ -33,6 +36,8 @@ export async function GET(_req: Request, { params }: Ctx) {
     remaining: Math.max(event.registration.capacity - takenPlaces(list), 0),
     waitlist: Boolean(event.registration.waitlist),
     paymentEnabled: paymentConfigured(),
+    salesOpen: salesOpen(event.registration),
+    salesNotice: salesOpen(event.registration) ? null : salesNotice(event.registration).long,
     paymentMode: event.registration.paymentMode ?? "online",
     paymentInstructions: event.registration.paymentInstructions ?? "",
     unitCents: price.unitCents,
@@ -48,10 +53,16 @@ export async function POST(req: Request, { params }: Ctx) {
   const event = await getEvent(slug);
   if (!event) return json({ error: "Événement introuvable." }, 404);
   if (event.registration.mode !== "form") return json({ error: "Inscription via la billetterie." }, 400);
+  if (!salesOpen(event.registration)) return json({ error: salesNotice(event.registration).long }, 403);
 
   const session = await getSession();
-  if (!session || session.role !== "member") return json({ error: "L'inscription est réservée aux membres. Connectez-vous avec votre carte." }, 401);
+  if (!session || session.role !== "member") return json({ error: "Connectez-vous (ou créez votre compte) pour réserver votre place." }, 401);
   if (await throttled(req, "register", 20, 600_000, session.memberNumber)) return json({ error: "Trop de tentatives." }, 429);
+  // Événement réservé aux adhérentes (réglage de l'événement) : adhésion active exigée ; sinon, un compte client suffit.
+  if (event.registration.membersOnly) {
+    const me = await getMemberByNumber(session.memberNumber);
+    if (!me || (await membershipState(me.id)) !== "active") return json({ error: "Cet événement est réservé aux adhérentes : une adhésion active est nécessaire pour réserver." }, 403);
+  }
 
   const input = await readJson<(Partial<RegistrationInput> & { promoCode?: string })>(req);
   if (!input) return json({ error: "Requête invalide." }, 400);

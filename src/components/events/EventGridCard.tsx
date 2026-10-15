@@ -3,6 +3,7 @@ import Link from "next/link";
 import { formatDay } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { isPast } from "@/data/events";
+import { salesOpen } from "@/lib/sales";
 import type { ClubEvent } from "@/types";
 import { Tone } from "@/components/news/NewsCard";
 
@@ -10,14 +11,15 @@ const monthName = (iso: string) => new Intl.DateTimeFormat("fr-FR", { month: "lo
 
 /** Carte d'événement : titre, date en grand, visuel et barre d'actions (S'inscrire | Plus d'infos). */
 /** Ce qu'affiche la carte, et rien de plus : la liste interactive des événements passés n'envoie que ces champs au navigateur. */
-export type EventCardData = Pick<ClubEvent, "id" | "title" | "date" | "image" | "imageAlt" | "href"> & { registration: Pick<ClubEvent["registration"], "mode"> };
-export const toEventCard = (e: ClubEvent): EventCardData => ({ id: e.id, title: e.title, date: e.date, image: e.image, imageAlt: e.imageAlt, href: e.href, registration: { mode: e.registration.mode } });
+export type EventCardData = Pick<ClubEvent, "id" | "title" | "date" | "image" | "imageAlt" | "href"> & { registration: Pick<ClubEvent["registration"], "mode" | "salesState" | "salesOpensAt"> };
+export const toEventCard = (e: ClubEvent): EventCardData => ({ id: e.id, title: e.title, date: e.date, image: e.image, imageAlt: e.imageAlt, href: e.href, registration: { mode: e.registration.mode, salesState: e.registration.salesState, salesOpensAt: e.registration.salesOpensAt } });
 
 export function EventGridCard({ event, className }: { event: EventCardData; className?: string }) {
   const past = isPast(event);
   const month = monthName(event.date);
   const href = `/evenements/${event.id}`;
-  const open = !past && event.registration.mode !== "closed";
+  // Bouton de réservation seulement quand la billetterie est ouverte (ou pour une billetterie externe).
+  const open = !past && (event.registration.mode === "external" || salesOpen(event.registration));
   return (
     <article className={cn("group flex h-full w-[min(78vw,290px)] shrink-0 snap-start flex-col overflow-hidden rounded-[4px] bg-[#f3f0e8] text-[#0b1a3f] md:w-auto", className)}>
       <div className="flex flex-1 flex-col px-[clamp(16px,1.6vw,24px)] pb-6 pt-7">

@@ -101,7 +101,7 @@ export const events: ClubEvent[] = [
     speakers: [],
     practical: [
       { label: "Public", value: "Toutes les supportrices, débutantes comprises" },
-      { label: "Tarif", value: "Gratuit pour les membres" },
+      { label: "Tarif", value: "Communiqué à l'ouverture de la billetterie" },
       { label: "Places", value: "30 places" },
     ],
     href: "/billetterie",
@@ -159,7 +159,7 @@ export const events: ClubEvent[] = [
     ],
     practical: [
       { label: "Public", value: "Filles de 11 à 16 ans, avec autorisation parentale" },
-      { label: "Tarif", value: "Gratuit, sur inscription" },
+      { label: "Tarif", value: "Communiqué à l'ouverture de la billetterie" },
       { label: "Places", value: "40 places" },
       { label: "Transport", value: "Navette collective aller-retour vers le Parc des Princes" },
       { label: "À prévoir", value: "Tenue de sport, chaussettes propres, pièce d'identité" },
@@ -195,7 +195,7 @@ export const events: ClubEvent[] = [
     speakers: [],
     practical: [
       { label: "Public", value: "Membres des Dames du Parc" },
-      { label: "Tarif", value: "Gratuit" },
+      { label: "Tarif", value: "Communiqué à l'ouverture de la billetterie" },
       { label: "Places", value: "60 places" },
     ],
     href: "/rejoindre-le-groupe",
@@ -218,7 +218,7 @@ export const events: ClubEvent[] = [
     registration: { mode: "form", priceCents: 3500, capacity: 50 },
     description: [
       "Suivre Paris à l'extérieur change la façon de vivre une rencontre. Le car devient un salon roulant, les chants font le trajet avec nous.",
-      "La destination et le match seront annoncés dès la programmation officielle. Les places sont limitées et réservées en priorité aux membres.",
+      "La destination et le match seront annoncés dès la programmation officielle. Les places sont limitées.",
     ],
     program: [
       { time: "09:00", title: "Départ", text: "Embarquement à Paris, remise des consignes et du programme." },

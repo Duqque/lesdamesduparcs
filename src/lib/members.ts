@@ -73,6 +73,8 @@ export interface MemberPublic {
   emailUpdates?: boolean;
   /** Membre fondatrice : adhésion offerte (0 €), mention affichée sur son profil et sa fiche. */
   founder?: boolean;
+  /** « client » : compte créé pour acheter des billets, sans adhésion (pas de carte de membre). Absent : compte d'adhérente. */
+  accountType?: "client";
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

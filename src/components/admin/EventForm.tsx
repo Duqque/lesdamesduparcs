@@ -63,12 +63,20 @@ export function EventForm({ event, canPricing = true, matches = [], linkedMatchI
 
       <Panel title="4 · Participants">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Field label="Mode d'inscription"><select name="mode" defaultValue={r?.mode ?? "form"} className={inp}><option value="form">Inscription sur le site (membres)</option><option value="external">Billetterie externe</option><option value="closed">Terminé, pas d&rsquo;inscription</option></select></Field>
-          <Field label="Nombre maximum"><input name="capacity" type="number" min={0} defaultValue={r?.capacity ?? 50} className={inp} /></Field>
+          <Field label="Mode d'inscription"><select name="mode" defaultValue={r?.mode ?? "form"} className={inp}><option value="form">Inscription sur le site</option><option value="external">Billetterie externe</option><option value="closed">Terminé, pas d&rsquo;inscription</option></select></Field>
+          <Field label="Nombre de places"><input name="capacity" type="number" min={0} defaultValue={r?.capacity ?? 50} className={inp} /></Field>
+          <Field label="Ouverture de la billetterie" hint="« En attente » : l'événement est affiché, sans réservation possible.">
+            <select name="salesState" defaultValue={r?.salesState ?? (event ? "open" : "paused")} className={inp}>
+              <option value="paused">En attente (billetterie fermée)</option>
+              <option value="scheduled">Ouverture programmée</option>
+              <option value="open">Ouverte</option>
+            </select>
+          </Field>
+          <Field label="Date et heure d'ouverture" hint="Pour « Ouverture programmée » (heure de Paris)."><input name="salesOpensAt" type="datetime-local" defaultValue={r?.salesOpensAt} className={inp} /></Field>
           <Field label="Nombre minimum"><input name="minCapacity" type="number" min={0} defaultValue={r?.minCapacity} className={inp} /></Field>
           <Field label="Lien de billetterie (mode externe)" className="sm:col-span-3"><input name="ticketUrl" defaultValue={r?.mode === "external" ? event?.href : ""} placeholder="https://" className={inp} /></Field>
           <div className="flex flex-wrap gap-5 sm:col-span-3">
-            {([["waitlist", "Liste d'attente quand c'est complet", r?.waitlist ?? true], ["membersOnly", "Réservé aux membres", r?.membersOnly ?? true], ["guardianRequired", "Mineures : responsable légal requis", r?.guardianRequired ?? false], ["singlePlace", "Une seule place par inscription", r?.singlePlace ?? false]] as const).map(([n, l, v]) => (
+            {([["waitlist", "Liste d'attente quand c'est complet", r?.waitlist ?? true], ["membersOnly", "Réservé aux adhérentes (adhésion active exigée)", r?.membersOnly ?? false], ["guardianRequired", "Mineures : responsable légal requis", r?.guardianRequired ?? false], ["singlePlace", "Une seule place par inscription", r?.singlePlace ?? false]] as const).map(([n, l, v]) => (
               <label key={n} className="flex items-center gap-2 font-body text-[13.5px] text-white/85"><input type="checkbox" name={n} defaultChecked={Boolean(v)} className="size-4 accent-[#d90f2c]" />{l}</label>
             ))}
           </div>

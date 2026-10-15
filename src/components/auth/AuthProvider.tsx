@@ -8,7 +8,7 @@ export type MembershipState = "active" | "pending" | "expired" | "none" | "suspe
 export type Session =
   | { status: "loading" }
   | { status: "anon" }
-  | { status: "member"; firstName: string; lastName: string; email: string; memberNumber: string; membership: MembershipState }
+  | { status: "member"; firstName: string; lastName: string; email: string; memberNumber: string; membership: MembershipState; client?: boolean }
   | { status: "admin"; firstName: string; lastName: string; email: string };
 
 interface AuthCtx {
@@ -37,7 +37,7 @@ export function AuthProvider({ children, initial, initialCapReached }: { childre
     try {
       const res = await fetch("/api/auth/session", { cache: "no-store" });
       const data = (await res.json()) as { role: "anon" | "member" | "admin"; membership?: MembershipState; capReached?: boolean } & Record<string, string>;
-      if (data.role === "member") setSession({ status: "member", firstName: data.firstName, lastName: data.lastName, email: data.email, memberNumber: data.memberNumber, membership: data.membership ?? "none" });
+      if (data.role === "member") setSession({ status: "member", firstName: data.firstName, lastName: data.lastName, email: data.email, memberNumber: data.memberNumber, membership: data.membership ?? "none", client: Boolean(data.client) });
       else if (data.role === "admin") setSession({ status: "admin", firstName: data.firstName, lastName: data.lastName, email: data.email });
       else setSession({ status: "anon" });
       setCapReached(Boolean(data.capReached));

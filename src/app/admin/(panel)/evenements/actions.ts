@@ -16,7 +16,8 @@ import { formatLongDate } from "@/lib/format";
 import { safeReturn } from "@/lib/admin/params";
 import { setTxStatus } from "@/lib/server/business";
 import { deleteTransaction } from "@/lib/server/tx-delete";
-import { findByTicketCode, issueTicket, reissueTicket, resendTicket, ticketValid } from "@/lib/server/tickets";
+import { findByTicketCode, issueTicket, reissueTicket, resendTicket, ticketPdfFor, ticketValid } from "@/lib/server/tickets";
+import { sendEmail } from "@/lib/server/email";
 import { deleteRegistrationById } from "@/lib/server/store";
 import { mediaUrl, saveMedia } from "@/lib/server/media";
 import { announceAfterSave } from "@/lib/server/notify";
@@ -74,6 +75,8 @@ function parseEvent(f: FormData, id: string): Omit<EventRow, "createdAt" | "upda
       minAge: Number(s(f, "minAge")) || undefined,
       maxAge: Number(s(f, "maxAge")) || undefined,
       singlePlace: f.get("singlePlace") === "on" || undefined,
+      salesState: (["open", "paused", "scheduled"].includes(s(f, "salesState")) ? s(f, "salesState") : "open") as "open" | "paused" | "scheduled",
+      salesOpensAt: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s(f, "salesOpensAt")) ? s(f, "salesOpensAt") : undefined,
       selfCancel: f.get("selfCancel") === "on" || undefined,
       cancellationPolicy: s(f, "cancellationPolicy") || undefined,
     },
@@ -175,6 +178,47 @@ export async function deleteEventAction(id: string) {
   await audit(ctx, "suppression", "événement", `Événement supprimé : ${ev.title}`, { entityId: id });
   refresh(id);
   redirect("/admin/evenements?ok=" + encodeURIComponent("Événement supprimé."));
+}
+
+/** Billetterie de l'événement : ouverte tout de suite, ou mise en attente (l'événement reste affiché, sans réservation). */
+export async function setSalesStateAction(id: string, state: "open" | "paused") {
+  const ctx = await requireAdmin("events.edit");
+  const ev = await getEventAdmin(id);
+  if (!ev) redirect("/admin/evenements");
+  await eventsDb.update(id, { registration: { ...ev.registration, salesState: state, salesOpensAt: state === "open" ? undefined : ev.registration.salesOpensAt } });
+  await audit(ctx, "modification", "événement", `Billetterie ${state === "open" ? "ouverte" : "mise en attente"} : ${ev.title}`, { entityId: id, before: ev.registration.salesState ?? "open", after: state });
+  refresh(id);
+  redirect(`/admin/evenements/${id}?ok=${encodeURIComponent(state === "open" ? "Billetterie ouverte : les réservations sont possibles." : "Billetterie mise en attente : plus aucune réservation possible.")}`);
+}
+
+/** E-mail aux participantes dont le billet est valide (message pré-rempli avec la date, modifiable), billet PDF joint en option. */
+export async function sendEventMailAction(id: string, formData: FormData) {
+  const ctx = await requireAdmin("events.attendance");
+  const ev = await getEventAdmin(id);
+  if (!ev) redirect("/admin/evenements");
+  const back = `/admin/evenements/${id}`;
+  const subject = s(formData, "subject").slice(0, 160);
+  const body = String(formData.get("body") ?? "").trim().slice(0, 5000);
+  if (!subject || !body) redirect(`${back}?erreur=${encodeURIComponent("Indiquez l'objet et le message.")}`);
+  const attach = formData.get("attachTicket") === "on";
+  const list = (await listAllRegistrations()).filter((r) => r.eventId === id && ticketValid(r));
+  let sent = 0;
+  const failed: string[] = [];
+  for (const r of list) {
+    const ticket = attach ? await ticketPdfFor(r.id).catch(() => null) : null;
+    const res = await sendEmail({
+      to: r.email,
+      subject,
+      body: body.replace(/\{\{\s*prenom\s*\}\}/g, r.firstName),
+      kind: "evenement-participantes",
+      attachments: ticket ? [{ filename: ticket.filename, content: Buffer.from(ticket.bytes) }] : undefined,
+    });
+    if (res.ok) sent++;
+    else failed.push(`${r.firstName} ${r.lastName}`);
+  }
+  await audit(ctx, "communication", "événement", `E-mail aux participantes de « ${ev.title} » : ${sent} envoyé(s)${failed.length ? `, ${failed.length} en échec` : ""}`, { entityId: id });
+  if (failed.length) redirect(`${back}?erreur=${encodeURIComponent(`${sent} e-mail(s) envoyé(s). Échec pour : ${failed.slice(0, 5).join(", ")}${failed.length > 5 ? "…" : ""} (vérifiez le service d'e-mail).`)}`);
+  redirect(`${back}?ok=${encodeURIComponent(sent ? `E-mail envoyé à ${sent} participante(s).` : "Aucune participante avec un billet valide.")}`);
 }
 
 /** Billet perdu : nouveau billet (l'ancien est annulé et refusé à l'entrée), envoyé par e-mail à la participante. */

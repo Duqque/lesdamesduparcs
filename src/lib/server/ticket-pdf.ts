@@ -21,6 +21,8 @@ export interface TicketData {
   photo?: Uint8Array | null;
   holder: { firstName: string; lastName: string; birthDate?: string; memberNumber: string; places: number; amountCents: number; status: string };
   memberQr?: string;
+  /** Événement réservé aux adhérentes : n° de membre, date de naissance et QR code de la carte figurent sur le billet. Sinon (ouvert à toutes), billet simplifié. */
+  membersOnly?: boolean;
   cancellationPolicy?: string;
   asso: AssociationInfo;
   issuedAt: string;
@@ -175,7 +177,7 @@ const longDate = (iso: string) => {
 };
 const shortDate = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
 const hour = (t?: string) => (t ? t.replace(":", "H") : "");
-const euros = (cents: number) => (cents ? `${(cents / 100).toFixed(2).replace(".", ",")} €` : "GRATUIT");
+const euros = (cents: number) => (cents ? `${(cents / 100).toFixed(2).replace(".", ",")} €` : "-");
 /** Saison sportive (juillet à juin) d'une date. */
 const seasonOf = (iso: string) => {
   const d = new Date(`${iso.slice(0, 10)}T12:00:00Z`);
@@ -242,7 +244,7 @@ export async function buildTicketPdf(t: TicketData) {
   const sw = c.bold.widthOfTextAtSize(safe(c.bold, `SAISON ${season}`), 12) + 22;
   box(c, W - M - sw, 98, sw, 22, 0, { fill: rgb(0, 0, 0) });
   text(c, `SAISON ${season}`, W - M - sw / 2, 103, 12, { font: c.bold, color: RED_SOFT, align: "center" });
-  wrap(c, (t.match ? "Watch party des membres" : t.event.summary || "Événement des membres").toUpperCase(), W - M - 190, 132, 190, 9.5, 12, { font: c.bold, color: MIST, maxLines: 2, align: "left" });
+  wrap(c, (t.match ? (t.membersOnly ? "Watch party des membres" : "Watch party") : t.event.summary || "Événement").toUpperCase(), W - M - 190, 132, 190, 9.5, 12, { font: c.bold, color: MIST, maxLines: 2, align: "left" });
   // Bande oblique sous l'écusson (comme « Saison 2021/2022 »)
   page.drawSvgPath("M0 0 H160 L146 22 H0 Z", { x: 0, y: Y(HH - 34), color: RED });
   text(c, `${longDate(t.event.date).split(" ")[0]} ${t.event.date.slice(8, 10)}.${t.event.date.slice(5, 7)}${t.event.time ? ` · ${hour(t.event.time)}` : ""}`, M, HH - 29, 10.5, { font: c.bold, color: WHITE });
@@ -303,7 +305,7 @@ export async function buildTicketPdf(t: TicketData) {
   });
   y += 42;
   const tarifTop = y;
-  draw(() => text(c, "TARIF ADHÉRENTE", inner, tarifTop, 10.5, { font: c.bold, color: INK }));
+  draw(() => text(c, t.membersOnly ? "TARIF ADHÉRENTE" : "TARIF", inner, tarifTop, 10.5, { font: c.bold, color: INK }));
   draw(() => text(c, euros(t.holder.amountCents), inner + innerW, tarifTop, 10.5, { font: c.bold, color: INK, align: "right" }));
   y += 22;
 
@@ -324,14 +326,15 @@ export async function buildTicketPdf(t: TicketData) {
   // Titulaire
   const holderTop = y;
   draw(() => {
-    text(c, `N° MEMBRE : ${t.holder.memberNumber}`, inner, holderTop, 7.5, { font: c.bold, color: INK, maxW: innerW / 2 + 6 });
+    if (t.membersOnly) text(c, `N° MEMBRE : ${t.holder.memberNumber}`, inner, holderTop, 7.5, { font: c.bold, color: INK, maxW: innerW / 2 + 6 });
+    else text(c, "PARTICIPANTE", inner, holderTop, 7.5, { font: c.bold, color: INK });
     text(c, `${t.holder.firstName} ${t.holder.lastName}`.toUpperCase(), inner + innerW, holderTop, 9, { font: c.bold, color: INK, align: "right", maxW: innerW / 2 - 12 });
-    if (t.holder.birthDate) text(c, `Née le ${shortDate(t.holder.birthDate)}`, inner + innerW, holderTop + 12, 7.5, { color: GREY, align: "right" });
+    if (t.membersOnly && t.holder.birthDate) text(c, `Née le ${shortDate(t.holder.birthDate)}`, inner + innerW, holderTop + 12, 7.5, { color: GREY, align: "right" });
   });
   y += 30;
 
   // QR code de l'adhérente
-  if (t.memberQr) {
+  if (t.membersOnly && t.memberQr) {
     const qTop = y;
     draw(() => {
       qr(c, t.memberQr!, inner, qTop, 64);
@@ -356,9 +359,9 @@ export async function buildTicketPdf(t: TicketData) {
   // 3. Informations utiles (sur fond bleu)
   top = wrap(c, "POUR PROFITER PLEINEMENT DE LA SOIRÉE, VOICI QUELQUES INFORMATIONS UTILES :", M, top, W - M * 2, 10.5, 13.5, { font: c.bold, color: WHITE, align: "center" }) + 10;
   const infos = [
-    "Présentez ce billet à l'entrée, sur votre téléphone ou imprimé, avec votre carte de membre.",
+    t.membersOnly ? "Présentez ce billet à l'entrée, sur votre téléphone ou imprimé, avec votre carte de membre." : "Présentez ce billet à l'entrée, sur votre téléphone ou imprimé : son code-barres est contrôlé à l'entrée.",
     "Pour profiter de la soirée en toute sérénité, nous vous conseillons d'arriver un peu en avance.",
-    "Le lieu est réservé aux membres : merci de ne partager ni l'adresse ni ce billet.",
+    "Billet nominatif : merci de ne partager ni l'adresse ni ce billet.",
     ...(t.cancellationPolicy ? [t.cancellationPolicy.replace(/\s*\n+\s*/g, " ")] : []),
   ];
   for (const info of infos) {
@@ -379,7 +382,7 @@ export async function buildTicketPdf(t: TicketData) {
 
   // 4. Conditions d'utilisation (texte serré, comme les e-billets)
   const conditions = [
-    "Ce billet électronique est nominatif et personnel : il donne accès à l'événement à la seule titulaire indiquée, sur présentation d'une pièce d'identité ou de la carte de membre si elle est demandée.",
+    "Ce billet électronique est nominatif et personnel : il donne accès à l'événement à la seule titulaire indiquée, sur présentation d'une pièce d'identité si elle est demandée.",
     "Chaque billet porte un code-barres unique : seul le premier passage est accepté, toute copie est refusée. En cas de perte, l'association peut émettre un nouveau billet ; l'ancien est alors annulé et refusé à l'entrée.",
     "Toute sortie peut être considérée comme définitive. L'accès peut être refusé à toute personne ne respectant pas les consignes des organisatrices ou du lieu.",
     t.cancellationPolicy ? "Conditions d'annulation et de remboursement : voir ci-dessus." : "Toute annulation se fait depuis la page de l'événement ou auprès de l'association.",

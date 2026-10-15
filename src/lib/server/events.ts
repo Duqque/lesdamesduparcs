@@ -88,9 +88,34 @@ async function applyBarcaTicketing2026_10() {
   await auditLog.insert({ actorId: "systeme", actorName: "Mise à jour du site", action: "modification", entity: "événement", label: `Billetterie de la watch party PSG - Barça ouverte (10 €, 80 billets, 1 par personne)${match ? ", reliée au match du 20/10" : ""}` });
 }
 
+/**
+ * « billetteries-ouvertes-a-toutes-2026-10 » : les événements sont ouverts à toutes (un compte client suffit, l'adhésion n'est
+ * plus exigée), et les billetteries des événements à venir sont mises « en attente » : l'équipe décide de leur ouverture
+ * (et du nombre de places) pour chacun. La watch party PSG - Barça, déjà en vente, reste ouverte. Le modèle d'e-mail « Nouvel
+ * événement » ne promet plus de priorité aux adhérentes.
+ */
+const OPEN_TO_ALL_2026_10 = "billetteries-ouvertes-a-toutes-2026-10";
+async function applyOpenToAll2026_10() {
+  const parisToday = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Paris" }).format(new Date());
+  const paused: string[] = [];
+  for (const e of await eventsDb.all()) {
+    const reg = { ...e.registration, membersOnly: undefined };
+    if (e.date >= parisToday && e.id !== BARCA_ID && reg.mode === "form" && reg.salesState !== "open") {
+      reg.salesState = "paused";
+      paused.push(e.title);
+    }
+    await eventsDb.update(e.id, { registration: reg, ...(e.access === "Membres" ? { access: "Sur réservation" } : {}) });
+  }
+  const { templates } = await import("./content");
+  const t = await templates.findOne((x) => x.key === "new_event");
+  if (t && /priorit/i.test(t.body)) await templates.update(t.id, { body: t.body.replace(/\n*Les adhérentes actives ont la priorité sur les inscriptions\.?/g, "") });
+  await auditLog.insert({ actorId: "systeme", actorName: "Mise à jour du site", action: "modification", entity: "événement", label: `Événements ouverts à toutes ; billetterie mise en attente : ${paused.join(", ") || "aucune"}` });
+}
+
 const MIGRATIONS: Array<[string, () => Promise<void>]> = [
   [WATCH_PARTIES_2026_10, applyWatchParties2026_10],
   [BARCA_TICKETING_2026_10, applyBarcaTicketing2026_10],
+  [OPEN_TO_ALL_2026_10, applyOpenToAll2026_10],
 ];
 
 async function ensureDataMigrations() {

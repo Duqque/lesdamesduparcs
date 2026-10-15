@@ -144,7 +144,7 @@ export function PaymentStepClient() {
             <div className="flex items-end justify-between gap-6">
               <div>
                 <p className="font-body text-[13px] uppercase tracking-[0.18em] text-mist">Adhésion {membership.season}</p>
-                <p className="mt-2 font-body text-[14.5px] text-white/85">Carte membre, événements membres, priorité d’inscription, espace privé.</p>
+                <p className="mt-2 font-body text-[14.5px] text-white/85">Carte membre, événements et moments réservés aux membres, espace privé.</p>
               </div>
               <p className="shrink-0 whitespace-nowrap font-display text-[34px] tabular-nums text-white">{formatEuros(amount)}</p>
             </div>

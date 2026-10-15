@@ -372,6 +372,32 @@ ok("Espace membre : billet valide avec code, lieu et itinéraire Google Maps", m
 ok("Espace membre : reçu de paiement disponible", !!mine2?.invoiceId);
 await call("DELETE", `/api/events/${BARCA}/register`, { c: cA });
 
+console.log(`\n== Comptes clients (sans adhésion) et billetteries en attente ==`);
+const cK = jar();
+const badClient = await call("POST", "/api/members/client", { json: { firstName: "Léa", lastName: "Cliente", email: "pas-un-email", phone: "1", password: "court", consents: { privacy: false } }, c: cK });
+ok("Compte client : champs invalides refusés (422)", badClient.status === 422 && !!badClient.data.errors?.email && !!badClient.data.errors?.password && !!badClient.data.errors?.privacy);
+const clientEmail = `cliente${Date.now()}@example.com`;
+r = await call("POST", "/api/members/client", { json: { firstName: "Léa", lastName: "Cliente", email: clientEmail, phone: "0611223344", password: "MotDePasse123", consents: { privacy: true } }, c: cK });
+ok("Compte client créé et connecté (201)", r.status === 201, JSON.stringify(r.data));
+const sessK = (await call("GET", "/api/auth/session", { c: cK })).data;
+ok("Session : compte client, sans adhésion", sessK.role === "member" && sessK.client === true && sessK.membership === "none" && /^CLI-/.test(sessK.memberNumber), JSON.stringify(sessK));
+ok("Même adresse e-mail refusée (409)", (await call("POST", "/api/members/client", { json: { firstName: "Léa", lastName: "Cliente", email: clientEmail, phone: "0611223344", password: "MotDePasse123", consents: { privacy: true } } })).status === 409);
+ok("Aucune adhésion ni paiement d'adhésion créés pour un compte client", !read("memberships").some((m) => m.memberNumber === sessK.memberNumber) && !read("payments").some((p) => p.memberNumber === sessK.memberNumber));
+r = await call("POST", `/api/events/${BARCA}/register`, { json: regBody({ firstName: "Léa", lastName: "Cliente", email: clientEmail }), c: cK });
+ok("Compte client : réservation d'un billet possible (redirection vers le paiement)", r.status === 201 && !!r.data.checkoutUrl, JSON.stringify(r.data));
+const regK = read("registrations").find((x) => x.eventId === BARCA && x.memberNumber === sessK.memberNumber);
+await ha(`/__pay/${regK.checkoutId}`);
+await webhook("registration", regK.id);
+ok("Compte client : paiement reçu, billet émis", read("registrations").find((x) => x.id === regK.id).status === "paid" && /^[1-9]\d{11}$/.test(read("registrations").find((x) => x.id === regK.id).ticketCode ?? ""));
+ok("Compte client : billet téléchargeable", (await call("GET", `/api/events/${BARCA}/ticket`, { c: cK })).status === 200);
+ok("Compte client : billet visible dans l'espace (« Mes billets »)", (await call("GET", "/api/members/me", { c: cK })).data.tickets.some((t) => t.id === regK.id && t.valid));
+const PAUSED = "watch-party-lyon";
+const ps = (await call("GET", `/api/events/${PAUSED}/register`, { c: cK })).data;
+ok("Billetterie en attente : affichée fermée avec un message", ps.salesOpen === false && /pas encore ouverte/.test(ps.salesNotice ?? ""), JSON.stringify(ps));
+ok("Billetterie en attente : réservation refusée (403)", (await call("POST", `/api/events/${PAUSED}/register`, { json: regBody(), c: cK })).status === 403);
+ok("Événements ouverts à toutes : plus de réservation réservée aux adhérentes", read("events").every((e) => !e.registration.membersOnly));
+ok("Modèle « Nouvel événement » sans priorité des adhérentes", !read("email_templates").some((t) => t.key === "new_event" && /priorit/i.test(t.body)));
+
 console.log(`\n== HelloAsso indisponible ==`);
 ok("Commande d'un panier vide refusée", (await call("POST", "/api/checkout", { json: shopBody(60, []) })).status === 400);
 

@@ -90,7 +90,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
           <label><span className={lbl}>au</span><input type="date" name="au" defaultValue={f.au} className={cn(inp, "mt-1.5")} /></label>
           <label><span className={lbl}>Expire du</span><input type="date" name="expDu" defaultValue={f.expDu} className={cn(inp, "mt-1.5")} /></label>
           <label><span className={lbl}>au</span><input type="date" name="expAu" defaultValue={f.expAu} className={cn(inp, "mt-1.5")} /></label>
-          <label><span className={lbl}>Type de profil</span><select name="type" defaultValue={f.type ?? ""} className={cn(inp, "mt-1.5")}><option value="">Tous</option><option value="adherente">Adhérentes (carte payée)</option><option value="profil">Profils créés (carte non payée)</option></select></label>
+          <label><span className={lbl}>Type de profil</span><select name="type" defaultValue={f.type ?? ""} className={cn(inp, "mt-1.5")}><option value="">Tous</option><option value="adherente">Adhérentes (carte payée)</option><option value="profil">Profils créés (carte non payée)</option><option value="client">Comptes clients (sans adhésion)</option></select></label>
           <label><span className={lbl}>Vue</span><select name="vue" defaultValue={f.vue ?? ""} className={cn(inp, "mt-1.5")}><option value="">Toutes</option>{Object.entries(TITLES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
           <div className="flex items-end gap-2 lg:col-span-1">
             <button type="submit" className={btn.primary}>Filtrer</button>
@@ -141,13 +141,13 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
                         <span className="block text-[12.5px] text-mist">{r.member.email}</span>
                       </Link>
                     </Td>
-                    <Td>{r.planName || "—"}</Td>
-                    <Td>{r.kind === "adherente" ? <Badge tone="green">Adhérente</Badge> : <Badge tone="orange">Profil créé</Badge>}</Td>
-                    <Td><Badge tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Badge></Td>
+                    <Td>{r.kind === "client" ? <span className="text-mist">Sans adhésion</span> : r.planName || "—"}</Td>
+                    <Td>{r.kind === "adherente" ? <Badge tone="green">Adhérente</Badge> : r.kind === "client" ? <Badge tone="blue">Compte client</Badge> : <Badge tone="orange">Profil créé</Badge>}</Td>
+                    <Td>{r.kind === "client" && r.status === "expired" ? <span className="text-mist">—</span> : <Badge tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Badge>}</Td>
                     {finance && <Td>{r.payment ? <Badge tone={PAY_TONE[r.payment]}>{TX_STATUS_LABEL[r.payment]}</Badge> : "—"}</Td>}
                     <Td className="tabular-nums">{fmtDate(r.joinedAt)}</Td>
                     <Td className="tabular-nums">{fmtDate(r.expiresAt)}</Td>
-                    {ctx.can("members.delete") && <Td>{r.kind === "profil" ? <form action={deleteProfileAction.bind(null, r.member.id)}><SubmitButton variant="danger" confirm={`Supprimer définitivement le profil de ${r.member.firstName} ${r.member.lastName} ? Il n'a pas de carte payée : sa fiche et ses paiements non réglés seront supprimés.`}>Supprimer</SubmitButton></form> : null}</Td>}
+                    {ctx.can("members.delete") && <Td>{r.kind !== "adherente" ? <form action={deleteProfileAction.bind(null, r.member.id)}><SubmitButton variant="danger" confirm={`Supprimer définitivement le profil de ${r.member.firstName} ${r.member.lastName} ? Il n'a pas de carte payée : sa fiche et ses paiements non réglés seront supprimés.`}>Supprimer</SubmitButton></form> : null}</Td>}
                   </tr>
                 ))}
               </tbody>

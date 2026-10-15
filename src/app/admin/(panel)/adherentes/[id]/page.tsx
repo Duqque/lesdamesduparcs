@@ -53,7 +53,7 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
       <PageHeader
         back={{ href: "/admin/adherentes", label: "Toutes les adhérentes" }}
         title={`${m.firstName} ${m.lastName}`}
-        subtitle={<span className="flex flex-wrap items-center gap-3"><span className="tabular-nums">Membre {m.memberNumber}</span><Badge tone={STATUS_TONE[row.status]}>{STATUS_LABEL[row.status]}</Badge>{m.founder && <Badge tone="orange">Membre fondatrice · adhésion offerte</Badge>}</span>}
+        subtitle={<span className="flex flex-wrap items-center gap-3"><span className="tabular-nums">Membre {m.memberNumber}</span><Badge tone={STATUS_TONE[row.status]}>{STATUS_LABEL[row.status]}</Badge>{m.founder && <Badge tone="orange">Membre fondatrice · adhésion offerte</Badge>}{row.kind === "client" && <Badge tone="blue">Compte client · sans adhésion</Badge>}</span>}
         actions={
           <>
             <Link href={`/verification/${m.token}`} className={btn.outline}>Page de vérification</Link>
@@ -267,7 +267,7 @@ export default async function MemberPage({ params, searchParams }: { params: Pro
               <form action={sendFirstLoginEmailAction.bind(null, id)}><SubmitButton confirm={`Envoyer à ${m.email} l'e-mail de première connexion (lien pour choisir son mot de passe, valable 7 jours) ?`}>{stored?.firstLogin?.sentAt ? `Renvoyer l'e-mail de première connexion (envoyé le ${fmtDate(stored.firstLogin.sentAt)})` : "Envoyer l'e-mail de première connexion"}</SubmitButton></form>
             )}
             {ctx.can("members.edit") && !anonymized && m.status !== "expelled" && <form action={sendMemberResetEmailAction.bind(null, id)}><SubmitButton variant="outline" confirm="Envoyer à cette personne, par e-mail, un lien de reconnexion et de changement de mot de passe ?">Envoyer un lien de réinitialisation du mot de passe</SubmitButton></form>}
-            {ctx.can("members.delete") && !anonymized && row.kind === "profil" && <form action={deleteProfileAction.bind(null, id)}><SubmitButton variant="danger" confirm="Supprimer définitivement ce profil (fiche, adhésions et paiements non réglés) ? Cette action est irréversible.">Supprimer ce profil</SubmitButton></form>}
+            {ctx.can("members.delete") && !anonymized && row.kind !== "adherente" && <form action={deleteProfileAction.bind(null, id)}><SubmitButton variant="danger" confirm="Supprimer définitivement ce profil (fiche, adhésions et paiements non réglés) ? Cette action est irréversible.">Supprimer ce profil</SubmitButton></form>}
             {ctx.can("members.edit") && !anonymized && <form action={memberInviteLinkAction.bind(null, id)}><SubmitButton variant="outline">Générer un lien de connexion</SubmitButton></form>}
             {ctx.can("members.export") && !anonymized && <a href={`/admin/export/membre/${id}`} className={btn.outline}><Download aria-hidden className="size-4" /> Exporter ses données</a>}
             {(ctx.can("members.delete") || ctx.can("privacy.manage")) && !anonymized && (

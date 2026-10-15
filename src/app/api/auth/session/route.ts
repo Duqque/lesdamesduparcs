@@ -11,7 +11,7 @@ export async function GET() {
   const capReached = (await adhesionCapStatus()).blocked;
   if (s?.role === "member") {
     const stored = await getMemberByNumber(s.memberNumber);
-    return json({ ...s, membership: stored ? await membershipState(stored.id) : "none", capReached });
+    return json({ ...s, membership: stored ? await membershipState(stored.id) : "none", client: stored?.accountType === "client", capReached });
   }
   if (s) return json({ ...s, capReached });
   const admin = await getAdmin();

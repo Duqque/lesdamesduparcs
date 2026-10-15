@@ -43,6 +43,13 @@ export interface EventRegistrationConfig {
   maxAge?: number;
   /** Une seule place par inscription (ex. une participante) */
   singlePlace?: boolean;
+  /**
+   * Ouverture de la billetterie : « open » (ouverte), « paused » (en attente : l'événement est affiché sans réservation possible)
+   * ou « scheduled » (ouverture automatique à salesOpensAt, heure de Paris). Absent : ouverte.
+   */
+  salesState?: "open" | "paused" | "scheduled";
+  /** AAAA-MM-JJTHH:MM, heure de Paris */
+  salesOpensAt?: string;
   /** La participante peut annuler elle-même son inscription depuis la page de l'événement (sans remboursement automatique). */
   selfCancel?: boolean;
   /** Conditions d'annulation et de remboursement : affichées avant l'inscription, à accepter pour s'inscrire. */

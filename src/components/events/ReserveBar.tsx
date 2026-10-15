@@ -8,6 +8,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { formatEuros, type RegistrationStatus } from "@/lib/registration";
 import { formatDay, formatMonthShort } from "@/lib/format";
 import type { ClubEvent } from "@/types";
+import { salesNotice, salesOpen } from "@/lib/sales";
 
 type Mine = { status: RegistrationStatus; amountCents: number } | null;
 type State = { mine: Mine; paidCancelled?: { canReactivate: boolean } | null };
@@ -50,7 +51,12 @@ export function ReserveBar({ event }: { event: ClubEvent }) {
     }
   }
 
-  let action = (
+  const open = external || salesOpen(event.registration);
+  let action = !open ? (
+    <span className="inline-flex h-11 w-full items-center justify-center rounded-[10px] border border-white/20 px-5 font-body text-[13.5px] font-medium text-white/85 md:w-auto">
+      {salesNotice(event.registration).short}
+    </span>
+  ) : (
     <Button href={external ? event.href : "#inscription"} size="sm" icon={Ticket} arrow={false} className="w-full md:w-auto">
       Réserver ma place
     </Button>
@@ -95,7 +101,7 @@ export function ReserveBar({ event }: { event: ClubEvent }) {
         <div className="hidden min-w-0 md:block">
           <p className="max-w-[260px] truncate font-body text-[13.5px] font-medium text-white">{event.title}</p>
           <p className="font-body text-[12px] text-mist">
-            {formatDay(event.date)} {formatMonthShort(event.date)} · {hasTicket ? "Billet valide" : external ? "Billetterie" : formatEuros(event.registration.priceCents)}
+            {formatDay(event.date)} {formatMonthShort(event.date)} · {hasTicket ? "Billet valide" : external ? "Billetterie" : event.registration.priceCents > 0 ? formatEuros(event.registration.priceCents) : open ? "Sur réservation" : "Bientôt"}
           </p>
         </div>
         {action}
