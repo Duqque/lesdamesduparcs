@@ -10,5 +10,5 @@ export const HOST = {
 export const CNIL = { name: "Commission nationale de l'informatique et des libertés (CNIL)", address: "3 place de Fontenoy, TSA 80715, 75334 Paris Cedex 07", site: "https://www.cnil.fr" } as const;
 
 /** Date de dernière mise à jour des textes légaux. */
-export const LEGAL_UPDATED = "15 octobre 2026";
+export const LEGAL_UPDATED = "16 octobre 2026";
 export const TBD = "à compléter dans l'administration";

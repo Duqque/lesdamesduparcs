@@ -11,7 +11,7 @@ export default async function RegistryPage() {
   const months = (await settings.get()).retention?.inactiveMonths ?? 36;
   const rows: Array<[string, string, string, string, string, string]> = [
     ["Adhésions et comptes", "Gérer les adhésions, cartes de membre, espace personnel", "Contrat", "Identité, coordonnées, date de naissance, adresse, responsable légal, autorisation parentale, consentements", `Durée de l'adhésion + ${months} mois d'inactivité`, "Équipe habilitée ; " + HOST.name],
-    ["Événements", "Inscriptions, listes de présence, sécurité", "Contrat ; intérêt légitime", "Identité, coordonnées, contact d'urgence, allergies (facultatif)", "3 ans après l'événement", "Équipe organisatrice ; " + HOST.name],
+    ["Événements", "Inscriptions, listes de présence, sécurité", "Contrat ; intérêt légitime", "Identité, coordonnées, contact d'urgence (aucune donnée de santé)", "3 ans après l'événement", "Équipe organisatrice ; " + HOST.name],
     ["Boutique et paiements", "Commandes, livraison, comptabilité", "Contrat ; obligation légale", "Contact, adresse, contenu de commande, référence de paiement (aucune donnée bancaire)", "10 ans (pièces comptables, anonymisées sur demande)", "Équipe habilitée ; HelloAsso ; " + HOST.name],
     ["E-mails transactionnels et d'information", "Confirmations, rappels, actualités", "Contrat ; consentement", "Adresse e-mail, objet des messages envoyés", "12 mois (journal)", "Resend (envoi) ; " + HOST.name],
     ["Sécurité du site", "Limiter les abus, détecter les intrusions, tracer les actions sensibles", "Intérêt légitime", "Adresse IP, navigateur, dates de connexion, journal d'audit de l'administration", "90 jours (connexions) ; journal d'audit conservé", "Équipe d'administration ; " + HOST.name],

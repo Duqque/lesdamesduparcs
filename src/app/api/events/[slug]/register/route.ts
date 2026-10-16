@@ -95,7 +95,6 @@ export async function POST(req: Request, { params }: Ctx) {
     birthDate: input.birthDate,
     guardian: cfg.guardianRequired ? input.guardian : undefined,
     emergency: { name: input.emergency!.name.trim(), phone: input.emergency!.phone.trim() },
-    allergies: input.allergies?.trim().slice(0, 500),
     comment: input.comment?.trim().slice(0, 500),
     consents: { rules: true, privacy: true, image: Boolean(input.consents?.image), ...(cfg.cancellationPolicy?.trim() ? { conditions: true } : {}) },
   };

@@ -35,9 +35,9 @@ export default async function PrivacyPage() {
               <li><strong className="text-white">Adhésion et compte :</strong> nom, prénom, date de naissance, adresse e-mail, téléphone, adresse postale, mot de passe (conservé uniquement sous forme chiffrée irréversible), numéro de membre, formule, consentements donnés.</li>
               <li><strong className="text-white">Mineures :</strong> coordonnées du représentant légal et autorisation parentale (fichier PDF déposé).</li>
               <li><strong className="text-white">Photo de profil (facultative) :</strong> si vous choisissez d&rsquo;en déposer une depuis votre espace personnel, pour compléter votre fiche.</li>
-              <li><strong className="text-white">Événements :</strong> identité, coordonnées, contact d&rsquo;urgence, nombre de places et, si vous les indiquez, allergies ou remarques. Ces informations facultatives peuvent relever de la santé : elles ne sont demandées que pour votre sécurité et ne sont utilisées que pour l&rsquo;événement.</li>
+              <li><strong className="text-white">Événements :</strong> identité, coordonnées, contact d&rsquo;urgence, nombre de places et, si vous en laissez un, votre message à l&rsquo;équipe. Aucune donnée de santé n&rsquo;est demandée.</li>
               <li><strong className="text-white">Boutique :</strong> contact, adresse de livraison, contenu et montant de la commande. Les paiements sont traités par HelloAsso : l&rsquo;association ne reçoit ni ne conserve aucun numéro de carte bancaire.</li>
-              <li><strong className="text-white">Sécurité :</strong> adresse IP, date et navigateur lors des connexions (journal de sécurité) ; nombre de pages vues sans identification de la personne.</li>
+              <li><strong className="text-white">Sécurité :</strong> date et type de navigateur lors des connexions (journal de sécurité). L&rsquo;adresse IP n&rsquo;est jamais conservée en clair : seule une empreinte chiffrée, impossible à reconvertir en adresse, sert à limiter les tentatives de connexion et à repérer un nouvel appareil. Nombre de pages vues sans identification de la personne.</li>
               <li><strong className="text-white">Communication :</strong> historique des e-mails envoyés par le site (confirmations, rappels, messages de l&rsquo;équipe).</li>
               <li><strong className="text-white">Demandes RGPD :</strong> les informations que vous transmettez pour exercer vos droits.</li>
             </Ul>
@@ -94,7 +94,7 @@ export default async function PrivacyPage() {
                   <tr className={row}><td className={td}>Photo de profil (facultative)</td><td className={td}>Jusqu&rsquo;à son retrait par vous ou l&rsquo;équipe, ou jusqu&rsquo;à l&rsquo;effacement du compte</td></tr>
                   <tr className={row}><td className={td}>Pièces comptables (commandes, paiements)</td><td className={td}>10 ans (obligation légale), sous forme anonymisée lorsque la personne demande l&rsquo;effacement</td></tr>
                   <tr className={row}><td className={td}>Inscriptions aux événements</td><td className={td}>Jusqu&rsquo;à 3 ans après l&rsquo;événement</td></tr>
-                  <tr className={row}><td className={td}>Journal de connexion (adresse IP)</td><td className={td}>90 jours</td></tr>
+                  <tr className={row}><td className={td}>Journal de connexion (empreinte chiffrée de l&rsquo;adresse IP, navigateur)</td><td className={td}>90 jours</td></tr>
                   <tr className={row}><td className={td}>Historique des e-mails envoyés</td><td className={td}>12 mois</td></tr>
                   <tr className={row}><td className={td}>Demandes d&rsquo;exercice de droits</td><td className={td}>3 ans après leur clôture</td></tr>
                 </tbody>

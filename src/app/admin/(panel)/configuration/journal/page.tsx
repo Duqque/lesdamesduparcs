@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Badge, Empty, PageHeader, Pagination, Panel, TableWrap, Td, Th, btn, inp, lbl } from "@/components/admin/ui";
-import { fmtDateTime } from "@/lib/admin/format";
+import { fmtDateTime, device } from "@/lib/admin/format";
 import { first, href, pick, type SP } from "@/lib/admin/params";
 import { cn } from "@/lib/cn";
 import { requireAdmin } from "@/lib/server/admin-auth";
@@ -88,10 +88,10 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
         ) : (
           <>
             <TableWrap>
-              <thead><tr><Th>Date</Th><Th>Adresse e-mail</Th><Th>Résultat</Th><Th>Adresse IP</Th><Th>Détail</Th></tr></thead>
+              <thead><tr><Th>Date</Th><Th>Adresse e-mail</Th><Th>Résultat</Th><Th>Appareil</Th><Th>Détail</Th></tr></thead>
               <tbody>
                 {conns.slice((page - 1) * PAGE, page * PAGE).map((e) => (
-                  <tr key={e.id}><Td className="tabular-nums text-[12.5px]">{fmtDateTime(e.createdAt)}</Td><Td>{e.email}</Td><Td><Badge tone={e.success ? "green" : "red"}>{e.success ? "Réussie" : "Échec"}</Badge></Td><Td className="text-[12.5px]">{e.ip}</Td><Td className="text-mist">{e.reason ?? ""}</Td></tr>
+                  <tr key={e.id}><Td className="tabular-nums text-[12.5px]">{fmtDateTime(e.createdAt)}</Td><Td>{e.email}</Td><Td><Badge tone={e.success ? "green" : "red"}>{e.success ? "Réussie" : "Échec"}</Badge></Td><Td className="text-[12.5px]">{device(e.ua)}</Td><Td className="text-mist">{e.reason ?? ""}</Td></tr>
                 ))}
               </tbody>
             </TableWrap>

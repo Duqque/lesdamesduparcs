@@ -9,7 +9,7 @@ import { safeEqual } from "./session";
 import { adminSessions, admins, auditLog, loginEvents, settings, type AdminUser } from "./admin-store";
 import { verifyTotpStep } from "./totp";
 import { authSecret, loadAuthSecret } from "./auth-secret";
-import { clientIp } from "./http";
+import { ipTag } from "./http";
 
 const INSECURE = process.env.SESSION_INSECURE_COOKIE === "1" || process.env.NODE_ENV !== "production";
 /** Préfixe __Host- : cookie refusé s'il n'est pas Secure, ou posé depuis un sous-domaine. */
@@ -22,7 +22,7 @@ export const adminPasswordIssue = (p: string) => (p.length < 10 ? "10 caractère
 
 export async function requestMeta() {
   const h = await headers();
-  return { ip: clientIp(h), ua: (h.get("user-agent") || "").slice(0, 200) };
+  return { ip: await ipTag(h), ua: (h.get("user-agent") || "").slice(0, 200) };
 }
 
 /**
@@ -92,9 +92,9 @@ export async function loginAdmin(email: string, password: string): Promise<Login
 
 async function finishLogin(admin: AdminUser, ip: string, ua: string) {
   const unusual = admin.knownIps.length > 0 && !admin.knownIps.includes(ip);
-  await loginEvents.insert({ email: admin.email, success: true, ip, ua, adminId: admin.id, reason: unusual ? "nouvelle adresse" : undefined });
+  await loginEvents.insert({ email: admin.email, success: true, ip, ua, adminId: admin.id, reason: unusual ? "nouvel appareil ou réseau" : undefined });
   await admins.update(admin.id, { lastLoginAt: new Date().toISOString(), lastLoginIp: ip, knownIps: [...new Set([ip, ...admin.knownIps])].slice(0, 20) });
-  await auditLog.insert({ actorId: admin.id, actorName: `${admin.firstName} ${admin.lastName}`.trim(), action: "connexion", entity: "session", label: unusual ? `Connexion depuis une nouvelle adresse (${ip})` : "Connexion", ip });
+  await auditLog.insert({ actorId: admin.id, actorName: `${admin.firstName} ${admin.lastName}`.trim(), action: "connexion", entity: "session", label: unusual ? "Connexion depuis un nouvel appareil ou réseau" : "Connexion", ip });
 }
 
 const hashCode = (c: string) => createHash("sha256").update(c.trim().toLowerCase().replace(/[\s-]/g, "")).digest("hex");

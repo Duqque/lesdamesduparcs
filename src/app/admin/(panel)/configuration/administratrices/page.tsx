@@ -40,7 +40,7 @@ export default async function AdminsPage({ searchParams }: { searchParams: Promi
                   <Td>{ROLE_LABELS[a.role]}</Td>
                   <Td><Badge tone={a.active ? "green" : "grey"}>{a.active ? "Actif" : "Désactivé"}</Badge></Td>
                   <Td>{a.totpEnabled ? <Badge tone="green">Activée</Badge> : <span className="text-mist">Non</span>}</Td>
-                  <Td className="tabular-nums text-[12.5px]">{a.lastLoginAt ? `${fmtDateTime(a.lastLoginAt)}` : "Jamais"}{a.lastLoginIp ? <span className="block text-mist">{a.lastLoginIp}</span> : null}</Td>
+                  <Td className="tabular-nums text-[12.5px]">{a.lastLoginAt ? `${fmtDateTime(a.lastLoginAt)}` : "Jamais"}</Td>
                   <Td>
                     <details>
                       <summary className="cursor-pointer font-body text-[12.5px] text-white/80 hover:text-white">Gérer</summary>

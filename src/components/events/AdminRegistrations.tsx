@@ -42,8 +42,8 @@ export function AdminRegistrations({ event }: { event: ClubEvent }) {
 
   function exportCsv() {
     if (!data) return;
-    const head = ["Prénom", "Nom", "E-mail", "Téléphone", "Carte membre", "Places", "Montant", "Statut", "Date de naissance", "Responsable", "Tél. responsable", "Contact d'urgence", "Tél. urgence", "Allergies", "Droit à l'image", "Inscrite le"];
-    const rows = data.registrations.map((r) => [r.firstName, r.lastName, r.email, r.phone, r.memberNumber, r.places, r.amountCents / 100, statusLabel[r.status], r.birthDate ?? "", r.guardian?.name ?? "", r.guardian?.phone ?? "", r.emergency.name, r.emergency.phone, r.allergies ?? "", r.consents.image ? "oui" : "non", r.createdAt]);
+    const head = ["Prénom", "Nom", "E-mail", "Téléphone", "Carte membre", "Places", "Montant", "Statut", "Date de naissance", "Responsable", "Tél. responsable", "Contact d'urgence", "Tél. urgence", "Droit à l'image", "Inscrite le"];
+    const rows = data.registrations.map((r) => [r.firstName, r.lastName, r.email, r.phone, r.memberNumber, r.places, r.amountCents / 100, statusLabel[r.status], r.birthDate ?? "", r.guardian?.name ?? "", r.guardian?.phone ?? "", r.emergency.name, r.emergency.phone, r.consents.image ? "oui" : "non", r.createdAt]);
     const csv = [head, ...rows].map((row) => row.map(csvCell).join(";")).join("\r\n");
     const url = URL.createObjectURL(new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");

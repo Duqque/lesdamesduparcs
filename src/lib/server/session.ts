@@ -3,7 +3,7 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypt
 import { cookies, headers } from "next/headers";
 import { authSecret, loadAuthSecret } from "./auth-secret";
 import { collection } from "./db";
-import { clientIp } from "./http";
+import { ipTag } from "./http";
 import { getMemberById } from "./store";
 
 /**
@@ -84,7 +84,7 @@ export async function setSession(memberId: string) {
   await sessions.insert({
     id: digest(id),
     memberId,
-    ip: clientIp(h),
+    ip: await ipTag(h),
     ua: (h.get("user-agent") ?? "").slice(0, 200),
     lastSeen: new Date(now).toISOString(),
     expiresAt: new Date(now + ABSOLUTE_MS).toISOString(),

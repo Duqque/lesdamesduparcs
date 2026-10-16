@@ -14,6 +14,7 @@ import { Footer } from "@/components/footer/Footer";
 import { INTRO_STORAGE_KEY } from "@/lib/intro-key";
 import { accentOverride, getNavConfig, siteMeta } from "@/lib/server/site";
 import { applyLegalInfoOnce, settings } from "@/lib/server/admin-store";
+import { applyRgpdOnce } from "@/lib/server/rgpd-migration";
 import { getPublicCatalog } from "@/lib/server/shop";
 import { getSession } from "@/lib/server/session";
 import { getMemberByNumber } from "@/lib/server/store";
@@ -56,6 +57,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   await applyLegalInfoOnce();
+  await applyRgpdOnce();
   const [navConfig, accent, shop, conf] = await Promise.all([getNavConfig(), accentOverride(), getPublicCatalog(), settings.get()]);
   const contactEmail = conf.association.email || "contact@lesdamesduparc.com";
   // La membre connectée est connue dès le rendu serveur (état de son abonnement compris) : pas de « saut » des appels à l'adhésion.

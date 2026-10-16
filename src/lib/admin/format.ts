@@ -38,3 +38,11 @@ export const RANGES = [
   { key: "6m", label: "6 mois" },
   { key: "1y", label: "1 an" },
 ] as const;
+
+/** Appareil lisible à partir du navigateur (« Chrome · macOS ») : jamais d'adresse IP affichée. */
+export function device(ua?: string) {
+  if (!ua) return "Appareil inconnu";
+  const browser = /Edg\//.test(ua) ? "Edge" : /SamsungBrowser/.test(ua) ? "Samsung Internet" : /Firefox|FxiOS/.test(ua) ? "Firefox" : /Chrome|CriOS/.test(ua) ? "Chrome" : /Safari/.test(ua) ? "Safari" : "Navigateur";
+  const os = /iPhone|iPad|iPod/.test(ua) ? "iPhone / iPad" : /Android/.test(ua) ? "Android" : /Mac OS X|Macintosh/.test(ua) ? "macOS" : /Windows/.test(ua) ? "Windows" : /Linux/.test(ua) ? "Linux" : "";
+  return os ? `${browser} · ${os}` : browser;
+}

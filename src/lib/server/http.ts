@@ -1,5 +1,7 @@
 import "server-only";
+import { createHmac } from "node:crypto";
 import { sqlEnabled, sqlHit, sqlPurgeRate } from "./sql";
+import { ensureAuthSecret } from "./auth-secret";
 import { SITE_URL } from "@/lib/site-url";
 
 export const json = (data: unknown, status = 200) =>
@@ -16,6 +18,16 @@ export function clientIp(h: Headers) {
   return (chain.length ? chain[Math.max(chain.length - hops, 0)] : "") || h.get("x-real-ip") || "local";
 }
 
+/**
+ * Adresse IP pseudonymisée (RGPD) : empreinte HMAC de l'adresse avec la clé secrète du site. Elle permet de reconnaître une même
+ * provenance (limitation des tentatives, connexion depuis un nouvel appareil) sans jamais conserver ni afficher l'adresse réelle.
+ */
+export async function ipTag(h: Headers) {
+  const secret = await ensureAuthSecret();
+  return pseudoIp(clientIp(h), secret);
+}
+export const pseudoIp = (ip: string, secret: string) => (ip.startsWith("ip~") ? ip : `ip~${createHmac("sha256", secret).update(`ip:${ip}`).digest("base64url").slice(0, 16)}`);
+
 const hits = new Map<string, { n: number; reset: number }>();
 let lastPurge = 0;
 
@@ -24,7 +36,7 @@ let lastPurge = 0;
  * `key` distingue l'usage (ex. "login:ip", "login:compte"). Renvoie true quand la limite est dépassée.
  */
 export async function throttled(req: Request, scope: string, max = 10, windowMs = 600_000, extra = "") {
-  const key = `${scope}:${extra || clientIp(req.headers)}`.slice(0, 190);
+  const key = `${scope}:${extra || (await ipTag(req.headers))}`.slice(0, 190);
   if (sqlEnabled()) {
     try {
       const now = Date.now();

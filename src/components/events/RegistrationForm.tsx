@@ -60,7 +60,6 @@ export function RegistrationForm({ event, member }: Props) {
     guardianConsent: false,
     emergencyName: "",
     emergencyPhone: "",
-    allergies: "",
     comment: "",
     rules: false,
     privacy: false,
@@ -142,7 +141,6 @@ export function RegistrationForm({ event, member }: Props) {
     birthDate: cfg.guardianRequired ? v.birthDate : undefined,
     guardian: cfg.guardianRequired ? { name: v.guardianName, phone: v.guardianPhone, email: v.guardianEmail, consent: v.guardianConsent } : undefined,
     emergency: { name: v.emergencyName, phone: v.emergencyPhone },
-    allergies: v.allergies,
     comment: v.comment,
     consents: { rules: v.rules, privacy: v.privacy, image: v.image, conditions: v.conditions },
   });
@@ -356,10 +354,7 @@ export function RegistrationForm({ event, member }: Props) {
         <Field id="f-emergencyPhone" label="Téléphone d'urgence" error={err("emergencyPhone")}>
           <PhoneInput id="f-emergencyPhone" value={v.emergencyPhone} onChange={(full) => set("emergencyPhone", full)} invalid={Boolean(err("emergencyPhone"))} describedBy={err("emergencyPhone") ? "f-emergencyPhone-err" : undefined} />
         </Field>
-        <Field id="f-allergies" label="Allergies, régime ou besoins particuliers" hint="Facultatif. Ces informations ne sont utilisées que pour l'organisation de l'événement." className="sm:col-span-2">
-          <textarea id="f-allergies" value={v.allergies} onChange={(e) => set("allergies", e.target.value)} maxLength={500} className={textareaCls} />
-        </Field>
-        <Field id="f-comment" label="Un message pour l'équipe ?" className="sm:col-span-2">
+        <Field id="f-comment" label="Un message pour l'équipe ?" hint="Facultatif. N'y indiquez aucune information de santé." className="sm:col-span-2">
           <textarea id="f-comment" value={v.comment} onChange={(e) => set("comment", e.target.value)} maxLength={500} className={textareaCls} />
         </Field>
       </Section>

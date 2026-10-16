@@ -2,7 +2,7 @@ import QRCode from "qrcode";
 import { cookies } from "next/headers";
 import { SubmitButton } from "@/components/admin/SubmitButton";
 import { Badge, Field, Flash, PageHeader, Panel, TableWrap, Td, Th, inp } from "@/components/admin/ui";
-import { fmtDateTime } from "@/lib/admin/format";
+import { fmtDateTime, device } from "@/lib/admin/format";
 import { first, type SP } from "@/lib/admin/params";
 import { ROLE_LABELS } from "@/lib/admin/permissions";
 import { requireAdmin } from "@/lib/server/admin-auth";
@@ -72,10 +72,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         </Panel>
       </div>
       <Panel className="mt-4" title="Connexions et sessions" flush>
-        <div className="border-b border-line px-5 py-4 font-body text-[13.5px] text-mist">Dernière connexion : {a.lastLoginAt ? `${fmtDateTime(a.lastLoginAt)} depuis ${a.lastLoginIp}` : "première connexion"}. Expiration après {security.sessionTimeoutMin} minutes d&rsquo;inactivité.</div>
+        <div className="border-b border-line px-5 py-4 font-body text-[13.5px] text-mist">Dernière connexion : {a.lastLoginAt ? `${fmtDateTime(a.lastLoginAt)}` : "première connexion"}. Expiration après {security.sessionTimeoutMin} minutes d&rsquo;inactivité.</div>
         <TableWrap>
-          <thead><tr><Th>Session</Th><Th>Adresse IP</Th><Th>Dernière activité</Th></tr></thead>
-          <tbody>{sessions.map((x) => <tr key={x.id}><Td>{x.id === ctx.sessionId ? <Badge tone="green">Cette session</Badge> : <span className="text-mist">{x.ua.slice(0, 40) || "Autre appareil"}</span>}</Td><Td>{x.ip}</Td><Td className="tabular-nums">{fmtDateTime(x.lastSeen)}</Td></tr>)}</tbody>
+          <thead><tr><Th>Session</Th><Th>Appareil</Th><Th>Dernière activité</Th></tr></thead>
+          <tbody>{sessions.map((x) => <tr key={x.id}><Td>{x.id === ctx.sessionId ? <Badge tone="green">Cette session</Badge> : <span className="text-mist">Autre session</span>}</Td><Td>{device(x.ua)}</Td><Td className="tabular-nums">{fmtDateTime(x.lastSeen)}</Td></tr>)}</tbody>
         </TableWrap>
         <form action={logoutAllAction} className="border-t border-line p-5"><SubmitButton variant="danger" confirm="Fermer toutes vos sessions, y compris celle-ci ?">Me déconnecter de toutes les sessions</SubmitButton></form>
       </Panel>
