@@ -8,30 +8,66 @@ import mysql, { type Pool } from "mysql2/promise";
  */
 export const sqlEnabled = () => Boolean(process.env.DATABASE_URL);
 
-let pool: Pool | null = null;
-let ready: Promise<void> | null = null;
+/**
+ * Une seule réserve de connexions pour tout le processus : Next.js découpe le code serveur en plusieurs morceaux (pages, routes,
+ * actions…) qui ont chacun leur copie de ce module ; sans partage via globalThis, chaque copie ouvrait sa propre réserve et le
+ * site dépassait la limite de connexions de l'hébergement (« Too many connections »). Les connexions inactives sont refermées.
+ */
+const shared = globalThis as typeof globalThis & { __ddpPool?: Pool; __ddpSchema?: Promise<void> | null };
+let ready: Promise<void> | null = shared.__ddpSchema ?? null;
+
+/** Nombre maximal de connexions simultanées (réglable par DB_CONNECTION_LIMIT, 4 par défaut). */
+const LIMIT = Math.max(2, Math.min(10, Number(process.env.DB_CONNECTION_LIMIT) || 4));
 
 export function getPool(): Pool {
-  if (!pool) {
+  if (!shared.__ddpPool) {
     const u = new URL(process.env.DATABASE_URL!);
-    pool = mysql.createPool({
+    const raw = mysql.createPool({
       host: u.hostname,
       port: Number(u.port) || 3306,
       user: decodeURIComponent(u.username),
       password: decodeURIComponent(u.password),
       database: u.pathname.replace(/^\//, ""),
       charset: "utf8mb4",
-      connectionLimit: 6,
+      connectionLimit: LIMIT,
+      // Connexions inactives refermées au-delà d'une seule, après 30 s.
+      maxIdle: 1,
+      idleTimeout: 30_000,
+      enableKeepAlive: true,
       connectTimeout: 10_000,
       waitForConnections: true,
+      queueLimit: 0,
     });
+    shared.__ddpPool = withRetry(raw);
   }
+  return shared.__ddpPool;
+}
+
+const busy = (e: unknown) => (e as { code?: string })?.code === "ER_CON_COUNT_ERROR" || (e as { errno?: number })?.errno === 1040;
+const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Serveur saturé (« Too many connections ») : quelques nouvelles tentatives espacées avant d'abandonner. */
+function withRetry(pool: Pool): Pool {
+  const retry = async <T>(fn: () => Promise<T>): Promise<T> => {
+    for (let i = 0; ; i++) {
+      try {
+        return await fn();
+      } catch (e) {
+        if (!busy(e) || i >= 4) throw e;
+        await pause(250 * 2 ** i);
+      }
+    }
+  };
+  const getConnection = pool.getConnection.bind(pool);
+  const query = pool.query.bind(pool);
+  pool.getConnection = (() => retry(() => getConnection())) as Pool["getConnection"];
+  pool.query = ((...args: Parameters<Pool["query"]>) => retry(() => query(...args))) as Pool["query"];
   return pool;
 }
 
 /** Crée les tables au premier usage (documents, fichiers, compteurs de limitation). */
 export function ensureSchema(): Promise<void> {
-  ready ??= getPool()
+  ready ??= shared.__ddpSchema ??= getPool()
     .query(
       `CREATE TABLE IF NOT EXISTS ddp_docs (
         seq BIGINT NOT NULL AUTO_INCREMENT,
@@ -67,6 +103,7 @@ export function ensureSchema(): Promise<void> {
     .then(() => undefined);
   ready.catch(() => {
     ready = null;
+    shared.__ddpSchema = null;
   });
   return ready;
 }
