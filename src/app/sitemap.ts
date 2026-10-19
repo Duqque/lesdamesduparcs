@@ -25,15 +25,30 @@ const PAGES: Array<{ path: string; priority: number; changeFrequency: MetadataRo
 // Régénéré au plus toutes les heures : les nouveaux articles et événements y apparaissent seuls.
 export const revalidate = 3600;
 
+/**
+ * L'état choisi dans l'administration (en ligne, masquée, maintenance, bientôt disponible) s'applique à toute une rubrique : la
+ * mise en page de /rejoindre-le-groupe, /evenements, /actualites… porte le contrôle (PageGate). Une sous-page n'est donc proposée
+ * à Google que si sa rubrique est en ligne : sinon elle affiche l'écran « Bientôt disponible » ou « Maintenance ».
+ */
+const sectionOf = (path: string) => (path === "/" ? "/" : `/${path.split("/")[1]}`);
+
+/** Date de dernière modification valide : jamais dans le futur (Google ignore ou signale ces dates). */
+function lastMod(...dates: Array<string | undefined>) {
+  const now = Date.now();
+  const ok = dates.map((d) => (d ? Date.parse(d) : NaN)).filter((t) => Number.isFinite(t) && t <= now);
+  return ok.length ? new Date(Math.max(...ok)) : undefined;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [news, events, catalog] = await Promise.all([getPublishedNews(), getPublishedEvents(), getPublicCatalog()]);
-  // Une page masquée ou en maintenance depuis l'administration n'est pas proposée à Google.
-  const live = await Promise.all(PAGES.map(async (p) => ((await getPageState(p.path)).state === "live" ? p : null)));
-  const shopLive = (await getPageState("/boutique")).state === "live";
+  const sections = [...new Set([...PAGES.map((p) => sectionOf(p.path)), "/actualites", "/evenements", "/boutique"])];
+  const states = await Promise.all(sections.map(async (s) => [s, (await getPageState(s)).state] as const));
+  const live = (path: string) => states.find(([s]) => s === sectionOf(path))?.[1] === "live";
+  const url = (path: string) => `${SITE_URL}${path === "/" ? "" : path}`;
   return [
-    ...live.filter((p): p is (typeof PAGES)[number] => p !== null).map((p) => ({ url: `${SITE_URL}${p.path === "/" ? "" : p.path}`, changeFrequency: p.changeFrequency, priority: p.priority })),
-    ...news.map((n) => ({ url: `${SITE_URL}/actualites/${n.id}`, lastModified: n.date, changeFrequency: "monthly" as const, priority: 0.6 })),
-    ...events.map((e) => ({ url: `${SITE_URL}/evenements/${e.id}`, lastModified: e.date, changeFrequency: "weekly" as const, priority: 0.7 })),
-    ...(shopLive ? catalog.products.map((p) => ({ url: `${SITE_URL}/boutique/${p.id}`, changeFrequency: "weekly" as const, priority: 0.5 })) : []),
+    ...PAGES.filter((p) => live(p.path)).map((p) => ({ url: url(p.path), changeFrequency: p.changeFrequency, priority: p.priority })),
+    ...(live("/actualites") ? news.map((n) => ({ url: url(`/actualites/${n.id}`), lastModified: lastMod(n.date), changeFrequency: "monthly" as const, priority: 0.6 })) : []),
+    ...(live("/evenements") ? events.map((e) => ({ url: url(`/evenements/${e.id}`), lastModified: lastMod(e.updatedAt, e.createdAt), changeFrequency: "weekly" as const, priority: 0.7 })) : []),
+    ...(live("/boutique") ? catalog.products.map((p) => ({ url: url(`/boutique/${p.id}`), changeFrequency: "weekly" as const, priority: 0.5 })) : []),
   ];
 }
