@@ -1,5 +1,6 @@
 import { psgMatches, toView } from "@/lib/server/matches";
 import { salesNotice, salesOpen } from "@/lib/sales";
+import { StackList } from "@/components/events/StackList";
 import { MatchLogo } from "@/components/matches/MatchLogo";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -71,9 +72,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
     <main>
       <script type="application/ld+json" dangerouslySetInnerHTML={ld(structured)} />
 
-      <section className="relative isolate flex min-h-[78svh] items-end overflow-hidden px-[var(--gutter)] pb-16 pt-[200px] md:pb-24">
-        <Image src={event.image} alt={event.imageAlt} fill priority sizes="100vw" className="-z-10 object-cover" />
-        <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(3,9,25,0.55)_0%,rgba(3,9,25,0.25)_35%,rgba(3,9,25,0.92)_100%),linear-gradient(90deg,rgba(3,9,25,0.7)_0%,transparent_65%)]" />
+      {/* Mobile : photo au-dessus, texte en dessous (plus lisible). Dès la tablette : texte posé sur la photo. */}
+      <section className="relative isolate overflow-hidden px-[var(--gutter)] pb-14 pt-[130px] md:flex md:min-h-[78svh] md:items-end md:pb-24 md:pt-[200px]">
+        <div className="relative -mx-[var(--gutter)] mb-9 aspect-[4/3] overflow-hidden md:absolute md:inset-0 md:-z-10 md:mx-0 md:mb-0 md:aspect-auto">
+          <Image src={event.image} alt={event.imageAlt} fill priority sizes="100vw" className="object-cover" />
+          <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,transparent_60%,rgba(3,9,25,0.85)_100%)] md:bg-[linear-gradient(180deg,rgba(3,9,25,0.55)_0%,rgba(3,9,25,0.25)_35%,rgba(3,9,25,0.92)_100%),linear-gradient(90deg,rgba(3,9,25,0.7)_0%,transparent_65%)]" />
+        </div>
         <div className="mx-auto w-full max-w-[1300px]">
           <Link href="/evenements" className="group mb-8 inline-flex min-h-11 items-center gap-2 font-body text-[12px] font-semibold uppercase tracking-[0.18em] text-white/80 transition-colors hover:text-white">
             <ArrowLeft aria-hidden className="size-4 transition-transform duration-300 group-hover:-translate-x-1" />
@@ -144,12 +148,12 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             </Reveal>
             <ol className="mt-12 border-l border-white/15">
               {event.program.map((item, i) => (
-                <li key={item.time + item.title}>
-                  <Reveal delay={Math.min(i, 4) * 0.04} className="relative grid gap-1 pb-14 pl-8 last:pb-0 sm:grid-cols-[92px_1fr] sm:gap-6">
+                <li key={item.time + item.title} className="pb-12 last:pb-0">
+                  <Reveal delay={Math.min(i, 4) * 0.04} className="relative grid gap-3 pl-8 sm:grid-cols-[minmax(150px,max-content)_1fr] sm:gap-12">
                     <span aria-hidden className="absolute -left-[5px] top-[9px] size-[9px] rounded-full bg-psg-red-bright ring-4 ring-night-950" />
-                    <span className="font-display text-[26px] font-semibold tabular-nums leading-none tracking-[0.04em] text-white">{formatTime(item.time)}</span>
+                    <span className="whitespace-nowrap font-display text-[26px] font-semibold tabular-nums leading-none tracking-[0.04em] text-white">{formatTime(item.time)}</span>
                     <span>
-                      <h3 className="font-body text-[16px] font-semibold text-white">{item.title}</h3>
+                      <h3 className="font-body text-[16px] font-semibold leading-[26px] text-white">{item.title}</h3>
                       <p className="mt-1.5 text-mist t-lead">{item.text}</p>
                     </span>
                   </Reveal>
@@ -250,14 +254,10 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
             Voir le calendrier
           </Link>
         </div>
-        {/* Mobile : défilement horizontal. Dès la tablette : grille centrée, cartes de même largeur et de même hauteur. */}
-        <ul className="mx-auto mt-14 flex max-w-[1300px] snap-x gap-6 overflow-x-auto px-[var(--gutter)] pb-4 [contain:paint] [scrollbar-width:none] md:grid md:grid-cols-[repeat(auto-fit,minmax(0,272px))] md:justify-center md:gap-6 md:overflow-visible md:[contain:none] [&::-webkit-scrollbar]:hidden">
-          {others.map((e) => (
-            <li key={e.id} className="shrink-0 snap-start md:flex">
-              <EventGridCard event={e} className="md:w-full" />
-            </li>
-          ))}
-        </ul>
+        {/* Mobile : cartes empilées. Dès la tablette : grille centrée, cartes de même largeur et de même hauteur. */}
+        <div className="mx-auto mt-14 max-w-[1300px] px-[var(--gutter)]">
+          <StackList className="grid gap-4 md:grid-cols-[repeat(auto-fit,minmax(0,272px))] md:justify-center md:gap-6" items={others.map((e) => ({ key: e.id, node: <EventGridCard event={e} /> }))} />
+        </div>
       </section>
     </main>
   );

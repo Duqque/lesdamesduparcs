@@ -7,6 +7,7 @@ import { Download } from "lucide-react";
 import { toEventCard } from "@/components/events/EventGridCard";
 import { EventGridCard, MatchEventCard } from "@/components/events/ClientCards";
 import { PastEvents } from "@/components/events/PastEvents";
+import { StackList } from "@/components/events/StackList";
 import { getPublishedEvents } from "@/lib/server/events";
 import { isPast } from "@/data/events";
 import { MatchWithEventCard } from "@/components/matches/MatchWithEventCard";
@@ -60,13 +61,15 @@ export default async function EventsPage() {
 
         <section aria-labelledby="upcoming" className="mt-24 md:mt-32">
           <h2 id="upcoming" className="font-body text-[20px] font-medium text-white">{cms.t("evenements.prochains", "Prochains événements")}</h2>
-          <ul className="mt-10 -mx-[var(--gutter)] flex snap-x gap-4 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
-            {timeline.map((it) => (
-              <li key={it.kind === "event" ? it.event.id : `${it.kind}-${it.match.id}`} className={it.kind === "merged" ? "contents md:col-span-2 md:block lg:col-span-2" : "contents md:block"}>
-                {it.kind === "event" ? <EventGridCard event={toEventCard(it.event)} /> : it.kind === "merged" ? <MatchWithEventCard match={it.match} event={it.event} /> : <MatchEventCard match={it.match} next />}
-              </li>
-            ))}
-          </ul>
+          <div className="mt-10">
+            <StackList
+              items={timeline.map((it) => ({
+                key: it.kind === "event" ? it.event.id : `${it.kind}-${it.match.id}`,
+                className: it.kind === "merged" ? "md:col-span-2 lg:col-span-2" : undefined,
+                node: it.kind === "event" ? <EventGridCard event={toEventCard(it.event)} /> : it.kind === "merged" ? <MatchWithEventCard match={it.match} event={it.event} /> : <MatchEventCard match={it.match} next />,
+              }))}
+            />
+          </div>
         </section>
 
         {past.length > 0 && (
@@ -89,13 +92,9 @@ export default async function EventsPage() {
                 <Download aria-hidden className="size-4" strokeWidth={1.8} /> Ajouter les matchs à mon agenda
               </Link>
             </div>
-            <ul className="mt-10 -mx-[var(--gutter)] flex snap-x gap-4 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
-              {otherMatches.slice(0, 4).map((m) => (
-                <li key={m.id} className="contents md:block">
-                  <MatchEventCard match={m} />
-                </li>
-              ))}
-            </ul>
+            <div className="mt-10">
+              <StackList items={otherMatches.slice(0, 4).map((m) => ({ key: m.id, node: <MatchEventCard match={m} /> }))} />
+            </div>
             {otherMatches.length > 4 && (
               <MatchCalendarList
                 rows={otherMatches.slice(4).map((m) => ({

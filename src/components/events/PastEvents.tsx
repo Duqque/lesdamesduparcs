@@ -8,10 +8,11 @@ export function PastEvents({ events, initial = 4 }: { events: EventCardData[]; i
   const shown = all ? events : events.slice(0, initial);
   return (
     <>
-      <ul className="-mx-[var(--gutter)] flex snap-x gap-4 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
+      {/* Mobile : cartes empilées les unes sous les autres ; dès la tablette, grille. */}
+      <ul className="grid gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
         {shown.map((e) => (
-          <li key={e.id} className="contents md:block">
-            <EventGridCard event={e} />
+          <li key={e.id} className="flex">
+            <EventGridCard event={e} className="!w-full" />
           </li>
         ))}
       </ul>

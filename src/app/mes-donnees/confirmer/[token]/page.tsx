@@ -13,7 +13,7 @@ export default async function ConfirmPage({ params, searchParams }: { params: Pr
   const hash = createHash("sha256").update(token).digest("hex");
   const req = await privacyRequests.findOne((r) => r.tokenHash === hash);
   return (
-    <main className="pb-28 pt-[120px] md:pt-[200px]">
+    <main className="pb-28 pt-[150px] md:pt-[200px]">
       <div className={`${wrap} max-w-[720px]`}>
         <p className="t-eyebrow">Vos données</p>
         <h1 className="mt-4 break-words t-h1">Confirmer ma demande</h1>

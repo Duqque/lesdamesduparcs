@@ -95,7 +95,8 @@ export function ReserveBar({ event }: { event: ClubEvent }) {
     <div
       role="region"
       aria-label={hasTicket ? "Mon billet" : "Réserver ma place"}
-      className="fixed inset-x-3 bottom-3 z-40 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:inset-x-auto md:bottom-6 md:left-1/2 md:-translate-x-1/2"
+      // Masquée sous le menu du bas sur mobile et tablette : le bouton « Réserver ma place » du haut de page suffit.
+      className="fixed inset-x-3 bottom-3 z-40 max-lg:hidden transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:inset-x-auto md:bottom-6 md:left-1/2 md:-translate-x-1/2"
     >
       <div className="flex items-center gap-4 rounded-[14px] border border-white/[0.14] bg-night-950/85 p-2 pl-5 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.9)] backdrop-blur-xl md:gap-8 md:p-2.5 md:pl-7">
         <div className="hidden min-w-0 md:block">

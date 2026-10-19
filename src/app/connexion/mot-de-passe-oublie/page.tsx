@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Mot de passe oublié", robots: { ind
 
 export default function ForgotPage() {
   return (
-    <main className="pb-28 pt-[120px] md:pt-[200px]">
+    <main className="pb-28 pt-[150px] md:pt-[200px]">
       <div className={`${wrap} max-w-[520px]`}>
         <p className="t-eyebrow">Espace membre</p>
         <h1 className="mt-4 break-words t-h1">Mot de passe</h1>
