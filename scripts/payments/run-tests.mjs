@@ -347,6 +347,11 @@ r = await call("POST", "/api/scanner/checkin", { origin: null, headers: SCAN, js
 ok("API scanner : second passage → « already » avec l'heure du premier", r.data.result === "already" && !!r.data.attendedAt, JSON.stringify(r.data));
 ok("API scanner : code inconnu → « unknown »", (await call("POST", "/api/scanner/checkin", { origin: null, headers: SCAN, json: { code: "999999999999" } })).data.result === "unknown");
 ok("API scanner : présence tracée au journal d'activité", read("audit_log").some((a) => a.actorId === "scanner" && a.entityId === reg.id));
+r = await call("POST", "/api/scanner/checkout", { origin: null, headers: SCAN, json: { code: paidReg.ticketCode, controller: "Admin" } });
+ok("API scanner : billet remis à valide → redevient absente sur le site", r.status === 200 && r.data.result === "absent" && read("registrations").find((x) => x.id === reg.id).attended === false, JSON.stringify(r.data));
+r = await call("POST", "/api/scanner/checkin", { origin: null, headers: SCAN, json: { code: paidReg.ticketCode } });
+ok("API scanner : après remise à valide, nouveau scan → présente", r.data.result === "present", JSON.stringify(r.data));
+ok("API scanner : annulation de présence refusée sans clé (401)", (await call("POST", "/api/scanner/checkout", { origin: null, json: { code: paidReg.ticketCode } })).status === 401);
 patchRow("registrations", reg.id, { attended: null, attendedAt: undefined });
 r = await call("DELETE", `/api/events/${BARCA}/register`, { c: cA });
 ok("Annulation par la participante : acceptée, message « non remboursé »", r.status === 200 && /pas remboursé/.test(r.data.message), JSON.stringify(r.data));

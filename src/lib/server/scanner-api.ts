@@ -85,3 +85,20 @@ export async function scannerCheckin(input: { code?: unknown; scannedAt?: unknow
   await auditLog.insert({ actorId: "scanner", actorName: `Contrôle des billets (${who})`, action: "présence", entity: "inscription", entityId: r.id, label: `Billet ${code} scanné à l'entrée : ${r.firstName} ${r.lastName}` });
   return { result: "present" as const, attendedAt: at, id: r.id };
 }
+
+/**
+ * Présence annulée par l'application de contrôle (billet remis à « valide » par un administrateur : erreur de scan, sortie
+ * autorisée) : la participante redevient absente, son billet peut de nouveau être scanné.
+ */
+export async function scannerCheckout(input: { code?: unknown; controller?: unknown }) {
+  const code = typeof input.code === "string" ? input.code.replace(/\D/g, "") : "";
+  if (code.length !== 12) return { result: "unknown" as const };
+  const found = await findByTicketCode(code);
+  if (!found) return { result: "unknown" as const };
+  const r = found.reg;
+  if (r.attended !== true) return { result: "absent" as const, id: r.id };
+  await updateRegistration(r.id, { attended: false, attendedAt: undefined });
+  const who = typeof input.controller === "string" ? input.controller.slice(0, 60) : "application de contrôle";
+  await auditLog.insert({ actorId: "scanner", actorName: `Contrôle des billets (${who})`, action: "présence annulée", entity: "inscription", entityId: r.id, label: `Billet ${code} remis à valide : ${r.firstName} ${r.lastName} redevient absente` });
+  return { result: "absent" as const, id: r.id };
+}
